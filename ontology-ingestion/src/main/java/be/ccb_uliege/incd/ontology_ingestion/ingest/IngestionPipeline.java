@@ -2,6 +2,7 @@ package be.ccb_uliege.incd.ontology_ingestion.ingest;
 
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -18,15 +19,24 @@ public class IngestionPipeline {
    public static void run(Model model, Classes classes, Properties properties) {
       CsvIngester csvIngester = new CsvIngester();
 
+      // Load YAML-driven mappers
+      YamlMapperFactory yamlMapperFactory = new YamlMapperFactory(classes, properties);
+      Map<String, SourceMapper> yamlMappers = new LinkedHashMap<>();
+      for (SourceMapper mapper : yamlMapperFactory.getMappers()) {
+         if (mapper instanceof YamlSourceMapper ysm) {
+            yamlMappers.put(ysm.getName(), mapper);
+         }
+      }
+
       // File/mapper pairs to ingest
       Map<Path, Pair<SourceMapper, Character>> ingestionTasks = new LinkedHashMap<>();
       ingestionTasks.put(
-            Path.of("c:\\Users\\Robert_Louan\\Downloads\\DFIR_Automation_Results_2\\wks02\\QuickWins\\Chainsaw_results\\sigma.csv"), 
-            Pair.of(new SigmaMapper(classes, properties), ';')
+            Path.of("c:\\Users\\Robert_Louan\\Downloads\\DFIR_Automation_Results_2\\wks02\\QuickWins\\Chainsaw_results\\sigma.csv"),
+            Pair.of(yamlMappers.get("SigmaMapper"), ';')
       );
       ingestionTasks.put(
          Path.of("c:\\Users\\Robert_Louan\\Downloads\\DFIR_Automation_Results_2\\wks02\\QuickWins\\Chainsaw_results\\antivirus.csv"),
-         Pair.of(new AntivirusMapper(classes, properties), ';')
+         Pair.of(yamlMappers.get("AntivirusMapper"), ';')
       );
       ingestionTasks.put(
          Path.of("c:\\Users\\Robert_Louan\\Downloads\\DFIR_Automation_Results_2\\wks02\\QuickWins\\Chainsaw_results\\account_tampering.csv"),
