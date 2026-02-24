@@ -24,16 +24,16 @@ public class Properties {
 
    private void loadProperties() {
       try {
-         loader.getModel()
-               .listResourcesWithProperty(loader.getModel().getProperty(RDF.type.getURI()),
-                     loader.getModel().getResource(OWL.ObjectProperty.getURI()))
+         loader.getOntologyModel()
+               .listResourcesWithProperty(loader.getOntologyModel().getProperty(RDF.type.getURI()),
+                     loader.getOntologyModel().getResource(OWL.ObjectProperty.getURI()))
                .forEachRemaining(
-                     r -> properties.put(r.getURI().split("#")[1], loader.getModel().getProperty(r.getURI())));
-         loader.getModel()
-               .listResourcesWithProperty(loader.getModel().getProperty(RDF.type.getURI()),
-                     loader.getModel().getResource(OWL.DatatypeProperty.getURI()))
+                     r -> properties.put(r.getURI().split("#")[1], loader.getOntologyModel().getProperty(r.getURI())));
+         loader.getOntologyModel()
+               .listResourcesWithProperty(loader.getOntologyModel().getProperty(RDF.type.getURI()),
+                     loader.getOntologyModel().getResource(OWL.DatatypeProperty.getURI()))
                .forEachRemaining(
-                     r -> dataProperties.put(r.getURI().split("#")[1], loader.getModel().getProperty(r.getURI())));
+                     r -> dataProperties.put(r.getURI().split("#")[1], loader.getOntologyModel().getProperty(r.getURI())));
       } catch (Exception e) {
          e.printStackTrace();
          // If error occurs, likely to be a problem with the ontology file path or
@@ -58,7 +58,7 @@ public class Properties {
    }
 
    public Literal createLiteralProperty(Object value, RDFDatatype datatype) {
-      return loader.getModel().createTypedLiteral(value, datatype);
+      return loader.getDataModel().createTypedLiteral(value, datatype);
    }
 
    /**

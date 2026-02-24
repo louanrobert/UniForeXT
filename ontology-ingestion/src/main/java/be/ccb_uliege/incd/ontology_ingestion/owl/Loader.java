@@ -2,6 +2,7 @@ package be.ccb_uliege.incd.ontology_ingestion.owl;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 
@@ -10,7 +11,12 @@ import lombok.Getter;
 @Getter
 public class Loader {
 
-   private Model model;
+   /** The ontology schema model (read-only, loaded from file). */
+   private Model ontologyModel;
+
+   /** The data model for ingested triples. References the ontology via owl:imports and prefix. */
+   private Model dataModel;
+
    private static final String ONTOLOGY_PATH_ENV = "ONTOLOGY_FILE_PATH";
    private static final String DEFAULT_ONTOLOGY_PATH = "c:\\Users\\Robert_Louan\\OneDrive - FED BE\\Documents\\TFE\\ontology.rdf";
    private static final String path = System.getenv(ONTOLOGY_PATH_ENV) != null
@@ -19,30 +25,50 @@ public class Loader {
    @Getter private static String base = "http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#";
 
    public Loader() {
-      model = ModelFactory.createDefaultModel();
-      model.read(path);
+      // Load the ontology schema from file
+      ontologyModel = ModelFactory.createDefaultModel();
+      ontologyModel.read(path);
+
+      // Create a separate data model for ingested instances
+      dataModel = ModelFactory.createDefaultModel();
+      String ontologyIRI = base.substring(0, base.length() - 1); // Remove trailing '#'
+      dataModel.setNsPrefix("ufr", base);
+      dataModel.setNsPrefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+      dataModel.setNsPrefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
+      dataModel.setNsPrefix("owl", "http://www.w3.org/2002/07/owl#");
+      dataModel.setNsPrefix("xsd", "http://www.w3.org/2001/XMLSchema#");
+
+      // Declare the data model as an ontology that imports the schema ontology
+      Resource dataOntology = dataModel.createResource(ontologyIRI + "/data");
+      dataOntology.addProperty(RDF.type, OWL.Ontology);
+      dataOntology.addProperty(OWL.imports, dataModel.createResource(ontologyIRI));
    }
 
-   public long getSize() {
-      return model.size();
+   public long getOntologySize() {
+      return ontologyModel.size();
+   }
+
+   public long getDataSize() {
+      return dataModel.size();
    }
 
    public void prettyPrint() {
-      // Print the size of the model
-      System.out.println("Model size: " + getSize() + " statements");
+      // Print the size of the ontology model
+      System.out.println("Ontology model size: " + getOntologySize() + " statements");
+      System.out.println("Data model size: " + getDataSize() + " statements");
       // List all classes (resources of type owl:Class)
       System.out.println("\n--- Classes ---");
-      model.listResourcesWithProperty(RDF.type, OWL.Class)
+      ontologyModel.listResourcesWithProperty(RDF.type, OWL.Class)
             .forEachRemaining(r -> System.out.println(r.getURI()));
 
       // List all properties
       System.out.println("\n--- Properties ---");
-      model.listResourcesWithProperty(RDF.type, OWL.ObjectProperty)
+      ontologyModel.listResourcesWithProperty(RDF.type, OWL.ObjectProperty)
             .forEachRemaining(r -> System.out.println(r.getURI()));
 
       // List all data properties
       System.out.println("\n--- Data Properties ---");
-      model.listResourcesWithProperty(RDF.type, OWL.DatatypeProperty)
+      ontologyModel.listResourcesWithProperty(RDF.type, OWL.DatatypeProperty)
             .forEachRemaining(r -> System.out.println(r.getURI()));
    }
 }
