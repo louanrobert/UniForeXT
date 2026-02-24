@@ -1,5 +1,6 @@
 package be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.chainsaw;
 
+import org.apache.jena.atlas.lib.Pair;
 import org.apache.jena.datatypes.xsd.impl.RDFLangString;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
@@ -64,5 +65,24 @@ public class ChainsawGenerics {
       Literal userLiteral = properties.createLiteralProperty(r.get("User"), RDFLangString.rdfLangString);
       properties.addUniqueDataProperty(user, "hasName", userLiteral);
       detection.addProperty(properties.getProperty("hasUser"), user);
+   }
+
+   public static void addTechnique(Classes classes, Properties properties, Resource detection, String technique) {
+      if(technique == null) {
+         return;
+      }
+      Literal techniqueLiteral = properties.createLiteralProperty(technique, RDFLangString.rdfLangString);
+      detection.addProperty(properties.getDataProperty("hasTechnique"), techniqueLiteral);
+   }
+
+   public static Pair<String, String> extractTechnique(String detection) {
+      // Example : T1070.009 - Scheduled Task was Deleted
+      if(detection.contains(" - ")) {
+         String techniqueId = detection.split(" - ")[0].trim();
+         String techniqueDescription = detection.split(" - ")[1].trim();
+         return new Pair<>(techniqueId, techniqueDescription);
+      } else {
+         return new Pair<>(detection, null);
+      }
    }
 }

@@ -20,7 +20,7 @@ public class Classes {
 
    private void loadClasses() {
       try {
-      loader.getModel().listResourcesWithProperty(loader.getModel().getProperty(RDF.type.getURI()), loader.getModel().getResource(OWL.Class.getURI()))
+      loader.getOntologyModel().listResourcesWithProperty(loader.getOntologyModel().getProperty(RDF.type.getURI()), loader.getOntologyModel().getResource(OWL.Class.getURI()))
             .forEachRemaining(r -> classes.put(r.getURI().split("#")[1], r));
       } catch (Exception e) {
          e.printStackTrace();
@@ -42,7 +42,7 @@ public class Classes {
          throw new IllegalArgumentException("Class not found: " + className);
       }
       individualName = individualName.replaceAll("[^a-zA-Z0-9]", "_");
-      Resource individual = loader.getModel().createResource(Loader.getBase() + className + "/" + individualName);
+      Resource individual = loader.getDataModel().createResource(Loader.getBase() + className + "-" + individualName);
       individual.addProperty(RDF.type, cls);
       return individual;
    }
