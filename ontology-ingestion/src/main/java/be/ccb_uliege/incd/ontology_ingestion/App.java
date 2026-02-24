@@ -14,13 +14,13 @@ public final class App {
     private App() {
     }
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
         Loader l = new Loader();
 
         Classes c = new Classes(l);
         Properties p = new Properties(l);
 
-        IngestionPipeline.run(l.getModel(), c, p);
-        RDFDataMgr.write(new FileOutputStream("debug.ttl"), l.getModel(), RDFFormat.TURTLE_PRETTY);
+        IngestionPipeline.run(l.getDataModel(), c, p);
+        RDFDataMgr.write(new FileOutputStream("debug.ttl"), l.getDataModel(), RDFFormat.TURTLE_PRETTY);
     }
 }
