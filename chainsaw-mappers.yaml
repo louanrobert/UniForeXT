@@ -1,0 +1,138 @@
+genericMappings:
+  addTimestamp:
+    - sourceField: "timestamp"
+      type: dataProperty
+      owlProperty: hasTimestamp
+
+  addComputer:
+    - type: linkedIndividual
+      owlClass: Computer
+      linkProperty: hasComputer
+      identifier:
+        fields: "Computer"
+      dataProperties:
+        - sourceField: "Computer"
+          type: dataProperty
+          owlProperty: hasHostname
+
+  addLogFile:
+    - type: linkedIndividual
+      owlClass: LogFile
+      linkProperty: hasLogFile
+      identifier:
+        fields: "path"
+        useHash: true
+      nestedLinks:
+        - type: linkedIndividual
+          owlClass: Path
+          linkProperty: hasPath
+          identifier:
+            fields: "path"
+            useHash: true
+          nestedLinks:
+            - sourceField: "path"
+              type: dataProperty
+              owlProperty: hasContent
+
+  addUser:
+    - type: linkedIndividual
+      owlClass: User
+      linkProperty: hasUser
+      identifier:
+        fields: "User"
+      dataProperties:
+        - sourceField: "User"
+          type: dataProperty
+          owlProperty: hasName
+
+  addName:
+    - sourceField: "detections"
+      type: dataProperty
+      owlProperty: hasName
+
+mappers:
+  - name: AntivirusMapper
+    file: TODO
+    owlClass: Antivirus
+    identifier:
+      fields:
+        - "Threat Name"
+        - "timestamp"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addLogFile
+      - addUser
+    fieldMappings:
+      - sourceField: "Threat Name"
+        type: dataProperty
+        owlProperty: hasName
+      - sourceField: "detections"
+        type: dataProperty
+        owlProperty: hasDescription
+        prefix: "Antivirus detection: "
+      - sourceField: "Threat Path"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Threat Path: "
+      - sourceField: "SHA1"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "SHA1: "
+      - sourceField: "Threat Type"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Threat Type: "
+
+  - name: SigmaMapper
+    file: TODO
+    owlClass: Sigma
+    identifier:
+      fields:
+        - "detections"
+        - "timestamp"
+      separator: "_"
+    staticProperties:
+      - owlProperty: hasDescription
+        value: "Sigma detection"
+    generics:
+      - addName
+      - addTimestamp
+      - addLogFile
+      - addComputer
+    fieldMappings:
+      - sourceField: "Event Data"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+
+  - name: AccountTamperingMapper
+    file: TODO
+    owlClass: AccountTampering
+    identifier:
+      fields:
+        - "detections"
+        - "timestamp"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addLogFile
+      - addUser
+    fieldMappings:
+      - sourceField: "detections"
+        type: dataProperty
+        owlProperty: hasName
+      - sourceField: "User SID"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "User SID: "
+      - sourceField: "Member SID"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Member SID: "

@@ -2,7 +2,6 @@ package be.ccb_uliege.incd.ontology_ingestion.ingest;
 
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -10,7 +9,7 @@ import org.apache.jena.rdf.model.Model;
 
 import be.ccb_uliege.incd.ontology_ingestion.ingest.implementations.csv.CsvIngester;
 import be.ccb_uliege.incd.ontology_ingestion.ingest.interfaces.SourceMapper;
-import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.chainsaw.*;
+import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.YamlMapperFactory;
 import be.ccb_uliege.incd.ontology_ingestion.owl.Classes;
 import be.ccb_uliege.incd.ontology_ingestion.owl.Properties;
 
@@ -21,31 +20,25 @@ public class IngestionPipeline {
 
       // Load YAML-driven mappers
       YamlMapperFactory yamlMapperFactory = new YamlMapperFactory(classes, properties);
-      Map<String, SourceMapper> yamlMappers = new LinkedHashMap<>();
-      for (SourceMapper mapper : yamlMapperFactory.getMappers()) {
-         if (mapper instanceof YamlSourceMapper ysm) {
-            yamlMappers.put(ysm.getName(), mapper);
-         }
-      }
 
       // File/mapper pairs to ingest
       Map<Path, Pair<SourceMapper, Character>> ingestionTasks = new LinkedHashMap<>();
       ingestionTasks.put(
             Path.of("c:\\Users\\Robert_Louan\\Downloads\\DFIR_Automation_Results_2\\wks02\\QuickWins\\Chainsaw_results\\sigma.csv"),
-            Pair.of(yamlMappers.get("SigmaMapper"), ';')
+            Pair.of(yamlMapperFactory.getMapper("SigmaMapper"), ';')
       );
       ingestionTasks.put(
          Path.of("c:\\Users\\Robert_Louan\\Downloads\\DFIR_Automation_Results_2\\wks02\\QuickWins\\Chainsaw_results\\antivirus.csv"),
-         Pair.of(yamlMappers.get("AntivirusMapper"), ';')
+         Pair.of(yamlMapperFactory.getMapper("AntivirusMapper"), ';')
       );
       ingestionTasks.put(
          Path.of("c:\\Users\\Robert_Louan\\Downloads\\DFIR_Automation_Results_2\\wks02\\QuickWins\\Chainsaw_results\\account_tampering.csv"),
-         Pair.of(new AccountTamperingMapper(classes, properties), ';')
+         Pair.of(yamlMapperFactory.getMapper("AccountTamperingMapper"), ';')
       );
-      ingestionTasks.put(
-         Path.of("c:\\Users\\Robert_Louan\\Downloads\\DFIR_Automation_Results_2\\wks02\\QuickWins\\Chainsaw_results\\indicator_removal.csv"),
-         Pair.of(new IndicatorRemovalMapper(classes, properties), ';')
-      );
+      // ingestionTasks.put(
+      //    Path.of("c:\\Users\\Robert_Louan\\Downloads\\DFIR_Automation_Results_2\\wks02\\QuickWins\\Chainsaw_results\\indicator_removal.csv"),
+      //    Pair.of(new IndicatorRemovalMapper(classes, properties), ';')
+      // );
 
       // Execute ingestion tasks
       ingestionTasks.forEach((file, mapperAndDelimiter) -> {
