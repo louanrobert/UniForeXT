@@ -66,135 +66,36 @@ public class GraphView {
     private String buildHtml() {
         return """
 <!DOCTYPE html>
-<html>
+<html lang="en" class="dark uk-theme-zinc uk-radii-md uk-shadows-sm uk-font-sm">
 <head>
     <meta charset="UTF-8">
+    <link rel="preconnect" href="https://rsms.me/" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/franken-ui@latest/dist/css/core.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/franken-ui@2.1.2/dist/css/utilities.min.css"/>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #1a1a2e;
-            color: #e0e0e0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-        #toolbar {
-            background: linear-gradient(135deg, #16213e, #0f3460);
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-bottom: 2px solid #e94560;
-            flex-shrink: 0;
-        }
-        #toolbar h2 {
-            font-size: 15px;
-            color: #e94560;
-            font-weight: 600;
-        }
-        #toolbar .info {
-            font-size: 12px;
-            color: #8899aa;
-            margin-left: auto;
-        }
-        .btn {
-            padding: 5px 12px;
-            background: #0f3460;
-            border: 1px solid #2a2a4a;
-            border-radius: 4px;
-            color: #c0c0c0;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-        .btn:hover {
-            background: #e94560;
-            color: white;
-            border-color: #e94560;
-        }
-        #graph-wrapper {
-            flex: 1;
-            position: relative;
-        }
-        #graph-container {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-        }
-        #legend {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(22,33,62,0.95);
-            border: 1px solid #2a2a4a;
-            border-radius: 6px;
-            font-size: 11px;
-            z-index: 20;
-            pointer-events: auto;
-            overflow: hidden;
-        }
-        #legend-header {
-            padding: 8px 12px;
-            color: #e94560;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        #legend-header:hover {
-            background: rgba(233,69,96,0.1);
-        }
-        #legend-header .toggle-arrow {
-            font-size: 10px;
-            transition: transform 0.2s;
-        }
-        #legend.collapsed #legend-header .toggle-arrow {
-            transform: rotate(-90deg);
-        }
-        #legend-body {
-            padding: 0 12px 8px 12px;
-        }
-        #legend.collapsed #legend-body {
-            display: none;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 4px;
-        }
-        .legend-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        #node-info {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            right: 10px;
-            background: rgba(22,33,62,0.95);
-            border: 1px solid #2a2a4a;
-            border-radius: 6px;
-            padding: 12px 16px;
-            font-size: 12px;
-            max-height: 150px;
-            overflow-y: auto;
-            display: none;
-            z-index: 20;
-            pointer-events: auto;
-        }
-        #node-info h4 { color: #e94560; margin-bottom: 4px; }
-        #node-info .uri { color: #8899aa; font-size: 10px; word-break: break-all; }
+        :root { font-family: Inter, sans-serif; font-feature-settings: 'liga' 1, 'calt' 1; }
+        @supports (font-variation-settings: normal) { :root { font-family: InterVariable, sans-serif; } }
+    </style>
+    <style>
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        input, textarea, #node-info { user-select: text; -webkit-user-select: text; }
+        #toolbar { border-bottom: 1px solid hsl(var(--border) / 0.15); }
+        #legend { box-shadow: 0 4px 16px rgba(0,0,0,0.4); border: 1px solid hsl(var(--border) / 0.15); }
+        #legend-header:hover { background: hsl(var(--accent)); }
+        #legend-header .toggle-arrow { transition: transform 0.2s; }
+        #legend.collapsed #legend-header .toggle-arrow { transform: rotate(-90deg); }
+        #legend-body { overflow: hidden; transition: max-height 0.25s ease, opacity 0.25s ease; max-height: 500px; opacity: 1; }
+        #legend.collapsed #legend-body { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; }
+        #node-info { max-height: 150px; box-shadow: 0 4px 16px rgba(0,0,0,0.4); border: 1px solid hsl(var(--border) / 0.15); }
+        #node-info h4 { color: hsl(var(--foreground)); margin-bottom: 4px; font-weight: 600; }
+        #node-info .uri { color: hsl(var(--muted-foreground)); font-size: 10px; word-break: break-all; }
+        .uk-btn { padding-left: 16px; padding-right: 16px; }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #1a1a2e; }
-        ::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 3px; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: hsl(var(--background)); }
+        ::-webkit-scrollbar-thumb { background: hsl(var(--muted)); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: hsl(var(--accent)); }
 
         /* Hide directional navigation arrows */
         .vis-button.vis-up,
@@ -203,18 +104,16 @@ public class GraphView {
         .vis-button.vis-right {
             display: none !important;
         }
-        /* Style zoom controls to match dark theme */
-        .vis-navigation {
-            background: transparent;
-        }
+        /* Style zoom controls to match theme */
+        .vis-navigation { background: transparent; }
         .vis-button.vis-zoomIn,
         .vis-button.vis-zoomOut,
         .vis-button.vis-zoomExtends {
-            background-color: rgba(22,33,62,0.9) !important;
-            border: 1px solid #2a2a4a !important;
-            border-radius: 4px !important;
+            background-color: hsl(var(--card)) !important;
+            border: 1px solid hsl(var(--border) / 0.15) !important;
+            border-radius: 6px !important;
             background-image: none !important;
-            color: #e0e0e0 !important;
+            color: hsl(var(--foreground)) !important;
             width: 30px !important;
             height: 30px !important;
             line-height: 30px !important;
@@ -225,108 +124,34 @@ public class GraphView {
         .vis-button.vis-zoomIn:hover,
         .vis-button.vis-zoomOut:hover,
         .vis-button.vis-zoomExtends:hover {
-            background-color: #e94560 !important;
-            border-color: #e94560 !important;
+            background-color: hsl(var(--accent)) !important;
+            border-color: hsl(var(--border) / 0.3) !important;
         }
         .vis-button.vis-zoomIn::after { content: '+'; font-size: 18px; font-weight: bold; }
         .vis-button.vis-zoomOut::after { content: '-'; font-size: 18px; font-weight: bold; }
         .vis-button.vis-zoomExtends::after { content: 'fit'; font-size: 16px; }
 
         /* Expansion dialog */
-        #expansion-dialog-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.6);
-            z-index: 200;
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
-        #expansion-dialog {
-            background: #16213e;
-            border: 1px solid #e94560;
-            border-radius: 8px;
-            padding: 20px 24px;
-            min-width: 340px;
-            max-width: 440px;
-            max-height: 80vh;
-            overflow-y: auto;
-            color: #e0e0e0;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        }
-        #expansion-dialog h3 {
-            color: #e94560;
-            margin-bottom: 4px;
-            font-size: 15px;
-        }
-        .type-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 5px 8px;
-            border-radius: 4px;
-            margin-bottom: 2px;
-            cursor: pointer;
-            font-size: 13px;
-        }
-        .type-row:hover {
-            background: rgba(233,69,96,0.1);
-        }
-        .type-row .count {
-            margin-left: auto;
-            color: #8899aa;
-            font-size: 12px;
-        }
-        .type-dot {
-            width: 12px; height: 12px;
-            border-radius: 50%;
-            flex-shrink: 0;
-            display: inline-block;
-        }
-        .dialog-controls {
-            margin-top: 14px;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            font-size: 13px;
-        }
-        .dialog-controls input[type="number"] {
-            padding: 4px 8px;
-            background: #0f3460;
-            border: 1px solid #2a2a4a;
-            border-radius: 4px;
-            color: #e0e0e0;
-            font-size: 12px;
-            width: 60px;
-        }
-        .dialog-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 16px;
-            justify-content: flex-end;
-        }
-        .dialog-actions .expand-btn {
-            background: #e94560 !important;
-            color: white !important;
-            border-color: #e94560 !important;
-        }
+        #expansion-dialog { box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 1px solid hsl(var(--border) / 0.15); }
+        .type-row:hover { background: hsl(var(--accent)); }
+        .dialog-controls input[type="number"]:focus { border-color: hsl(var(--ring)); }
     </style>
     <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 </head>
-<body>
-    <div id="toolbar">
-        <h2>&#x1F578; Neighborhood Graph</h2>
-        <button class="btn" onclick="fitGraph()">Fit View</button>
-        <button class="btn" onclick="togglePhysics()">Toggle Physics</button>
-        <button class="btn" onclick="resetGraph()">Reset</button>
-        <span class="info" id="graph-stats"></span>
+<body class="bg-background text-foreground flex flex-col h-screen overflow-hidden">
+    <div class="bg-card px-6 py-4 flex items-center gap-4 shrink-0 border-b border-border" id="toolbar">
+        <h2 class="text-base text-foreground font-semibold tracking-tight">&#x1F578; Neighborhood Graph</h2>
+        <button class="uk-btn uk-btn-default uk-btn-xs" onclick="fitGraph()">Fit View</button>
+        <button class="uk-btn uk-btn-default uk-btn-xs" onclick="togglePhysics()">Toggle Physics</button>
+        <button class="uk-btn uk-btn-default uk-btn-xs" onclick="resetGraph()">Reset</button>
+        <span class="text-xs text-muted-foreground ml-auto" id="graph-stats"></span>
     </div>
-    <div id="graph-wrapper">
-        <div id="graph-container"></div>
-        <div id="legend"></div>
-        <div id="node-info"></div>
-        <div id="expansion-dialog-overlay">
-            <div id="expansion-dialog"></div>
+    <div class="flex-1 relative" id="graph-wrapper">
+        <div class="absolute inset-0" id="graph-container"></div>
+        <div class="absolute top-2.5 right-2.5 bg-popover rounded-md text-xs z-20 pointer-events-auto overflow-hidden text-popover-foreground min-w-[160px]" id="legend"></div>
+        <div class="absolute bottom-2.5 left-2.5 right-2.5 bg-popover rounded-md px-4 py-3 text-xs overflow-y-auto hidden z-20 pointer-events-auto text-popover-foreground" id="node-info"></div>
+        <div class="absolute inset-0 bg-black/60 z-[200] hidden justify-center items-center p-4" id="expansion-dialog-overlay">
+            <div class="bg-popover rounded-lg px-6 py-5 min-w-[340px] max-w-[440px] max-h-[80vh] overflow-y-auto text-popover-foreground" id="expansion-dialog"></div>
         </div>
     </div>
 
@@ -393,6 +218,38 @@ public class GraphView {
 
                 network = new vis.Network(container, { nodes: nodesDataSet, edges: edgesDataSet }, options);
 
+                // Draw dot grid on the canvas (moves & scales with the graph)
+                var DOT_SPACING = 40;  // world-coordinate spacing between dots
+                var DOT_RADIUS = 1.2;
+                var DOT_COLOR = 'rgba(160,160,160,0.45)';
+                network.on('beforeDrawing', function(ctx) {
+                    // ctx is in world coordinates — vis.js already applied the camera transform
+                    var scale = network.getScale();
+                    var viewPos = network.getViewPosition();  // center of viewport in world coords
+                    var rect = container.getBoundingClientRect();
+                    var halfW = (rect.width / scale) / 2;
+                    var halfH = (rect.height / scale) / 2;
+
+                    var left = viewPos.x - halfW;
+                    var right = viewPos.x + halfW;
+                    var top = viewPos.y - halfH;
+                    var bottom = viewPos.y + halfH;
+
+                    // Snap to grid
+                    var startX = Math.floor(left / DOT_SPACING) * DOT_SPACING;
+                    var startY = Math.floor(top / DOT_SPACING) * DOT_SPACING;
+
+                    ctx.fillStyle = DOT_COLOR;
+                    ctx.beginPath();
+                    for (var x = startX; x <= right; x += DOT_SPACING) {
+                        for (var y = startY; y <= bottom; y += DOT_SPACING) {
+                            ctx.moveTo(x + DOT_RADIUS, y);
+                            ctx.arc(x, y, DOT_RADIUS, 0, 2 * Math.PI);
+                        }
+                    }
+                    ctx.fill();
+                });
+
                 // Double-click to expand
                 network.on('doubleClick', function(params) {
                     if (params.nodes.length > 0) {
@@ -422,7 +279,7 @@ public class GraphView {
             } catch (e) {
                 javaBridge.log('Error initializing graph: ' + e.message);
                 document.getElementById('graph-container').innerHTML =
-                    '<div style="padding:40px;text-align:center;color:#e94560;">' +
+                    '<div class="p-10 text-center text-destructive">' +
                     '<h2>Error</h2><p>' + e.message + '</p></div>';
             }
         }
@@ -489,43 +346,43 @@ public class GraphView {
             pendingExpandNodeId = nodeId;
             var dialog = document.getElementById('expansion-dialog');
             var nodeLabel = getNodeLabel(nodeId);
-            var html = '<h3>Expand "' + escapeHtml(nodeLabel) + '"</h3>';
-            html += '<p style="color:#8899aa;margin-bottom:12px">' + summary.totalCount + ' neighbors found</p>';
-            html += '<div style="margin-bottom:6px;font-size:12px;color:#8899aa">Select types to load:</div>';
+            var html = '<h3 class="text-foreground mb-1 text-sm font-semibold">Expand "' + escapeHtml(nodeLabel) + '"</h3>';
+            html += '<p class="text-muted-foreground mb-3 text-xs">' + summary.totalCount + ' neighbors found</p>';
+            html += '<div class="mb-1.5 text-xs text-muted-foreground">Select types to load:</div>';
 
             summary.types.sort(function(a, b) { return b.count - a.count; });
 
             for (var i = 0; i < summary.types.length; i++) {
                 var t = summary.types[i];
                 var defaultChecked = t.count <= EXPAND_THRESHOLD ? ' checked' : '';
-                html += '<label class="type-row">';
+                html += '<label class="type-row flex items-center gap-2 px-2 py-1 rounded-md mb-0.5 cursor-pointer text-xs">';
                 html += '<input type="checkbox" class="type-check" value="' + escapeHtml(t.type) + '"' + defaultChecked + '>';
-                html += '<span class="type-dot" style="background:' + t.color + '"></span>';
+                html += '<span class="type-dot w-3 h-3 rounded-full shrink-0 inline-block" style="background:' + t.color + '"></span>';
                 html += '<span>' + escapeHtml(t.type) + '</span>';
-                html += '<span class="count">(' + t.count + ')</span>';
+                html += '<span class="ml-auto text-muted-foreground text-xs">(' + t.count + ')</span>';
                 html += '</label>';
             }
 
             if (summary.literalCount > 0) {
-                html += '<label class="type-row">';
+                html += '<label class="type-row flex items-center gap-2 px-2 py-1 rounded-md mb-0.5 cursor-pointer text-xs">';
                 html += '<input type="checkbox" id="include-literals" checked>';
-                html += '<span class="type-dot" style="background:#f0f0f0;border:1px solid #666"></span>';
+                html += '<span class="type-dot w-3 h-3 rounded-full shrink-0 inline-block" style="background:#f0f0f0;border:1px solid #666"></span>';
                 html += '<span>Data properties</span>';
-                html += '<span class="count">(' + summary.literalCount + ')</span>';
+                html += '<span class="ml-auto text-muted-foreground text-xs">(' + summary.literalCount + ')</span>';
                 html += '</label>';
             }
 
-            html += '<div class="dialog-controls">';
+            html += '<div class="mt-3.5 flex gap-2 items-center text-xs text-foreground">';
             html += '<label>Max per type:</label>';
-            html += '<input type="number" id="max-per-type" value="25" min="0" title="0 = no limit">';
-            html += '<span style="font-size:11px;color:#666;margin-left:4px">(0 = all)</span>';
+            html += '<input type="number" class="px-2 py-1 bg-background border border-border rounded-md text-foreground text-xs outline-none" style="width:60px" id="max-per-type" value="25" min="0" title="0 = no limit">';
+            html += '<span class="text-xs text-muted-foreground ml-1">(0 = all)</span>';
             html += '</div>';
 
-            html += '<div class="dialog-actions">';
-            html += '<button class="btn" onclick="selectAllTypes(true)">All</button>';
-            html += '<button class="btn" onclick="selectAllTypes(false)">None</button>';
-            html += '<button class="btn expand-btn" onclick="confirmExpansion()">Expand</button>';
-            html += '<button class="btn" onclick="cancelExpansion()">Cancel</button>';
+            html += '<div class="flex gap-2 mt-4 justify-end">';
+            html += '<button class="uk-btn uk-btn-default uk-btn-xs" onclick="selectAllTypes(true)">All</button>';
+            html += '<button class="uk-btn uk-btn-default uk-btn-xs" onclick="selectAllTypes(false)">None</button>';
+            html += '<button class="uk-btn uk-btn-primary uk-btn-xs" onclick="confirmExpansion()">Expand</button>';
+            html += '<button class="uk-btn uk-btn-default uk-btn-xs" onclick="cancelExpansion()">Cancel</button>';
             html += '</div>';
 
             dialog.innerHTML = html;
@@ -708,14 +565,14 @@ public class GraphView {
             var legend = document.getElementById('legend');
             var wasCollapsed = legend.classList.contains('collapsed');
             var body = '';
-            body += '<div class="legend-item"><span class="legend-dot" style="background:#ccc;border:2px solid #59a14f"></span> Explored</div>';
-            body += '<div class="legend-item"><span class="legend-dot" style="background:#ccc;border:2px solid #999"></span> Not explored</div>';
+            body += '<div class="flex items-center gap-1.5 mb-1"><span class="w-3 h-3 rounded-full inline-block" style="background:#ccc;border:2px solid #59a14f"></span> Explored</div>';
+            body += '<div class="flex items-center gap-1.5 mb-1"><span class="w-3 h-3 rounded-full inline-block" style="background:#ccc;border:2px solid #999"></span> Not explored</div>';
             body += '<hr style="border-color:#2a2a4a;margin:6px 0">';
             for (var type in types) {
-                body += '<div class="legend-item"><span class="legend-dot" style="background:' + types[type] + '"></span> ' + escapeHtml(type) + '</div>';
+                body += '<div class="flex items-center gap-1.5 mb-1"><span class="w-3 h-3 rounded-full inline-block" style="background:' + types[type] + '"></span> ' + escapeHtml(type) + '</div>';
             }
-            legend.innerHTML = '<div id="legend-header" onclick="toggleLegend()"><span class="toggle-arrow">&#x25BC;</span> Legend</div>' +
-                               '<div id="legend-body">' + body + '</div>';
+            legend.innerHTML = '<div class="px-3 py-2 bg-secondary text-secondary-foreground text-xs font-semibold cursor-pointer select-none flex items-center gap-1.5" id="legend-header" onclick="toggleLegend()"><span class="toggle-arrow" style="font-size:10px">&#x25BC;</span> Legend</div>' +
+                               '<div class="px-3 py-2" id="legend-body">' + body + '</div>';
             if (wasCollapsed) legend.classList.add('collapsed');
         }
 
