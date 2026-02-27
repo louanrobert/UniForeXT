@@ -113,6 +113,29 @@ public class TimelineView {
             background: hsl(var(--card)) !important;
             border-bottom: 2px solid hsl(var(--border) / 0.6) !important;
         }
+        /* Pure CSS sticky group headers:
+           Remove overflow barriers between .vis-inner and #timeline-container
+           so position:sticky references the native scroll container. */
+        #timeline-container {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+        #timeline-container .vis-timeline {
+            min-height: 100% !important;
+        }
+        .vis-timeline,
+        .vis-panel.vis-left,
+        .vis-panel.vis-left .vis-labelset,
+        .vis-labelset .vis-label {
+            overflow: visible !important;
+        }
+        .vis-label .vis-inner {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: inherit;
+        }
         .vis-foreground .vis-group {
             border-bottom: 2px solid hsl(var(--border) / 0.6) !important;
         }
@@ -128,6 +151,8 @@ public class TimelineView {
         .vis-item {
             border-radius: 6px !important;
             font-size: 11px !important;
+            overflow: visible !important;
+            white-space: nowrap !important;
         }
         .vis-item.vis-selected {
             border-color: hsl(var(--ring)) !important;
@@ -176,7 +201,7 @@ public class TimelineView {
     <div id="filter-bar" class="bg-card flex items-center gap-2.5 px-4 py-2 shrink-0 flex-wrap">
         <span class="shrink-0 uppercase text-muted-foreground">Filter:</span>
         <input type="text" class="uk-input bg-background border border-border rounded-md text-foreground text-xs outline-none shrink-0" id="name-filter" placeholder="Search by name..." oninput="applyFilters()">
-        <div class="flex flex-row" id="category-chips"></div>
+        <div class="flex flex-row gap-2.5" id="category-chips"></div>
         <span class="text-xs text-muted-foreground shrink-0" id="filter-match-count"></span>
         <div class="flex items-center gap-1 flex-wrap" id="filter-tags"></div>
         <div class="ml-auto flex gap-1.5 shrink-0" id="filter-actions">
@@ -188,7 +213,7 @@ public class TimelineView {
     <div class="hidden fixed bg-popover rounded-md py-1 text-xs text-popover-foreground" id="context-menu"></div>
     <div class="flex flex-1 overflow-hidden" id="main-content">
         <div class="flex-1 flex flex-col overflow-hidden" id="timeline-area">
-            <div class="flex-1 overflow-hidden" id="timeline-container"></div>
+            <div class="flex-1" id="timeline-container"></div>
             <div class="h-8 bg-card relative shrink-0 cursor-pointer" id="minimap"><canvas class="w-full h-full block" id="minimap-canvas"></canvas><div class="absolute top-0 h-full pointer-events-none" id="minimap-viewport"></div></div>
         </div>
         <div id="sidebar" class="expanded bg-card flex flex-col overflow-hidden">
@@ -208,6 +233,7 @@ public class TimelineView {
         var timeline = null;
         var allUndated = [];
         var allItems = [];
+        var allItemTimestamps = [];  // pre-computed numeric timestamps for the minimap to avoid repeated Date parsing
         var itemsDataSet = null;
         var globalMin = null;
         var globalMax = null;
@@ -228,19 +254,44 @@ public class TimelineView {
                 var groups = JSON.parse(groupsJson);
                 allUndated = JSON.parse(undatedJson);
 
+                // Pre-compute timestamps for minimap (avoids repeated Date parsing)
+                allItemTimestamps = allItems.map(function(it) {
+                    return { ts: new Date(it.start).getTime(), group: it.group };
+                });
+
                 // Update stats
                 document.getElementById('stats').textContent =
                     allItems.length + ' dated items | ' + allUndated.length + ' undated items';
 
-                // Compute global date range from items
-                var dates = allItems.map(function(it) { return new Date(it.start).getTime(); });
-                if (dates.length > 0) {
-                    var rawMin = Math.min.apply(null, dates);
-                    var rawMax = Math.max.apply(null, dates);
+                // Compute global date range from pre-computed timestamps
+                if (allItemTimestamps.length > 0) {
+                    var rawMin = Infinity, rawMax = -Infinity;
+                    for (var i = 0; i < allItemTimestamps.length; i++) {
+                        var t = allItemTimestamps[i].ts;
+                        if (t < rawMin) rawMin = t;
+                        if (t > rawMax) rawMax = t;
+                    }
                     var range = rawMax - rawMin;
-                    var padding = Math.max(range * 0.10, 1000 * 60 * 60 * 24 * 2); // 10% or at least 2 days
-                    globalMin = new Date(rawMin - padding);
-                    globalMax = new Date(rawMax + padding);
+                    var basePadding = Math.max(range * 0.10, 1000 * 60 * 60 * 24 * 2); // 10% or at least 2 days
+
+                    // Adaptive extra padding: estimate extra time needed for wide item labels.
+                    // Find the longest item content text, estimate its pixel width,
+                    // then convert to time units so the item box won't clip at edges.
+                    var maxContentLen = 0;
+                    allItems.forEach(function(it) {
+                        var tmp = document.createElement('div');
+                        tmp.innerHTML = it.content || '';
+                        var plain = tmp.textContent || tmp.innerText || '';
+                        if (plain.length > maxContentLen) maxContentLen = plain.length;
+                    });
+                    // ~6.5px per char at 11px font, plus ~20px padding inside the vis-item box
+                    var estimatedMaxItemPx = maxContentLen * 6.5 + 20;
+                    // Convert pixel width to time: assume ~1200px-wide center panel
+                    var assumedPanelWidth = 1200;
+                    var extraTimePadding = (estimatedMaxItemPx / assumedPanelWidth) * range;
+
+                    globalMin = new Date(rawMin - basePadding - extraTimePadding);
+                    globalMax = new Date(rawMax + basePadding + extraTimePadding);
                 } else {
                     globalMin = new Date();
                     globalMax = new Date();
@@ -264,7 +315,6 @@ public class TimelineView {
                 groupSet = new vis.DataSet(groups);
 
                 var options = {
-                    height: '100%',
                     stack: true,
                     showMajorLabels: true,
                     showMinorLabels: true,
@@ -278,7 +328,7 @@ public class TimelineView {
                         overflowMethod: 'cap'
                     },
                     margin: { item: 5 },
-                    verticalScroll: true
+                    zoomKey: 'ctrlKey'
                 };
 
                 timeline = new vis.Timeline(container, itemsDataSet, groupSet, options);
@@ -311,21 +361,21 @@ public class TimelineView {
                 // Hide context menu on click anywhere
                 document.addEventListener('click', function() { hideContextMenu(); });
 
-                // Update minimap on range change
-                timeline.on('rangechanged', function() { updateMinimapViewport(); });
-                timeline.on('rangechange', function() { updateMinimapViewport(); });
+                // Update minimap and group visibility on range change (both during drag and on release)
+                timeline.on('rangechanged', function() { updateMinimapViewport(); hideEmptyGroupsForWindow(); });
+                timeline.on('rangechange', function() { updateMinimapViewport(); hideEmptyGroupsForWindow(); });
 
                 // Populate undated sidebar
                 renderUndated(allUndated);
 
                 // Draw minimap
-                drawMinimap();
+                drawMinimapFromTimestamps(allItemTimestamps);
                 updateMinimapViewport();
                 setupMinimapInteraction();
 
                 // Redraw minimap on resize
                 window.addEventListener('resize', function() {
-                    drawMinimap();
+                    drawMinimapFromTimestamps(allItemTimestamps);
                     updateMinimapViewport();
                 });
 
@@ -338,9 +388,9 @@ public class TimelineView {
             }
         }
 
-        /* ── Minimap (colored event scrollbar) ── */
+        /* ── Minimap (colored event scrollbar) ── uses pre-computed timestamps */
 
-        function drawMinimap() {
+        function drawMinimapFromTimestamps(timestamps) {
             var canvas = document.getElementById('minimap-canvas');
             var rect = canvas.parentElement.getBoundingClientRect();
             canvas.width = rect.width * (window.devicePixelRatio || 1);
@@ -351,28 +401,24 @@ public class TimelineView {
             var h = rect.height;
 
             ctx.clearRect(0, 0, w, h);
-
-            // Background
             ctx.fillStyle = '#171717';
             ctx.fillRect(0, 0, w, h);
 
-            if (!globalMin || !globalMax || allItems.length === 0) return;
+            if (!globalMin || !globalMax || timestamps.length === 0) return;
 
             var tMin = globalMin.getTime();
             var tMax = globalMax.getTime();
             var tRange = tMax - tMin;
             if (tRange <= 0) return;
 
-            // Draw tick marks for each event
             var barHeight = h - 6;
-            allItems.forEach(function(item) {
-                var t = new Date(item.start).getTime();
-                var x = ((t - tMin) / tRange) * w;
-                var color = typeColorMap[item.group] || '#4e79a7';
-                ctx.fillStyle = color;
-                ctx.globalAlpha = 0.7;
+            ctx.globalAlpha = 0.7;
+            for (var i = 0; i < timestamps.length; i++) {
+                var entry = timestamps[i];
+                var x = ((entry.ts - tMin) / tRange) * w;
+                ctx.fillStyle = typeColorMap[entry.group] || '#4e79a7';
                 ctx.fillRect(x - 1, 3, 2.5, barHeight);
-            });
+            }
             ctx.globalAlpha = 1.0;
         }
 
@@ -441,7 +487,7 @@ public class TimelineView {
             }
             // Redraw minimap after layout settles
             setTimeout(function() {
-                drawMinimap();
+                drawMinimapFromTimestamps(allItemTimestamps);
                 updateMinimapViewport();
             }, 300);
         }
@@ -576,28 +622,57 @@ public class TimelineView {
                 return true;
             });
 
-            // Update the DataSet
-            itemsDataSet.clear();
-            itemsDataSet.add(filtered);
-
-            // Hide empty groups, show non-empty ones
-            if (groupSet) {
-                var populatedGroups = new Set();
-                filtered.forEach(function(it) { populatedGroups.add(it.group); });
-                allGroups.forEach(function(g) {
-                    var isActive = activeCategories.has(g.id);
-                    var hasItems = populatedGroups.has(g.id);
-                    var visible = isActive && hasItems;
-                    groupSet.update({ id: g.id, visible: visible });
-                });
+            // Update the DataSet efficiently: compute ids to add/remove
+            var filteredIds = new Set();
+            filtered.forEach(function(it) { filteredIds.add(it.id); });
+            var currentIds = itemsDataSet.getIds();
+            var toRemove = [];
+            for (var r = 0; r < currentIds.length; r++) {
+                if (!filteredIds.has(currentIds[r])) toRemove.push(currentIds[r]);
             }
+            var currentIdSet = new Set(currentIds);
+            var toAdd = filtered.filter(function(it) { return !currentIdSet.has(it.id); });
+            if (toRemove.length > 0) itemsDataSet.remove(toRemove);
+            if (toAdd.length > 0) itemsDataSet.add(toAdd);
+
+            // Hide empty groups, show non-empty ones (considering visible time window)
+            hideEmptyGroupsForWindow();
 
             // Update match count
             document.getElementById('filter-match-count').textContent =
                 filtered.length + ' / ' + allItems.length + ' events';
 
-            // Redraw minimap with filtered items only
-            drawMinimapFiltered(filtered);
+            // Redraw minimap with filtered items only — build timestamps on the fly
+            var filteredTimestamps = filtered.map(function(it) {
+                return { ts: new Date(it.start).getTime(), group: it.group };
+            });
+            drawMinimapFromTimestamps(filteredTimestamps);
+        }
+
+        /* ── Hide groups with no items in visible time window ── */
+
+        function hideEmptyGroupsForWindow() {
+            if (!groupSet || !timeline) return;
+            var win = timeline.getWindow();
+            var winStart = win.start.getTime();
+            var winEnd = win.end.getTime();
+
+            // Get currently displayed items (after filters)
+            var currentItems = itemsDataSet.get();
+            var populatedGroups = new Set();
+            currentItems.forEach(function(it) {
+                var ts = new Date(it.start).getTime();
+                if (ts >= winStart && ts <= winEnd) {
+                    populatedGroups.add(it.group);
+                }
+            });
+
+            allGroups.forEach(function(g) {
+                var isActive = activeCategories.has(g.id);
+                var hasItemsInWindow = populatedGroups.has(g.id);
+                var visible = isActive && hasItemsInWindow;
+                groupSet.update({ id: g.id, visible: visible });
+            });
         }
 
         /* ── Context menu ── */
@@ -730,43 +805,11 @@ public class TimelineView {
             container.innerHTML = html;
         }
 
-        function drawMinimapFiltered(items) {
-            var canvas = document.getElementById('minimap-canvas');
-            var rect = canvas.parentElement.getBoundingClientRect();
-            canvas.width = rect.width * (window.devicePixelRatio || 1);
-            canvas.height = rect.height * (window.devicePixelRatio || 1);
-            var ctx = canvas.getContext('2d');
-            ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
-            var w = rect.width;
-            var h = rect.height;
-
-            ctx.clearRect(0, 0, w, h);
-            ctx.fillStyle = '#171717';
-            ctx.fillRect(0, 0, w, h);
-
-            if (!globalMin || !globalMax || items.length === 0) return;
-
-            var tMin = globalMin.getTime();
-            var tMax = globalMax.getTime();
-            var tRange = tMax - tMin;
-            if (tRange <= 0) return;
-
-            var barHeight = h - 6;
-            items.forEach(function(item) {
-                var t = new Date(item.start).getTime();
-                var x = ((t - tMin) / tRange) * w;
-                var color = typeColorMap[item.group] || '#4e79a7';
-                ctx.fillStyle = color;
-                ctx.globalAlpha = 0.7;
-                ctx.fillRect(x - 1, 3, 2.5, barHeight);
-            });
-            ctx.globalAlpha = 1.0;
-        }
-
+        // Reusable element for escapeHtml (avoids creating a new element each call)
+        var _escDiv = document.createElement('div');
         function escapeHtml(text) {
-            var div = document.createElement('div');
-            div.appendChild(document.createTextNode(text));
-            return div.innerHTML;
+            _escDiv.textContent = text;
+            return _escDiv.innerHTML;
         }
     </script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/franken-ui@latest/dist/js/core.iife.js"></script>
