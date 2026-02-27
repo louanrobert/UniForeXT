@@ -27,6 +27,21 @@ public class OntologyService {
     /** Cache: individual URI -> JSON neighborhood string */
     private final Map<String, String> neighborhoodCache = new ConcurrentHashMap<>();
 
+    /** Cache: individual URI -> JSON neighbor summary string */
+    private final Map<String, String> neighborSummaryCache = new ConcurrentHashMap<>();
+
+    /** Cache: detected date properties (computed once) */
+    private volatile Set<Property> datePropertiesCache;
+
+    /** Cache: timeline items (computed once, invalidated never since model is read-only) */
+    private volatile List<TimelineItem> timelineItemsCache;
+
+    /** Cache: resource URI -> label */
+    private final Map<String, String> labelCache = new ConcurrentHashMap<>();
+
+    /** Cache: resource URI -> type */
+    private final Map<String, String> typeCache = new ConcurrentHashMap<>();
+
     /** Set of property URIs considered as date/time properties */
     private static final Set<String> DATE_PROPERTIES = Set.of(
         "http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasTimestamp",
@@ -50,6 +65,10 @@ public class OntologyService {
     public OntologyService(String ttlFilePath) {
         model = ModelFactory.createDefaultModel();
         model.read(ttlFilePath);
+        // Pre-resolve frequently-used property references
+        propHasName = model.getProperty(
+            "http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasName");
+        propRdfsLabel = model.getProperty("http://www.w3.org/2000/01/rdf-schema#label");
     }
 
     /**
@@ -74,8 +93,10 @@ public class OntologyService {
 
     /**
      * Find all properties in the model that carry date-like values.
+     * Result is cached after the first call.
      */
     private Set<Property> detectDateProperties() {
+        if (datePropertiesCache != null) return datePropertiesCache;
         Set<Property> result = new HashSet<>();
         // Check known date property URIs
         for (String uri : DATE_PROPERTIES) {
@@ -84,29 +105,48 @@ public class OntologyService {
                 result.add(p);
             }
         }
+        // Track which predicate URIs we've already confirmed as non-date
+        Set<String> checkedNonDateProps = new HashSet<>();
         // Also scan for any literal property whose value looks like a date
         StmtIterator iter = model.listStatements();
         while (iter.hasNext()) {
             Statement stmt = iter.next();
             if (stmt.getObject().isLiteral()) {
                 String propUri = stmt.getPredicate().getURI();
-                if (!DATE_PROPERTIES.contains(propUri)) {
+                if (!DATE_PROPERTIES.contains(propUri) && !result.contains(stmt.getPredicate())
+                        && !checkedNonDateProps.contains(propUri)) {
                     String val = stmt.getObject().asLiteral().getString();
-                    if (tryParseDate(val) != null && !result.contains(stmt.getPredicate())) {
+                    if (tryParseDate(val) != null) {
                         result.add(stmt.getPredicate());
+                    } else {
+                        checkedNonDateProps.add(propUri);
                     }
                 }
             }
         }
-        return result;
+        datePropertiesCache = Collections.unmodifiableSet(result);
+        return datePropertiesCache;
     }
 
     /**
+     * Quick regex pre-check to avoid expensive parse attempts on clearly non-date strings.
+     * Matches strings that start with 2–4 digits followed by a common date separator
+     * ('/' or '-') or 'T', which is typical of the date formats we support (e.g.
+     * "2024-01-31", "31/01/2024", "2024-01-31T10:15:30"). This is intentionally a
+     * loose filter to skip obviously non-date values before running full parsers.
+     */
+    private static final java.util.regex.Pattern DATE_LIKE_PATTERN =
+        java.util.regex.Pattern.compile("^\\d{2,4}[/\\-T]");
+
+    /**
      * Try to parse a string as a date/time. Returns ISO string or null.
+     * Uses a regex pre-check to skip obviously non-date strings early.
      */
     private String tryParseDate(String value) {
         if (value == null || value.isBlank()) return null;
         value = value.trim();
+        // Quick reject: if it doesn't start with digits followed by a separator, skip
+        if (!DATE_LIKE_PATTERN.matcher(value).find()) return null;
         // Try ISO 8601 with offset (e.g. 2025-01-02T14:42:40.031980+00:00)
         try {
             OffsetDateTime odt = OffsetDateTime.parse(value, ISO_OFFSET);
@@ -138,9 +178,11 @@ public class OntologyService {
 
     /**
      * Extract all individuals that have a date property, grouped for the timeline.
-     * Also returns undated individuals separately.
+     * Result is cached after the first call.
      */
     public List<TimelineItem> getTimelineItems() {
+        if (timelineItemsCache != null) return timelineItemsCache;
+
         Set<Property> dateProps = detectDateProperties();
         List<TimelineItem> items = new ArrayList<>();
         Set<String> seen = new HashSet<>();
@@ -170,7 +212,8 @@ public class OntologyService {
         }
         // Sort by date
         items.sort(Comparator.comparing(TimelineItem::start));
-        return items;
+        timelineItemsCache = Collections.unmodifiableList(items);
+        return timelineItemsCache;
     }
 
     /**
@@ -384,6 +427,9 @@ public class OntologyService {
      * Returns JSON: { "totalCount": N, "literalCount": N, "types": [{ "type":"...", "count":N, "color":"..." }, ...] }
      */
     public String getNeighborSummaryJson(String individualUri) {
+        String cached = neighborSummaryCache.get(individualUri);
+        if (cached != null) return cached;
+
         Resource resource = model.getResource(individualUri);
         Map<String, Set<String>> typeUris = new LinkedHashMap<>();
         int literalCount = 0;
@@ -428,7 +474,9 @@ public class OntologyService {
         }
         summaryResult.set("types", types);
 
-        return summaryResult.toString();
+        String json = summaryResult.toString();
+        neighborSummaryCache.put(individualUri, json);
+        return json;
     }
 
     /**
@@ -601,30 +649,50 @@ public class OntologyService {
         nodes.add(node);
     }
 
+    /** Pre-resolved property references (avoids repeated model.getProperty lookups) */
+    private final Property propHasName;
+    private final Property propRdfsLabel;
+
     private String getLabel(Resource resource) {
+        String uri = resource.getURI();
+        if (uri != null) {
+            String cached = labelCache.get(uri);
+            if (cached != null) return cached;
+        }
+        String label;
         // Try ufr:hasName first
-        Property hasName = model.getProperty(
-            "http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasName");
-        Statement nameStmt = resource.getProperty(hasName);
+        Statement nameStmt = resource.getProperty(propHasName);
         if (nameStmt != null && nameStmt.getObject().isLiteral()) {
-            return nameStmt.getObject().asLiteral().getString();
+            label = nameStmt.getObject().asLiteral().getString();
+        } else {
+            // Try rdfs:label
+            Statement labelStmt = resource.getProperty(propRdfsLabel);
+            if (labelStmt != null && labelStmt.getObject().isLiteral()) {
+                label = labelStmt.getObject().asLiteral().getString();
+            } else {
+                // Fall back to local name
+                label = localName(uri);
+            }
         }
-        // Try rdfs:label
-        Property rdfsLabel = model.getProperty("http://www.w3.org/2000/01/rdf-schema#label");
-        Statement labelStmt = resource.getProperty(rdfsLabel);
-        if (labelStmt != null && labelStmt.getObject().isLiteral()) {
-            return labelStmt.getObject().asLiteral().getString();
-        }
-        // Fall back to local name
-        return localName(resource.getURI());
+        if (uri != null) labelCache.put(uri, label);
+        return label;
     }
 
     private String getType(Resource resource) {
+        String uri = resource.getURI();
+        if (uri != null) {
+            String cached = typeCache.get(uri);
+            if (cached != null) return cached;
+        }
+        String type;
         Statement typeStmt = resource.getProperty(RDF.type);
         if (typeStmt != null && typeStmt.getObject().isURIResource()) {
-            return localName(typeStmt.getObject().asResource().getURI());
+            type = localName(typeStmt.getObject().asResource().getURI());
+        } else {
+            type = "Unknown";
         }
-        return "Unknown";
+        if (uri != null) typeCache.put(uri, type);
+        return type;
     }
 
     private String buildTooltip(Resource resource) {
@@ -654,22 +722,32 @@ public class OntologyService {
     private static String escapeHtml(String text) {
         if (text == null) return "";
         return text.replace("&", "&amp;")
-                   .replace("<", "&lt;")
+    /**
+     * Assign a color based on type name (thread-safe).
+     *
+     * Note: this uses a ConcurrentHashMap for concurrent access and an AtomicInteger
+     * to step through the palette. The specific color assigned to a given type
+     * depends on the order in which types are first encountered, which may vary
+     * between runs and across threads. As a result, color assignments are not
+     * guaranteed to be stable or reproducible across executions.
+     */
                    .replace(">", "&gt;")
                    .replace("\"", "&quot;")
                    .replace("'", "&#39;");
     }
 
-    /** Assign a color based on type name */
-    private static final Map<String, String> TYPE_COLORS = new LinkedHashMap<>();
+    /** Assign a color based on type name (thread-safe) */
+    private static final Map<String, String> TYPE_COLORS = new ConcurrentHashMap<>();
     private static final String[] PALETTE = {
         "#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f",
         "#edc948", "#b07aa1", "#ff9da7", "#9c755f", "#bab0ac"
     };
-    private static int paletteIdx = 0;
+    private static final java.util.concurrent.atomic.AtomicInteger paletteIdx =
+        new java.util.concurrent.atomic.AtomicInteger(0);
 
     private static String getColorForType(String type) {
-        return TYPE_COLORS.computeIfAbsent(type, t -> PALETTE[(paletteIdx++) % PALETTE.length]);
+        return TYPE_COLORS.computeIfAbsent(type,
+            t -> PALETTE[paletteIdx.getAndIncrement() % PALETTE.length]);
     }
 
     private static String lightenColor(String hex) {
