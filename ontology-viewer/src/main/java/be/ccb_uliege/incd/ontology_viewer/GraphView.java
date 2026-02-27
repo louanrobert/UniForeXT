@@ -222,9 +222,13 @@ public class GraphView {
                 var DOT_SPACING = 40;  // world-coordinate spacing between dots
                 var DOT_RADIUS = 1.2;
                 var DOT_COLOR = 'rgba(160,160,160,0.45)';
+                var MIN_SCREEN_SPACING = 12; // minimum pixel spacing to avoid overdraw
                 network.on('beforeDrawing', function(ctx) {
                     // ctx is in world coordinates — vis.js already applied the camera transform
                     var scale = network.getScale();
+                    // Skip drawing dots if they would be too dense on screen
+                    if (DOT_SPACING * scale < MIN_SCREEN_SPACING) return;
+
                     var viewPos = network.getViewPosition();  // center of viewport in world coords
                     var rect = container.getBoundingClientRect();
                     var halfW = (rect.width / scale) / 2;
@@ -310,9 +314,11 @@ public class GraphView {
         function applyExpansionData(nodeId, data) {
             var existingNodeIds = new Set(nodesDataSet.getIds());
             var existingEdgeKeys = new Set();
-            edgesDataSet.forEach(function(e) {
+            var allEdges = edgesDataSet.get();
+            for (var i = 0; i < allEdges.length; i++) {
+                var e = allEdges[i];
                 existingEdgeKeys.add(e.from + '|' + e.to + '|' + (e.label || ''));
-            });
+            }
 
             var newNodes = [];
             var newEdges = [];
@@ -581,11 +587,12 @@ public class GraphView {
             legend.classList.toggle('collapsed');
         }
 
+        // Reusable element for escapeHtml (avoids creating a new element each call)
+        var _escDiv = document.createElement('div');
         function escapeHtml(text) {
             if (!text) return '';
-            var div = document.createElement('div');
-            div.appendChild(document.createTextNode(text));
-            return div.innerHTML;
+            _escDiv.textContent = text;
+            return _escDiv.innerHTML;
         }
     </script>
 </body>
