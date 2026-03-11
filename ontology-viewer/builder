@@ -6,7 +6,7 @@ jpackage `
    --name "Ontology Viewer" `
    --input target `
    --main-jar ontology-viewer-1.0-SNAPSHOT.jar `
-   --main-class main.java.be.ccb_uliege.incd.ontology_viewer.Launcher `
+   --main-class be.ccb_uliege.incd.ontology_viewer.Launcher `
    --java-options "--enable-native-access=javafx.graphics,javafx.web,ALL-UNNAMED" `
    --java-options "--add-opens=java.base/sun.misc=ALL-UNNAMED" `
    --dest target/installer `

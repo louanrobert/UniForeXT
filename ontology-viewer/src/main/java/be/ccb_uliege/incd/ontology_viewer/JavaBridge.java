@@ -1,4 +1,4 @@
-package main.java.be.ccb_uliege.incd.ontology_viewer;
+package be.ccb_uliege.incd.ontology_viewer;
 
 /**
  * Bridge class exposed to JavaScript inside WebView via JSObject.

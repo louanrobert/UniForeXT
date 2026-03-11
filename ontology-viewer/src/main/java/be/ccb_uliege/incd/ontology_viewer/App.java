@@ -1,4 +1,4 @@
-package main.java.be.ccb_uliege.incd.ontology_viewer;
+package be.ccb_uliege.incd.ontology_viewer;
 
 import javafx.application.Application;
 import javafx.scene.Scene;

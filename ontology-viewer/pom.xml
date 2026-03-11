@@ -14,7 +14,7 @@
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <javafx.version>21.0.2</javafx.version>
+    <javafx.version>25.0.2</javafx.version>
     <jena.version>4.10.0</jena.version>
     <jackson.version>2.16.1</jackson.version>
   </properties>
@@ -50,13 +50,6 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>${jackson.version}</version>
-    </dependency>
-
-    <!-- Anthropic Java SDK -->
-    <dependency>
-      <groupId>com.anthropic</groupId>
-      <artifactId>anthropic-java</artifactId>
-      <version>1.1.0</version>
     </dependency>
 
     <!-- Logging -->
@@ -107,7 +100,7 @@
         <artifactId>javafx-maven-plugin</artifactId>
         <version>0.0.8</version>
         <configuration>
-          <mainClass>main.java.be.ccb_uliege.incd.ontology_viewer.App</mainClass>
+          <mainClass>be.ccb_uliege.incd.ontology_viewer.App</mainClass>
           <options>
             <option>--enable-native-access=javafx.graphics,javafx.web,ALL-UNNAMED</option>
             <option>--add-opens=java.base/sun.misc=ALL-UNNAMED</option>
@@ -133,7 +126,7 @@
             <configuration>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>main.java.be.ccb_uliege.incd.ontology_viewer.Launcher</mainClass>
+                  <mainClass>be.ccb_uliege.incd.ontology_viewer.Launcher</mainClass>
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
               </transformers>

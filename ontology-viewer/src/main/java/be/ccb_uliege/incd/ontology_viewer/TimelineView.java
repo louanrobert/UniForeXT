@@ -1,4 +1,4 @@
-package main.java.be.ccb_uliege.incd.ontology_viewer;
+package be.ccb_uliege.incd.ontology_viewer;
 
 import javafx.concurrent.Worker;
 import javafx.scene.layout.BorderPane;
@@ -22,6 +22,7 @@ public class TimelineView {
     @SuppressWarnings("unused")
     private JavaBridge bridgeRef;
 
+    @SuppressWarnings("removal")
     public TimelineView(JavaBridge bridge) {
         this.bridge = bridge;
         this.bridgeRef = bridge;

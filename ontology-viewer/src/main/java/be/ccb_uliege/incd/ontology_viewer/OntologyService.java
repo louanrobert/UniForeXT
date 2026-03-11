@@ -1,4 +1,4 @@
-package main.java.be.ccb_uliege.incd.ontology_viewer;
+package be.ccb_uliege.incd.ontology_viewer;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -87,6 +87,7 @@ public class OntologyService {
      * Detect whether a property is a date/time property, either by URI match
      * or by checking if literal values look like dates.
      */
+    @SuppressWarnings("unused")
     private boolean isDateProperty(Property prop) {
         return DATE_PROPERTIES.contains(prop.getURI());
     }
