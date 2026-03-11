@@ -10,6 +10,9 @@ import be.ccb_uliege.incd.ontology_ingestion.owl.Classes;
 import be.ccb_uliege.incd.ontology_ingestion.owl.Loader;
 import be.ccb_uliege.incd.ontology_ingestion.owl.Properties;
 
+/**
+ * Main application class
+ */
 public final class App {
     private App() {
     }

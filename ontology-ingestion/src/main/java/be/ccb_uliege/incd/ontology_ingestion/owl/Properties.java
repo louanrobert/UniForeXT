@@ -10,6 +10,13 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 
+/**
+ * This class is responsible for loading and managing the properties defined in the ontology.
+ * It uses the Loader to access the ontology model and extracts all resources that are of type OWL.ObjectProperty and OWL.DatatypeProperty.
+ * It provides methods to retrieve properties by name, create literals with specific datatypes, and add properties to resources while ensuring that duplicate properties are not added.
+ * The property names are expected to be the local part of the URI (after the #).
+ * The addUniqueDataProperty and addUniqueObjectProperty methods check if the resource already has the specified property before adding it, ensuring that duplicate properties are not created.
+ */
 public class Properties {
 
    private Map<String, Property> properties = new HashMap<>();
@@ -45,10 +52,21 @@ public class Properties {
       }
    }
 
+   /**
+    * Retrieves an object property by its local name.
+    * @param name the local name of the property (the part of the URI after the #)
+    * @return the Property representing the object property, or null if no property with the given
+    */
    public Property getProperty(String name) {
       return properties.get(name);
    }
 
+   /**
+    * Retrieves a data property by its local name.
+    * @param name the local name of the property (the part of the URI after the #)
+    * @return the Property representing the data property, or null if no property with the given name is found
+    * @throws IllegalArgumentException if no data property with the given name is found
+    */
    public Property getDataProperty(String name) {
       Property property = dataProperties.get(name);
       if (property == null) {
@@ -57,6 +75,12 @@ public class Properties {
       return property;
    }
 
+   /**
+    * Creates a typed literal with the given value and RDF datatype.
+    * @param value the value of the literal
+    * @param datatype the RDFDatatype to use for the literal
+    * @return a Literal representing the typed literal
+    */
    public Literal createLiteralProperty(Object value, RDFDatatype datatype) {
       return loader.getDataModel().createTypedLiteral(value, datatype);
    }
