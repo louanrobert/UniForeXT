@@ -36,6 +36,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://unpkg.com/@sgratzl/chartjs-chart-boxplot@4"></script>
+    <script src="https://unpkg.com/chartjs-chart-matrix@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
@@ -122,11 +123,13 @@
             gap: 16px;
             padding-bottom: 6px;
             flex-shrink: 0;
+            flex-wrap: wrap;
         }
         .control-group {
             display: flex;
             align-items: center;
             gap: 4px;
+            flex-wrap: wrap;
         }
         .control-label {
             font-size: 10px;
@@ -491,7 +494,14 @@
                 <span class="control-label">View:</span>
                 <button class="ctrl-btn chart-btn active" data-chart="bar" onclick="setChartType('bar')" title="Stacked bars"><i data-lucide="bar-chart-3" style="width:14px;height:14px"></i> Bars</button>
                 <button class="ctrl-btn chart-btn" data-chart="line" onclick="setChartType('line')" title="Line chart"><i data-lucide="trending-up" style="width:14px;height:14px"></i> Lines</button>
+                <button class="ctrl-btn chart-btn" data-chart="area" onclick="setChartType('area')" title="Stacked area"><i data-lucide="layers" style="width:14px;height:14px"></i> Area</button>
+                <button class="ctrl-btn chart-btn" data-chart="cumulative" onclick="setChartType('cumulative')" title="Cumulative line"><i data-lucide="arrow-up-right" style="width:14px;height:14px"></i> Cumul.</button>
                 <button class="ctrl-btn chart-btn" data-chart="boxplot" onclick="setChartType('boxplot')" title="Box plot"><i data-lucide="box-select" style="width:14px;height:14px"></i> Box</button>
+                <button class="ctrl-btn chart-btn" data-chart="violin" onclick="setChartType('violin')" title="Violin plot"><i data-lucide="activity" style="width:14px;height:14px"></i> Violin</button>
+                <button class="ctrl-btn chart-btn" data-chart="pie" onclick="setChartType('pie')" title="Type distribution"><i data-lucide="pie-chart" style="width:14px;height:14px"></i> Donut</button>
+                <button class="ctrl-btn chart-btn" data-chart="scatter" onclick="setChartType('scatter')" title="Timeline scatter"><i data-lucide="circle-dot" style="width:14px;height:14px"></i> Scatter</button>
+                <button class="ctrl-btn chart-btn" data-chart="heatmap" onclick="setChartType('heatmap')" title="Day × Hour heatmap"><i data-lucide="grid-3x3" style="width:14px;height:14px"></i> Heat</button>
+                <button class="ctrl-btn chart-btn" data-chart="radar" onclick="setChartType('radar')" title="Day-of-week radar"><i data-lucide="radar" style="width:14px;height:14px"></i> Radar</button>
             </div>
         </div>
         <div id="histogram-chart-wrap">
@@ -664,10 +674,18 @@
             if (histogramChart) { histogramChart.destroy(); histogramChart = null; }
             if (allEvents.length === 0) return;
             var unit = getEffectiveUnit();
-            if (currentChartType === 'boxplot') {
-                buildBoxPlotChart(unit);
-            } else {
-                buildBarLineChart(unit, currentChartType);
+            switch (currentChartType) {
+                case 'bar':        buildBarChart(unit); break;
+                case 'line':       buildLineChart(unit); break;
+                case 'boxplot':    buildBoxPlotChart(unit); break;
+                case 'violin':     buildViolinChart(unit); break;
+                case 'area':       buildAreaChart(unit); break;
+                case 'cumulative': buildCumulativeChart(unit); break;
+                case 'pie':        buildPieChart(); break;
+                case 'scatter':    buildScatterChart(unit); break;
+                case 'heatmap':    buildHeatmapChart(unit); break;
+                case 'radar':      buildRadarChart(unit); break;
+                default:           buildBarChart(unit); break;
             }
         }
 
@@ -732,42 +750,31 @@
             return Math.ceil((((dt - yearStart) / 86400000) + 1) / 7);
         }
 
-        /* ── Bar / Line chart ── */
+        /* ── Bar chart (stacked) ── */
 
-        function buildBarLineChart(unit, chartType) {
+        function buildBarChart(unit) {
             var agg = aggregateIntoBuckets(unit);
             var types = Object.keys(agg.byType);
-
             var datasets = types.map(function(type) {
                 var data = agg.bucketKeys.map(function(bk) {
                     return { x: new Date(bk).toISOString(), y: agg.byType[type][bk] || 0 };
                 });
                 var color = typeColorMap[type] || '#a6cee3';
-                var ds = {
+                return {
                     label: type,
                     data: data,
                     backgroundColor: color + 'CC',
                     borderColor: color,
-                    borderWidth: chartType === 'line' ? 2 : 1,
+                    borderWidth: 1,
+                    borderRadius: 2,
+                    barPercentage: 0.9,
+                    categoryPercentage: 0.9,
                     hidden: !activeTypes.has(type)
                 };
-                if (chartType === 'bar') {
-                    ds.borderRadius = 2;
-                    ds.barPercentage = 0.9;
-                    ds.categoryPercentage = 0.9;
-                } else {
-                    ds.fill = true;
-                    ds.backgroundColor = color + '33';
-                    ds.tension = 0.3;
-                    ds.pointRadius = 3;
-                    ds.pointHoverRadius = 5;
-                }
-                return ds;
             });
-
             var ctx = document.getElementById('histogram-canvas').getContext('2d');
             histogramChart = new Chart(ctx, {
-                type: chartType,
+                type: 'bar',
                 data: { datasets: datasets },
                 options: {
                     responsive: true,
@@ -777,16 +784,11 @@
                     plugins: {
                         legend: {
                             display: true, position: 'top', align: 'end',
-                            labels: {
-                                color: 'hsl(0 0% 63%)', font: { size: 10 },
-                                boxWidth: 10, boxHeight: 10, padding: 8,
-                                usePointStyle: true, pointStyle: 'circle'
-                            }
+                            labels: { color: 'hsl(0 0% 63%)', font: { size: 10 }, boxWidth: 10, boxHeight: 10, padding: 8, usePointStyle: true, pointStyle: 'circle' }
                         },
                         tooltip: {
                             mode: 'index', intersect: false,
-                            backgroundColor: 'rgba(20,20,30,0.95)',
-                            titleColor: '#fff', bodyColor: '#ccc',
+                            backgroundColor: 'rgba(20,20,30,0.95)', titleColor: '#fff', bodyColor: '#ccc',
                             borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10,
                             callbacks: {
                                 title: function(items) {
@@ -802,15 +804,92 @@
                     },
                     scales: {
                         x: {
-                            type: 'time',
-                            time: { unit: unit, round: unit },
-                            stacked: chartType === 'bar',
+                            type: 'time', time: { unit: unit, round: unit }, stacked: true,
                             grid: { color: 'rgba(255,255,255,0.05)' },
                             ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, maxRotation: 0 },
                             border: { color: 'rgba(255,255,255,0.1)' }
                         },
                         y: {
-                            stacked: chartType === 'bar',
+                            stacked: true, beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, stepSize: 1, precision: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' },
+                            title: { display: true, text: 'Events', color: 'hsl(0 0% 63%)', font: { size: 10 } }
+                        }
+                    },
+                    onClick: function(evt, elements) {
+                        if (elements.length > 0) {
+                            var el = elements[0];
+                            var ds = histogramChart.data.datasets[el.datasetIndex];
+                            var point = ds.data[el.index];
+                            if (point && point.x) scrollToTime(point.x);
+                        }
+                    }
+                }
+            });
+        }
+
+        /* ── Line chart ── */
+
+        function buildLineChart(unit) {
+            var agg = aggregateIntoBuckets(unit);
+            var types = Object.keys(agg.byType);
+            var datasets = types.map(function(type) {
+                var data = agg.bucketKeys.map(function(bk) {
+                    return { x: new Date(bk).toISOString(), y: agg.byType[type][bk] || 0 };
+                });
+                var color = typeColorMap[type] || '#a6cee3';
+                return {
+                    label: type,
+                    data: data,
+                    backgroundColor: color + '33',
+                    borderColor: color,
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    hidden: !activeTypes.has(type)
+                };
+            });
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'line',
+                data: { datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 300 },
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            display: true, position: 'top', align: 'end',
+                            labels: { color: 'hsl(0 0% 63%)', font: { size: 10 }, boxWidth: 10, boxHeight: 10, padding: 8, usePointStyle: true, pointStyle: 'circle' }
+                        },
+                        tooltip: {
+                            mode: 'index', intersect: false,
+                            backgroundColor: 'rgba(20,20,30,0.95)', titleColor: '#fff', bodyColor: '#ccc',
+                            borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10,
+                            callbacks: {
+                                title: function(items) {
+                                    if (items.length > 0) {
+                                        return new Date(items[0].parsed.x).toLocaleDateString('en-US', {
+                                            year: 'numeric', month: 'short', day: 'numeric'
+                                        });
+                                    }
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time', time: { unit: unit, round: unit },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, maxRotation: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
                             beginAtZero: true,
                             grid: { color: 'rgba(255,255,255,0.05)' },
                             ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, stepSize: 1, precision: 0 },
@@ -916,6 +995,632 @@
                             if (sortedBuckets[idx]) {
                                 scrollToTime(new Date(sortedBuckets[idx]).toISOString());
                             }
+                        }
+                    }
+                }
+            });
+        }
+
+        /* ── Area chart (stacked) ── */
+
+        function buildAreaChart(unit) {
+            var agg = aggregateIntoBuckets(unit);
+            var types = Object.keys(agg.byType);
+            var datasets = types.map(function(type) {
+                var data = agg.bucketKeys.map(function(bk) {
+                    return { x: new Date(bk).toISOString(), y: agg.byType[type][bk] || 0 };
+                });
+                var color = typeColorMap[type] || '#a6cee3';
+                return {
+                    label: type,
+                    data: data,
+                    backgroundColor: color + '55',
+                    borderColor: color,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    pointHoverRadius: 5,
+                    hidden: !activeTypes.has(type)
+                };
+            });
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'line',
+                data: { datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 300 },
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            display: true, position: 'top', align: 'end',
+                            labels: { color: 'hsl(0 0% 63%)', font: { size: 10 }, boxWidth: 10, boxHeight: 10, padding: 8, usePointStyle: true, pointStyle: 'circle' }
+                        },
+                        tooltip: {
+                            mode: 'index', intersect: false,
+                            backgroundColor: 'rgba(20,20,30,0.95)', titleColor: '#fff', bodyColor: '#ccc',
+                            borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time', time: { unit: unit, round: unit }, stacked: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, maxRotation: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            stacked: true, beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, stepSize: 1, precision: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' },
+                            title: { display: true, text: 'Events', color: 'hsl(0 0% 63%)', font: { size: 10 } }
+                        }
+                    },
+                    onClick: function(evt, elements) {
+                        if (elements.length > 0) {
+                            var el = elements[0];
+                            var ds = histogramChart.data.datasets[el.datasetIndex];
+                            var point = ds.data[el.index];
+                            if (point && point.x) scrollToTime(point.x);
+                        }
+                    }
+                }
+            });
+        }
+
+        /* ── Cumulative line chart ── */
+
+        function buildCumulativeChart(unit) {
+            var agg = aggregateIntoBuckets(unit);
+            var types = Object.keys(agg.byType);
+            var datasets = types.map(function(type) {
+                var cumulative = 0;
+                var data = agg.bucketKeys.map(function(bk) {
+                    cumulative += (agg.byType[type][bk] || 0);
+                    return { x: new Date(bk).toISOString(), y: cumulative };
+                });
+                var color = typeColorMap[type] || '#a6cee3';
+                return {
+                    label: type,
+                    data: data,
+                    backgroundColor: color + '33',
+                    borderColor: color,
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    pointHoverRadius: 5,
+                    hidden: !activeTypes.has(type)
+                };
+            });
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'line',
+                data: { datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 300 },
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            display: true, position: 'top', align: 'end',
+                            labels: { color: 'hsl(0 0% 63%)', font: { size: 10 }, boxWidth: 10, boxHeight: 10, padding: 8, usePointStyle: true, pointStyle: 'circle' }
+                        },
+                        tooltip: {
+                            mode: 'index', intersect: false,
+                            backgroundColor: 'rgba(20,20,30,0.95)', titleColor: '#fff', bodyColor: '#ccc',
+                            borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time', time: { unit: unit, round: unit },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, maxRotation: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, precision: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' },
+                            title: { display: true, text: 'Cumulative Events', color: 'hsl(0 0% 63%)', font: { size: 10 } }
+                        }
+                    },
+                    onClick: function(evt, elements) {
+                        if (elements.length > 0) {
+                            var el = elements[0];
+                            var ds = histogramChart.data.datasets[el.datasetIndex];
+                            var point = ds.data[el.index];
+                            if (point && point.x) scrollToTime(point.x);
+                        }
+                    }
+                }
+            });
+        }
+
+        /* ── Violin chart ── */
+
+        function buildViolinChart(unit) {
+            var subUnit = getSubUnit(unit);
+            var typeBucketSubs = {};
+            var allMainBuckets = new Set();
+            allEvents.forEach(function(e) {
+                var mainBk = getBucketStart(e.start, unit);
+                var subBk = getBucketStart(e.start, subUnit);
+                allMainBuckets.add(mainBk);
+                if (!typeBucketSubs[e.type]) typeBucketSubs[e.type] = {};
+                if (!typeBucketSubs[e.type][mainBk]) typeBucketSubs[e.type][mainBk] = {};
+                typeBucketSubs[e.type][mainBk][subBk] = (typeBucketSubs[e.type][mainBk][subBk] || 0) + 1;
+            });
+            var sortedBuckets = Array.from(allMainBuckets).sort(function(a, b) { return a - b; });
+            var labels = sortedBuckets.map(function(bk) { return formatBucketLabel(bk, unit); });
+            var types = Object.keys(typeBucketSubs);
+            var datasets = types.map(function(type) {
+                var color = typeColorMap[type] || '#a6cee3';
+                var data = sortedBuckets.map(function(bk) {
+                    var subs = typeBucketSubs[type] ? typeBucketSubs[type][bk] : null;
+                    if (!subs) return [0];
+                    return Object.values(subs);
+                });
+                return {
+                    label: type, data: data,
+                    backgroundColor: color + '44', borderColor: color, borderWidth: 1,
+                    outlierBackgroundColor: color, outlierRadius: 3,
+                    itemRadius: 2, itemBackgroundColor: color + '88',
+                    hidden: !activeTypes.has(type)
+                };
+            });
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'violin',
+                data: { labels: labels, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 300 },
+                    plugins: {
+                        legend: {
+                            display: true, position: 'top', align: 'end',
+                            labels: { color: 'hsl(0 0% 63%)', font: { size: 10 }, boxWidth: 10, boxHeight: 10, padding: 8, usePointStyle: true, pointStyle: 'circle' }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(20,20,30,0.95)', titleColor: '#fff', bodyColor: '#ccc',
+                            borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, maxRotation: 45 },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, stepSize: 1, precision: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' },
+                            title: { display: true, text: 'Events per ' + subUnit, color: 'hsl(0 0% 63%)', font: { size: 10 } }
+                        }
+                    },
+                    onClick: function(evt, elements) {
+                        if (elements.length > 0) {
+                            var idx = elements[0].index;
+                            if (sortedBuckets[idx]) scrollToTime(new Date(sortedBuckets[idx]).toISOString());
+                        }
+                    }
+                }
+            });
+        }
+
+        /* ── Donut chart (type distribution) ── */
+
+        function buildPieChart() {
+            var counts = {};
+            allEvents.forEach(function(e) {
+                counts[e.type] = (counts[e.type] || 0) + 1;
+            });
+            var types = Object.keys(counts).filter(function(t) { return activeTypes.has(t); });
+            var colors = types.map(function(t) { return typeColorMap[t] || '#a6cee3'; });
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: types,
+                    datasets: [{
+                        data: types.map(function(t) { return counts[t]; }),
+                        backgroundColor: colors.map(function(c) { return c + 'CC'; }),
+                        borderColor: colors,
+                        borderWidth: 2,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 300 },
+                    cutout: '50%',
+                    plugins: {
+                        legend: {
+                            display: true, position: 'right',
+                            labels: { color: 'hsl(0 0% 63%)', font: { size: 10 }, padding: 12, usePointStyle: true, pointStyle: 'circle' }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(20,20,30,0.95)', titleColor: '#fff', bodyColor: '#ccc',
+                            borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10,
+                            callbacks: {
+                                label: function(item) {
+                                    var total = item.dataset.data.reduce(function(s, v) { return s + v; }, 0);
+                                    var pct = total > 0 ? ((item.raw / total) * 100).toFixed(1) : 0;
+                                    return item.label + ': ' + item.raw + ' (' + pct + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /* ── Scatter chart (timeline strip) ── */
+
+        function buildScatterChart(unit) {
+            var types = [];
+            var typeSet = new Set();
+            allEvents.forEach(function(e) {
+                if (!typeSet.has(e.type)) { typeSet.add(e.type); types.push(e.type); }
+            });
+            var dataByType = {};
+            allEvents.forEach(function(e) {
+                if (!dataByType[e.type]) dataByType[e.type] = [];
+                dataByType[e.type].push({
+                    x: new Date(e.start).getTime(),
+                    y: types.indexOf(e.type),
+                    label: e.label,
+                    uri: e.uri
+                });
+            });
+            var datasets = types.map(function(type) {
+                var color = typeColorMap[type] || '#a6cee3';
+                return {
+                    label: type,
+                    data: dataByType[type] || [],
+                    backgroundColor: color + '88',
+                    borderColor: color,
+                    borderWidth: 1,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    hidden: !activeTypes.has(type)
+                };
+            });
+            var scatterTypes = types;
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 300 },
+                    plugins: {
+                        legend: {
+                            display: true, position: 'top', align: 'end',
+                            labels: { color: 'hsl(0 0% 63%)', font: { size: 10 }, boxWidth: 10, boxHeight: 10, padding: 8, usePointStyle: true, pointStyle: 'circle' }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(20,20,30,0.95)', titleColor: '#fff', bodyColor: '#ccc',
+                            borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10,
+                            callbacks: {
+                                title: function(items) {
+                                    if (items.length > 0) {
+                                        return new Date(items[0].parsed.x).toLocaleDateString('en-US', {
+                                            year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                                        });
+                                    }
+                                    return '';
+                                },
+                                label: function(item) {
+                                    var raw = item.raw;
+                                    return raw.label || scatterTypes[raw.y] || '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: { unit: unit, round: unit },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, maxRotation: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            type: 'linear',
+                            min: -0.5,
+                            max: types.length - 0.5,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: {
+                                color: 'hsl(0 0% 63%)', font: { size: 10 },
+                                stepSize: 1,
+                                callback: function(value) { return scatterTypes[value] || ''; }
+                            },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    },
+                    onClick: function(evt, elements) {
+                        if (elements.length > 0) {
+                            var el = elements[0];
+                            var point = histogramChart.data.datasets[el.datasetIndex].data[el.index];
+                            if (point && point.uri) selectEvent(point.uri);
+                        }
+                    }
+                }
+            });
+        }
+
+        /* ── Heatmap ── */
+
+        function getHeatmapConfig(unit) {
+            switch (unit) {
+                case 'year':
+                    return {
+                        rowCount: 12,
+                        colCount: 31,
+                        getRow: function(d) { return d.getMonth(); },
+                        getCol: function(d) { return d.getDate() - 1; },
+                        rowLabels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                        colLabel: function(v) { return '' + (v + 1); },
+                        xTitle: 'Day of Month',
+                        yTitle: 'Month',
+                        tooltipTitle: function(row, col, rowLabels) { return rowLabels[row] + ', day ' + (col + 1); }
+                    };
+                case 'quarter':
+                    return {
+                        rowCount: 3,
+                        colCount: 31,
+                        getRow: function(d) { return d.getMonth() % 3; },
+                        getCol: function(d) { return d.getDate() - 1; },
+                        rowLabels: ['Month 1','Month 2','Month 3'],
+                        colLabel: function(v) { return '' + (v + 1); },
+                        xTitle: 'Day of Month',
+                        yTitle: 'Month in Quarter',
+                        tooltipTitle: function(row, col, rowLabels) { return rowLabels[row] + ', day ' + (col + 1); }
+                    };
+                case 'month':
+                    return {
+                        rowCount: 7,
+                        colCount: 5,
+                        getRow: function(d) { var dow = d.getDay(); return dow === 0 ? 6 : dow - 1; },
+                        getCol: function(d) { return Math.floor((d.getDate() - 1) / 7); },
+                        rowLabels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                        colLabel: function(v) { return 'W' + (v + 1); },
+                        xTitle: 'Week of Month',
+                        yTitle: 'Day of Week',
+                        tooltipTitle: function(row, col, rowLabels) { return rowLabels[row] + ', week ' + (col + 1); }
+                    };
+                case 'day':
+                    return {
+                        rowCount: 1,
+                        colCount: 24,
+                        getRow: function() { return 0; },
+                        getCol: function(d) { return d.getHours(); },
+                        rowLabels: ['Events'],
+                        colLabel: function(v) { return v + ':00'; },
+                        xTitle: 'Hour of Day',
+                        yTitle: '',
+                        tooltipTitle: function(row, col) { return col + ':00'; }
+                    };
+                default: // week
+                    return {
+                        rowCount: 7,
+                        colCount: 24,
+                        getRow: function(d) { var dow = d.getDay(); return dow === 0 ? 6 : dow - 1; },
+                        getCol: function(d) { return d.getHours(); },
+                        rowLabels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                        colLabel: function(v) { return v + ':00'; },
+                        xTitle: 'Hour of Day',
+                        yTitle: 'Day of Week',
+                        tooltipTitle: function(row, col, rowLabels) { return rowLabels[row] + ' at ' + col + ':00'; }
+                    };
+            }
+        }
+
+        function buildHeatmapChart(unit) {
+            var cfg = getHeatmapConfig(unit);
+            var matrix = {};
+            allEvents.forEach(function(e) {
+                if (!activeTypes.has(e.type)) return;
+                var d = new Date(e.start);
+                var row = cfg.getRow(d);
+                var col = cfg.getCol(d);
+                var key = row + '-' + col;
+                matrix[key] = (matrix[key] || 0) + 1;
+            });
+            var data = [];
+            var maxVal = 0;
+            for (var r = 0; r < cfg.rowCount; r++) {
+                for (var c = 0; c < cfg.colCount; c++) {
+                    var val = matrix[r + '-' + c] || 0;
+                    if (val > maxVal) maxVal = val;
+                    data.push({ x: c, y: r, v: val });
+                }
+            }
+            var capturedMax = maxVal;
+            var capturedCfg = cfg;
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'matrix',
+                data: {
+                    datasets: [{
+                        label: 'Event Density',
+                        data: data,
+                        backgroundColor: function(context) {
+                            var item = context.dataset.data[context.dataIndex];
+                            if (!item || item.v === 0) return 'rgba(255,255,255,0.03)';
+                            var alpha = capturedMax > 0 ? Math.min(0.15 + (item.v / capturedMax) * 0.85, 1) : 0.15;
+                            return 'rgba(99, 102, 241, ' + alpha + ')';
+                        },
+                        borderColor: 'rgba(255,255,255,0.06)',
+                        borderWidth: 1,
+                        width: function(context) {
+                            var area = context.chart.chartArea;
+                            return area ? (area.width / capturedCfg.colCount - 2) : 10;
+                        },
+                        height: function(context) {
+                            var area = context.chart.chartArea;
+                            return area ? (area.height / capturedCfg.rowCount - 2) : 10;
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 300 },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(20,20,30,0.95)', titleColor: '#fff', bodyColor: '#ccc',
+                            borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10,
+                            callbacks: {
+                                title: function(items) {
+                                    if (items.length > 0) {
+                                        var raw = items[0].raw;
+                                        return capturedCfg.tooltipTitle(raw.y, raw.x, capturedCfg.rowLabels);
+                                    }
+                                    return '';
+                                },
+                                label: function(item) {
+                                    return item.raw.v + ' events';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear', position: 'top',
+                            min: -0.5, max: capturedCfg.colCount - 0.5,
+                            grid: { display: false },
+                            ticks: {
+                                color: 'hsl(0 0% 63%)', font: { size: 10 },
+                                stepSize: 1,
+                                callback: function(v) { return capturedCfg.colLabel(v); }
+                            },
+                            border: { color: 'rgba(255,255,255,0.1)' },
+                            title: { display: true, text: capturedCfg.xTitle, color: 'hsl(0 0% 63%)', font: { size: 10 } }
+                        },
+                        y: {
+                            type: 'linear',
+                            min: -0.5, max: capturedCfg.rowCount - 0.5,
+                            grid: { display: false },
+                            offset: true,
+                            ticks: {
+                                color: 'hsl(0 0% 63%)', font: { size: 10 },
+                                stepSize: 1,
+                                callback: function(v) { return capturedCfg.rowLabels[v] || ''; }
+                            },
+                            border: { color: 'rgba(255,255,255,0.1)' },
+                            title: { display: capturedCfg.yTitle !== '', text: capturedCfg.yTitle, color: 'hsl(0 0% 63%)', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        /* ── Radar chart (cyclical profile) ── */
+
+        function getRadarConfig(unit) {
+            switch (unit) {
+                case 'day':
+                    return {
+                        labels: ['0h','1h','2h','3h','4h','5h','6h','7h','8h','9h','10h','11h',
+                                 '12h','13h','14h','15h','16h','17h','18h','19h','20h','21h','22h','23h'],
+                        count: 24,
+                        getIndex: function(d) { return d.getHours(); }
+                    };
+                case 'year':
+                    return {
+                        labels: ['January','February','March','April','May','June',
+                                 'July','August','September','October','November','December'],
+                        count: 12,
+                        getIndex: function(d) { return d.getMonth(); }
+                    };
+                case 'quarter':
+                    return {
+                        labels: ['Month 1','Month 2','Month 3'],
+                        count: 3,
+                        getIndex: function(d) { return d.getMonth() % 3; }
+                    };
+                case 'month':
+                    return {
+                        labels: (function() { var a = []; for (var i = 1; i <= 31; i++) a.push('' + i); return a; })(),
+                        count: 31,
+                        getIndex: function(d) { return d.getDate() - 1; }
+                    };
+                default: // week
+                    return {
+                        labels: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],
+                        count: 7,
+                        getIndex: function(d) { var dow = d.getDay(); return dow === 0 ? 6 : dow - 1; }
+                    };
+            }
+        }
+
+        function buildRadarChart(unit) {
+            var cfg = getRadarConfig(unit);
+            var byType = {};
+            allEvents.forEach(function(e) {
+                if (!byType[e.type]) {
+                    byType[e.type] = [];
+                    for (var i = 0; i < cfg.count; i++) byType[e.type].push(0);
+                }
+                var d = new Date(e.start);
+                var idx = cfg.getIndex(d);
+                if (idx >= 0 && idx < cfg.count) byType[e.type][idx]++;
+            });
+            var types = Object.keys(byType);
+            var datasets = types.map(function(type) {
+                var color = typeColorMap[type] || '#a6cee3';
+                return {
+                    label: type,
+                    data: byType[type],
+                    backgroundColor: color + '33',
+                    borderColor: color,
+                    borderWidth: 2,
+                    pointBackgroundColor: color,
+                    pointBorderColor: '#fff',
+                    pointRadius: 3,
+                    pointHoverRadius: 6,
+                    hidden: !activeTypes.has(type)
+                };
+            });
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'radar',
+                data: { labels: cfg.labels, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 300 },
+                    plugins: {
+                        legend: {
+                            display: true, position: 'top', align: 'end',
+                            labels: { color: 'hsl(0 0% 63%)', font: { size: 10 }, boxWidth: 10, boxHeight: 10, padding: 8, usePointStyle: true, pointStyle: 'circle' }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(20,20,30,0.95)', titleColor: '#fff', bodyColor: '#ccc',
+                            borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            pointLabels: { color: 'hsl(0 0% 63%)', font: { size: 11 } },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 9 }, backdropColor: 'transparent', stepSize: 1 }
                         }
                     }
                 }
@@ -1050,6 +1755,11 @@
 
         function updateHistogramVisibility() {
             if (!histogramChart) return;
+            // Pie and heatmap must be fully rebuilt when type filters change
+            if (currentChartType === 'pie' || currentChartType === 'heatmap') {
+                rebuildHistogram();
+                return;
+            }
             // Show/hide datasets based on active types
             histogramChart.data.datasets.forEach(function(ds) {
                 ds.hidden = !activeTypes.has(ds.label);
