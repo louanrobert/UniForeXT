@@ -18,18 +18,8 @@ public class GraphView {
     private final Stage stage;
     private final WebView webView;
     private final WebEngine webEngine;
-    private final JavaBridge bridge;
-    private final String initialUri;
 
-    /** Strong reference to prevent GC of the bridge */
-    @SuppressWarnings("unused")
-    private JavaBridge bridgeRef;
-
-    @SuppressWarnings("removal")
     public GraphView(JavaBridge bridge, String individualUri) {
-        this.bridge = bridge;
-        this.bridgeRef = bridge;
-        this.initialUri = individualUri;
 
         stage = new Stage();
         stage.setTitle("Graph: " + OntologyService.localName(individualUri));
@@ -42,6 +32,8 @@ public class GraphView {
 
         webEngine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
             if (newState == Worker.State.SUCCEEDED) {
+                // Error is ok bc JSObject will be delivered with JavaFX in the future (JavaFX is already imported)
+                @SuppressWarnings("removal")
                 JSObject window = (JSObject) webEngine.executeScript("window");
                 window.setMember("javaBridge", bridge);
                 // Initialize graph with the individual's neighborhood

@@ -16,16 +16,9 @@ public class TimelineView {
     private final BorderPane root;
     private final WebView webView;
     private final WebEngine webEngine;
-    private final JavaBridge bridge;
 
-    /** Strong reference to prevent GC of the bridge */
-    @SuppressWarnings("unused")
-    private JavaBridge bridgeRef;
 
-    @SuppressWarnings("removal")
     public TimelineView(JavaBridge bridge) {
-        this.bridge = bridge;
-        this.bridgeRef = bridge;
 
         root = new BorderPane();
         webView = new WebView();
@@ -35,6 +28,8 @@ public class TimelineView {
         // Set up the JS bridge once the page is loaded
         webEngine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
             if (newState == Worker.State.SUCCEEDED) {
+                // Error is ok bc JSObject will be delivered with JavaFX in the future (JavaFX is already imported)
+                @SuppressWarnings("removal")
                 JSObject window = (JSObject) webEngine.executeScript("window");
                 window.setMember("javaBridge", bridge);
                 // Inject data and initialize

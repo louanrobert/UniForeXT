@@ -257,12 +257,9 @@
                     globalMax = new Date();
                 }
 
-                // Build type->color map from items
-                allItems.forEach(function(it) {
-                    if (it.style && it.group && !typeColorMap[it.group]) {
-                        var m = it.style.match(/background-color:\s*([^;]+)/);
-                        if (m) typeColorMap[it.group] = m[1].trim();
-                    }
+                // Build type->color map from server-provided group colors (single source of truth)
+                groups.forEach(function(g) {
+                    if (g.color) typeColorMap[g.id] = g.color;
                 });
 
                 // Build category chips
@@ -376,7 +373,7 @@
             for (var i = 0; i < timestamps.length; i++) {
                 var entry = timestamps[i];
                 var x = ((entry.ts - tMin) / tRange) * w;
-                ctx.fillStyle = typeColorMap[entry.group] || '#4e79a7';
+                ctx.fillStyle = typeColorMap[entry.group] || '#a6cee3';
                 ctx.fillRect(x - 1, 3, 2.5, barHeight);
             }
             ctx.globalAlpha = 1.0;
@@ -488,7 +485,7 @@
             });
             groups.forEach(function(g) {
                 activeCategories.add(g.id);
-                var color = typeColorMap[g.id] || '#4e79a7';
+                var color = typeColorMap[g.id] || '#a6cee3';
                 var chip = document.createElement('span');
                 chip.className = 'category-chip active flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs cursor-pointer select-none whitespace-nowrap';
                 chip.style.background = color + '33';

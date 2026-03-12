@@ -567,9 +567,6 @@
         var nameIncludes = [];  // [{text:'...'}] — event must match at least one
         var nameExcludes = [];  // [{text:'...'}] — event must not match any
 
-        var PALETTE = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f',
-                       '#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ac'];
-
         function initExplorer() {
             try {
                 var itemsJson = javaBridge.getTimelineItemsJson();
@@ -577,19 +574,9 @@
                 var items = JSON.parse(itemsJson);
                 var groups = JSON.parse(groupsJson);
 
-                // Build color map from groups
-                var colorIdx = 0;
+                // Build color map from provided group colors (single source of truth)
                 groups.forEach(function(g) {
-                    typeColorMap[g.id] = PALETTE[colorIdx % PALETTE.length];
-                    colorIdx++;
-                });
-
-                // Also extract colors from item styles (may override)
-                items.forEach(function(it) {
-                    if (it.style && it.group && !typeColorMap[it.group]) {
-                        var m = it.style.match(/background-color:\s*([^;]+)/);
-                        if (m) typeColorMap[it.group] = m[1].trim();
-                    }
+                    if (g.color) typeColorMap[g.id] = g.color;
                 });
 
                 // Parse items into our event list
@@ -641,6 +628,7 @@
             else if (range > msMonth * 6) autoBucketUnit = 'month';
             else if (range > msDay * 30) autoBucketUnit = 'week';
             else autoBucketUnit = 'day';
+            updateAutoLabel();
             rebuildHistogram();
         }
 
@@ -653,7 +641,15 @@
             document.querySelectorAll('.period-btn').forEach(function(b) {
                 b.classList.toggle('active', b.dataset.unit === unit);
             });
+            updateAutoLabel();
             rebuildHistogram();
+        }
+
+        function updateAutoLabel() {
+            var btn = document.querySelector('.period-btn[data-unit="auto"]');
+            if (!btn) return;
+            var resolved = autoBucketUnit.charAt(0).toUpperCase() + autoBucketUnit.slice(1);
+            btn.textContent = currentBucketUnit === 'auto' ? 'Auto (' + resolved + ')' : 'Auto';
         }
 
         function setChartType(type) {
@@ -746,7 +742,7 @@
                 var data = agg.bucketKeys.map(function(bk) {
                     return { x: new Date(bk).toISOString(), y: agg.byType[type][bk] || 0 };
                 });
-                var color = typeColorMap[type] || '#4e79a7';
+                var color = typeColorMap[type] || '#a6cee3';
                 var ds = {
                     label: type,
                     data: data,
@@ -856,7 +852,7 @@
 
             var types = Object.keys(typeBucketSubs);
             var datasets = types.map(function(type) {
-                var color = typeColorMap[type] || '#4e79a7';
+                var color = typeColorMap[type] || '#a6cee3';
                 var data = sortedBuckets.map(function(bk) {
                     var subs = typeBucketSubs[type][bk];
                     if (!subs) return [0];
@@ -952,7 +948,7 @@
             allEvents.forEach(function(e) { counts[e.type] = (counts[e.type] || 0) + 1; });
             groups.forEach(function(g) {
                 activeTypes.add(g.id);
-                var color = typeColorMap[g.id] || '#4e79a7';
+                var color = typeColorMap[g.id] || '#a6cee3';
                 var chip = document.createElement('span');
                 chip.className = 'type-filter-chip active';
                 chip.style.background = color + '33';
@@ -1067,7 +1063,7 @@
             var tbody = document.getElementById('event-tbody');
             var html = '';
             filteredEvents.forEach(function(e) {
-                var color = typeColorMap[e.type] || '#4e79a7';
+                var color = typeColorMap[e.type] || '#a6cee3';
                 var isSelected = e.uri === selectedUri;
                 var dateStr = formatDate(e.start);
                 html += '<tr data-uri="' + escAttr(e.uri) + '" class="' + (isSelected ? 'selected' : '') + '" ' +
@@ -1121,7 +1117,7 @@
                 document.getElementById('detail-title').textContent = detail.label || 'Unknown';
                 var typeEl = document.getElementById('detail-type');
                 typeEl.textContent = detail.type || 'Unknown';
-                typeEl.style.background = typeColorMap[detail.type] || '#4e79a7';
+                typeEl.style.background = typeColorMap[detail.type] || '#a6cee3';
                 document.getElementById('detail-uri').textContent = uri;
 
                 // Properties

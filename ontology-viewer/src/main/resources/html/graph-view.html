@@ -214,7 +214,7 @@
         var pendingExpandNodeId = null;
         var expandedLiteralId = null;  // tracks which literal box is currently expanded
 
-        var EXPLORED_BORDER_COLOR = '#59a14f';  // Green border for explored nodes
+        var EXPLORED_BORDER_COLOR = '#33a02c';  // ColorBrewer Paired green for explored nodes
         var EXPLORED_BORDER_WIDTH = 3;
 
         function initGraph(uri) {
@@ -376,7 +376,7 @@
             // Normalize color to ensure it has background, border, highlight, and hover states
             var c = node.color;
             if (c && typeof c === 'object') {
-                var bg = c.background || '#4e79a7';
+                var bg = c.background || '#a6cee3';
                 var bd = c.border || '#666';
                 if (!c.highlight) {
                     c.highlight = { background: bg, border: bd };
@@ -386,6 +386,8 @@
                 }
             } else if (typeof c === 'string') {
                 node.color = { background: c, border: c, highlight: { background: c, border: c }, hover: { background: c, border: c } };
+            } else if (!c) {
+                node.color = { background: '#a6cee3', border: '#a6cee3', highlight: { background: '#a6cee3', border: '#a6cee3' }, hover: { background: '#a6cee3', border: '#a6cee3' } };
             }
             // Ensure font color is set for dark theme
             if (!node.font || !node.font.color) {
@@ -566,7 +568,7 @@
             var isLiteral = (node.shape === 'box') || (node.id && node.id.indexOf('_lit_') >= 0);
             if (!isLiteral) {
                 var isExplored = exploredNodes.has(nodeId);
-                html += '<div style="margin-top:6px;color:' + (isExplored ? '#59a14f' : '#f28e2b') + ';display:flex;align-items:center;gap:4px">' +
+                html += '<div style="margin-top:6px;color:' + (isExplored ? '#33a02c' : '#ff7f00') + ';display:flex;align-items:center;gap:4px">' +
                     (isExplored ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Explored' : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg> Not explored (double-click to expand)') + '</div>';
             }
             info.innerHTML = html;
@@ -641,7 +643,7 @@
                         type = nlIdx >= 0 ? node.title.substring(0, nlIdx) : null;
                     }
                     if (type && !types[type]) {
-                        var color = '#4e79a7';
+                        var color = '#a6cee3';
                         if (node.color) {
                             if (typeof node.color === 'string') color = node.color;
                             else if (node.color.background) color = node.color.background;
@@ -653,7 +655,7 @@
             var legend = document.getElementById('legend');
             var wasCollapsed = legend.classList.contains('collapsed');
             var body = '';
-            body += '<div class="flex items-center gap-1.5 mb-1"><span class="w-3 h-3 rounded-full inline-block" style="background:#ccc;border:2px solid #59a14f"></span> Explored</div>';
+            body += '<div class="flex items-center gap-1.5 mb-1"><span class="w-3 h-3 rounded-full inline-block" style="background:#ccc;border:2px solid #33a02c"></span> Explored</div>';
             body += '<div class="flex items-center gap-1.5 mb-1"><span class="w-3 h-3 rounded-full inline-block" style="background:#ccc;border:2px solid #999"></span> Not explored</div>';
             body += '<hr style="border-color:#2a2a4a;margin:6px 0">';
             for (var type in types) {
