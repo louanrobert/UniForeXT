@@ -7,47 +7,55 @@ import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 
 /**
- * Manages the WebView that renders the Vis.js Timeline.
- * Individuals with date properties are shown on the timeline.
- * Double-clicking an item opens its neighborhood graph.
+ * Startup view that displays a selection of available views.
+ * Users pick which view they want to navigate to.
  */
-public class TimelineView {
+public class ViewSelectorView {
 
     private final BorderPane root;
     private final WebView webView;
     private final WebEngine webEngine;
-    private final JavaBridge bridge;
+    private final App app;
 
-    /** Strong reference to prevent GC of the bridge */
+    /** Strong references to prevent GC of bridge objects */
     @SuppressWarnings("unused")
-    private JavaBridge bridgeRef;
+    private App appRef;
+    @SuppressWarnings("unused")
+    private ViewSelectorBridge bridgeRef;
 
     @SuppressWarnings("removal")
-    public TimelineView(JavaBridge bridge) {
-        this.bridge = bridge;
-        this.bridgeRef = bridge;
+    public ViewSelectorView(App app) {
+        this.app = app;
+        this.appRef = app;
+        this.bridgeRef = new ViewSelectorBridge();
 
         root = new BorderPane();
         webView = new WebView();
         webEngine = webView.getEngine();
         webEngine.setJavaScriptEnabled(true);
 
-        // Set up the JS bridge once the page is loaded
         webEngine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
             if (newState == Worker.State.SUCCEEDED) {
                 JSObject window = (JSObject) webEngine.executeScript("window");
-                window.setMember("javaBridge", bridge);
-                // Inject data and initialize
-                webEngine.executeScript("initTimeline()");
+                window.setMember("viewSelector", bridgeRef);
             }
         });
 
-        webEngine.loadContent(HtmlLoader.load("timeline.html"));
+        webEngine.loadContent(HtmlLoader.load("view-selector.html"));
         root.setCenter(webView);
     }
 
     public BorderPane getRoot() {
         return root;
+    }
+
+    /**
+     * Bridge exposed to JS so the web page can trigger view navigation.
+     */
+    public class ViewSelectorBridge {
+        public void openView(String viewName) {
+            javafx.application.Platform.runLater(() -> app.navigateToView(viewName));
+        }
     }
 
 }

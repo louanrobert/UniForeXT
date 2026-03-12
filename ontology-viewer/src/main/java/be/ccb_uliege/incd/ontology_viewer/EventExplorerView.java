@@ -7,11 +7,12 @@ import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 
 /**
- * Manages the WebView that renders the Vis.js Timeline.
- * Individuals with date properties are shown on the timeline.
- * Double-clicking an item opens its neighborhood graph.
+ * Event Explorer view with:
+ * - Histogram of event counts over time (top)
+ * - Scrollable event table (bottom-left)
+ * - Detail panel for selected event (right)
  */
-public class TimelineView {
+public class EventExplorerView {
 
     private final BorderPane root;
     private final WebView webView;
@@ -23,7 +24,7 @@ public class TimelineView {
     private JavaBridge bridgeRef;
 
     @SuppressWarnings("removal")
-    public TimelineView(JavaBridge bridge) {
+    public EventExplorerView(JavaBridge bridge) {
         this.bridge = bridge;
         this.bridgeRef = bridge;
 
@@ -32,17 +33,15 @@ public class TimelineView {
         webEngine = webView.getEngine();
         webEngine.setJavaScriptEnabled(true);
 
-        // Set up the JS bridge once the page is loaded
         webEngine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
             if (newState == Worker.State.SUCCEEDED) {
                 JSObject window = (JSObject) webEngine.executeScript("window");
                 window.setMember("javaBridge", bridge);
-                // Inject data and initialize
-                webEngine.executeScript("initTimeline()");
+                webEngine.executeScript("initExplorer()");
             }
         });
 
-        webEngine.loadContent(HtmlLoader.load("timeline.html"));
+        webEngine.loadContent(HtmlLoader.load("event-explorer.html"));
         root.setCenter(webView);
     }
 

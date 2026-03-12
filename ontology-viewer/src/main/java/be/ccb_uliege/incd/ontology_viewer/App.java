@@ -10,16 +10,20 @@ import java.io.File;
 /**
  * Main JavaFX application entry point.
  * Opens a file chooser to select a Turtle (.ttl) file,
- * then shows the Timeline view. Double-clicking items
- * opens Graph views in separate windows.
+ * then shows a view selector. From there the user can open
+ * the Timeline view or the Event Explorer. Double-clicking
+ * items opens Graph views in separate windows.
  */
 public class App extends Application {
 
     private OntologyService ontologyService;
     private JavaBridge bridge;
+    private Stage primaryStage;
 
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+
         // Try command line argument first, then file chooser
         String ttlPath = null;
         var params = getParameters().getRaw();
@@ -53,12 +57,37 @@ public class App extends Application {
         ontologyService = new OntologyService(ttlPath);
         bridge = new JavaBridge(ontologyService, this);
 
-        TimelineView timelineView = new TimelineView(bridge);
+        primaryStage.setTitle("Ontology Viewer \u2014 " + new File(ttlPath).getName());
 
-        primaryStage.setTitle("Ontology Viewer — " + new File(ttlPath).getName());
-        Scene scene = new Scene(timelineView.getRoot(), 1400, 800);
-        primaryStage.setScene(scene);
+        // Show the view selector as the startup screen
+        showViewSelector();
         primaryStage.show();
+    }
+
+    /**
+     * Shows the startup view selector screen.
+     */
+    public void showViewSelector() {
+        ViewSelectorView selectorView = new ViewSelectorView(this);
+        primaryStage.setScene(new Scene(selectorView.getRoot(), 1400, 800));
+    }
+
+    /**
+     * Navigates to the specified view.
+     * Called from the ViewSelectorView when a user picks a view.
+     */
+    public void navigateToView(String viewName) {
+        switch (viewName) {
+            case "timeline" -> {
+                TimelineView timelineView = new TimelineView(bridge);
+                primaryStage.setScene(new Scene(timelineView.getRoot(), 1400, 800));
+            }
+            case "explorer" -> {
+                EventExplorerView explorerView = new EventExplorerView(bridge);
+                primaryStage.setScene(new Scene(explorerView.getRoot(), 1400, 800));
+            }
+            default -> System.out.println("Unknown view: " + viewName);
+        }
     }
 
     /**

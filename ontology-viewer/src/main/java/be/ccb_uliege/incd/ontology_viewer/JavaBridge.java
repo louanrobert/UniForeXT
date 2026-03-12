@@ -82,6 +82,21 @@ public class JavaBridge {
     }
 
     /**
+     * Called from JavaScript to get detailed properties of an individual.
+     * Used by the Event Explorer detail panel.
+     */
+    public String getIndividualDetailsJson(String individualUri) {
+        return ontologyService.getIndividualDetailsJson(individualUri);
+    }
+
+    /**
+     * Called from JavaScript to navigate back to the view selector.
+     */
+    public void navigateBack() {
+        javafx.application.Platform.runLater(() -> app.showViewSelector());
+    }
+
+    /**
      * Called from JavaScript to log messages to Java console.
      */
     public void log(String message) {

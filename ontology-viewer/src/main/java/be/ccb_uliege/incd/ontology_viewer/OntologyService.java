@@ -624,6 +624,7 @@ public class OntologyService {
 
         // Color coding by type
         String color = getColorForType(type);
+        String lighterColor = lightenColor(color);
         if (isCenter) {
             ObjectNode colorObj = mapper.createObjectNode();
             colorObj.put("background", color);
@@ -632,20 +633,39 @@ public class OntologyService {
             highlight.put("background", color);
             highlight.put("border", "#000");
             colorObj.set("highlight", highlight);
+            ObjectNode hover = mapper.createObjectNode();
+            hover.put("background", lighterColor);
+            hover.put("border", "#333");
+            colorObj.set("hover", hover);
             node.set("color", colorObj);
             node.put("shape", "dot");
             node.put("size", 25);
             ObjectNode font = mapper.createObjectNode();
             font.put("size", 14);
-            font.put("bold", true);
+            font.put("color", "#e0e0e0");
+            ObjectNode fontBold = mapper.createObjectNode();
+            fontBold.put("mod", "bold");
+            font.set("bold", fontBold);
             node.set("font", font);
         } else {
             ObjectNode colorObj = mapper.createObjectNode();
             colorObj.put("background", color);
-            colorObj.put("border", lightenColor(color));
+            colorObj.put("border", lighterColor);
+            ObjectNode highlight = mapper.createObjectNode();
+            highlight.put("background", lighterColor);
+            highlight.put("border", color);
+            colorObj.set("highlight", highlight);
+            ObjectNode hover = mapper.createObjectNode();
+            hover.put("background", lighterColor);
+            hover.put("border", color);
+            colorObj.set("hover", hover);
             node.set("color", colorObj);
             node.put("shape", "dot");
             node.put("size", 18);
+            ObjectNode font = mapper.createObjectNode();
+            font.put("size", 12);
+            font.put("color", "#e0e0e0");
+            node.set("font", font);
         }
         nodes.add(node);
     }
@@ -723,15 +743,6 @@ public class OntologyService {
     private static String escapeHtml(String text) {
         if (text == null) return "";
         return text.replace("&", "&amp;")
-    /**
-     * Assign a color based on type name (thread-safe).
-     *
-     * Note: this uses a ConcurrentHashMap for concurrent access and an AtomicInteger
-     * to step through the palette. The specific color assigned to a given type
-     * depends on the order in which types are first encountered, which may vary
-     * between runs and across threads. As a result, color assignments are not
-     * guaranteed to be stable or reproducible across executions.
-     */
                    .replace(">", "&gt;")
                    .replace("\"", "&quot;")
                    .replace("'", "&#39;");
@@ -771,5 +782,67 @@ public class OntologyService {
      */
     public boolean isExplored(String uri) {
         return neighborhoodCache.containsKey(uri);
+    }
+
+    /**
+     * Get detailed properties of an individual as JSON for the detail panel.
+     * Returns JSON: { label, type, literals: [{predicate, value}], outgoing: [{predicate, targetUri, targetLabel}], incoming: [{predicate, sourceUri, sourceLabel}] }
+     */
+    public String getIndividualDetailsJson(String individualUri) {
+        Resource resource = model.getResource(individualUri);
+        ObjectNode result = mapper.createObjectNode();
+
+        result.put("label", getLabel(resource));
+        result.put("type", getType(resource));
+
+        ArrayNode literals = mapper.createArrayNode();
+        ArrayNode outgoing = mapper.createArrayNode();
+        ArrayNode incoming = mapper.createArrayNode();
+
+        // Outgoing properties
+        StmtIterator outIter = resource.listProperties();
+        while (outIter.hasNext()) {
+            Statement stmt = outIter.next();
+            String predUri = stmt.getPredicate().getURI();
+            String predName = localName(predUri);
+            if (predName.equals("type")) continue;
+
+            if (stmt.getObject().isLiteral()) {
+                ObjectNode lit = mapper.createObjectNode();
+                lit.put("predicate", predName);
+                lit.put("value", stmt.getObject().asLiteral().getString());
+                literals.add(lit);
+            } else if (stmt.getObject().isURIResource()) {
+                Resource target = stmt.getObject().asResource();
+                ObjectNode rel = mapper.createObjectNode();
+                rel.put("predicate", predName);
+                rel.put("targetUri", target.getURI());
+                rel.put("targetLabel", getLabel(target));
+                outgoing.add(rel);
+            }
+        }
+
+        // Incoming relations
+        StmtIterator inIter = model.listStatements(null, null, resource);
+        while (inIter.hasNext()) {
+            Statement stmt = inIter.next();
+            String predUri = stmt.getPredicate().getURI();
+            String predName = localName(predUri);
+            if (predName.equals("type")) continue;
+
+            Resource source = stmt.getSubject();
+            if (!source.isURIResource()) continue;
+            ObjectNode rel = mapper.createObjectNode();
+            rel.put("predicate", predName);
+            rel.put("sourceUri", source.getURI());
+            rel.put("sourceLabel", getLabel(source));
+            incoming.add(rel);
+        }
+
+        result.set("literals", literals);
+        result.set("outgoing", outgoing);
+        result.set("incoming", incoming);
+
+        return result.toString();
     }
 }
