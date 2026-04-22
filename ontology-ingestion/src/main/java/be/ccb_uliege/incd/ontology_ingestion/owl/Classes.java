@@ -16,12 +16,16 @@ import org.apache.jena.vocabulary.RDF;
  */
 public class Classes {
    
-   private Map<String, Resource> classes = new HashMap<>();
-   private Loader loader;
+   private final Map<String, Resource> classes = new HashMap<>();
+   private final Loader loader;
 
    public Classes(Loader loader) {
       this.loader = loader;
       loadClasses();
+   }
+
+   public Classes(OntologyFacade facade) {
+      this(facade.getLoader());
    }
 
    /**
@@ -32,7 +36,12 @@ public class Classes {
    private void loadClasses() {
       try {
       loader.getOntologyModel().listResourcesWithProperty(loader.getOntologyModel().getProperty(RDF.type.getURI()), loader.getOntologyModel().getResource(OWL.Class.getURI()))
-            .forEachRemaining(r -> classes.put(r.getURI().split("#")[1], r));
+            .forEachRemaining(r -> {
+               String localName = r.getLocalName();
+               if (localName != null && !localName.isBlank()) {
+                  classes.put(localName, r);
+               }
+            });
       } catch (Exception e) {
          e.printStackTrace();
          // If error occurs, likely to be a problem with the ontology file path or format. Ensure the file exists and is a valid RDF file.
@@ -69,7 +78,8 @@ public class Classes {
          throw new IllegalArgumentException("Class not found: " + className);
       }
       individualName = individualName.replaceAll("[^a-zA-Z0-9]", "_");
-      Resource individual = loader.getDataModel().createResource(Loader.getBase() + className + "-" + individualName);
+      String safeClassName = className.replaceAll("[^a-zA-Z0-9]", "_");
+      Resource individual = loader.getDataModel().createResource(Loader.getBase() + safeClassName + "-" + individualName);
       individual.addProperty(RDF.type, cls);
       return individual;
    }

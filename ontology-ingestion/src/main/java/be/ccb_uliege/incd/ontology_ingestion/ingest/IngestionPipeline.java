@@ -14,6 +14,25 @@ import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.YamlMapperFactory;
 import be.ccb_uliege.incd.ontology_ingestion.owl.Classes;
 import be.ccb_uliege.incd.ontology_ingestion.owl.Properties;
 
+
+//TODO: This class needs refactoring to follow a real pipeline pattern, with separate stages for loading mappers, defining ingestion tasks, and executing them. 
+//
+// public class IngestionPipeline {
+
+//     private final List<IngestionStage> stages; // composable stages
+
+//     public IngestionPipeline(List<IngestionStage> stages) {
+//         this.stages = stages;
+//     }
+
+//     public void run(PipelineContext context) {
+//         for (IngestionStage stage : stages) {
+//             stage.execute(context); // each stage feeds the next
+//         }
+//     }
+// }
+
+
 /**
  * This class orchestrates the ingestion process.
  * It defines the files to be ingested, the mappers to use for each file, and

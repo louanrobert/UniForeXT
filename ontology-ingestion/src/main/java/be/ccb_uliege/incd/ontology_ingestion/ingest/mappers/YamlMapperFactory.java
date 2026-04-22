@@ -10,6 +10,8 @@ import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.config.MappersConfig
 import be.ccb_uliege.incd.ontology_ingestion.owl.Classes;
 import be.ccb_uliege.incd.ontology_ingestion.owl.Properties;
 
+// TODO: rename to SourceMapperRegistry because it is not a factory in the traditional sense of creating new instances on demand, but rather a registry of pre-built mappers.
+
 /**
  * Factory that creates SourceMapper instances from a MappersConfig.
  *

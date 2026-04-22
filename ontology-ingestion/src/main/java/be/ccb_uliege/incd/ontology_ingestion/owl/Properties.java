@@ -19,14 +19,18 @@ import org.apache.jena.vocabulary.RDF;
  */
 public class Properties {
 
-   private Map<String, Property> properties = new HashMap<>();
+   private final Map<String, Property> properties = new HashMap<>();
 
-   private Map<String, Property> dataProperties = new HashMap<>();
-   private Loader loader;
+   private final Map<String, Property> dataProperties = new HashMap<>();
+   private final Loader loader;
 
    public Properties(Loader loader) {
       this.loader = loader;
       loadProperties();
+   }
+
+   public Properties(OntologyFacade facade) {
+      this(facade.getLoader());
    }
 
    private void loadProperties() {
@@ -34,13 +38,21 @@ public class Properties {
          loader.getOntologyModel()
                .listResourcesWithProperty(loader.getOntologyModel().getProperty(RDF.type.getURI()),
                      loader.getOntologyModel().getResource(OWL.ObjectProperty.getURI()))
-               .forEachRemaining(
-                     r -> properties.put(r.getURI().split("#")[1], loader.getOntologyModel().getProperty(r.getURI())));
+               .forEachRemaining(r -> {
+               String localName = r.getLocalName();
+               if (localName != null && !localName.isBlank()) {
+                  properties.put(localName, loader.getOntologyModel().getProperty(r.getURI()));
+               }
+               });
          loader.getOntologyModel()
                .listResourcesWithProperty(loader.getOntologyModel().getProperty(RDF.type.getURI()),
                      loader.getOntologyModel().getResource(OWL.DatatypeProperty.getURI()))
-               .forEachRemaining(
-                     r -> dataProperties.put(r.getURI().split("#")[1], loader.getOntologyModel().getProperty(r.getURI())));
+               .forEachRemaining(r -> {
+               String localName = r.getLocalName();
+               if (localName != null && !localName.isBlank()) {
+                  dataProperties.put(localName, loader.getOntologyModel().getProperty(r.getURI()));
+               }
+               });
       } catch (Exception e) {
          e.printStackTrace();
          // If error occurs, likely to be a problem with the ontology file path or
@@ -58,7 +70,11 @@ public class Properties {
     * @return the Property representing the object property, or null if no property with the given
     */
    public Property getProperty(String name) {
-      return properties.get(name);
+      Property property = properties.get(name);
+      if (property == null) {
+         throw new IllegalArgumentException("Object property not found: " + name);
+      }
+      return property;
    }
 
    /**

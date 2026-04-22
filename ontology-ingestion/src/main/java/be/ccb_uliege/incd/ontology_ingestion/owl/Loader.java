@@ -52,6 +52,13 @@ public class Loader {
       return dataModel.size();
    }
 
+   /**
+    * Factory method exposing this loader as part of a facade.
+    */
+   public OntologyFacade asFacade() {
+      return new OntologyFacade(this);
+   }
+
    public void prettyPrint() {
       // Print the size of the ontology model
       System.out.println("Ontology model size: " + getOntologySize() + " statements");
