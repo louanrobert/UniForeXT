@@ -5,10 +5,9 @@ import java.util.Map;
 
 import be.ccb_uliege.incd.ontology_ingestion.ingest.interfaces.SourceMapper;
 import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.config.MapperConfig;
-import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.config.MappersConfig;
+import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.config.MapperConfigRegistry;
 import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.config.MappersConfigLoader;
-import be.ccb_uliege.incd.ontology_ingestion.owl.Classes;
-import be.ccb_uliege.incd.ontology_ingestion.owl.Properties;
+import be.ccb_uliege.incd.ontology_ingestion.owl.kg.KnowledgeGraphFacade;
 
 // TODO: rename to SourceMapperRegistry because it is not a factory in the traditional sense of creating new instances on demand, but rather a registry of pre-built mappers.
 
@@ -19,7 +18,7 @@ import be.ccb_uliege.incd.ontology_ingestion.owl.Properties;
  * already-parsed configuration object.
  * Configuration loading is handled separately by MappersConfigLoader.
  */
-public class YamlMapperFactory {
+public class YamlMapperRegistry {
 
     private final Map<String, SourceMapper> mappers = new LinkedHashMap<>();
 
@@ -27,12 +26,11 @@ public class YamlMapperFactory {
      * Creates a factory by building mappers from the supplied configuration.
      *
      * @param config     the parsed mapper configuration
-     * @param classes    OWL class helper
-     * @param properties OWL property helper
+     * @param knowledgeGraph facade used for graph manipulation
      */
-    public YamlMapperFactory(MappersConfig config, Classes classes, Properties properties) {
+    public YamlMapperRegistry(MapperConfigRegistry config, KnowledgeGraphFacade knowledgeGraph) {
         for (MapperConfig mc : config.getMappers()) {
-            YamlSourceMapper ysm = new YamlSourceMapper(mc, config.getGenericMappings(), classes, properties);
+            YamlSourceMapper ysm = new YamlSourceMapper(mc, config.getGenericMappings(), knowledgeGraph);
             this.mappers.put(ysm.getName(), ysm);
         }
     }
@@ -42,14 +40,13 @@ public class YamlMapperFactory {
      * and builds the mappers in one step.
      *
      * @param yamlFilePath path to the YAML configuration file
-     * @param classes      OWL class helper
-     * @param properties   OWL property helper
+     * @param knowledgeGraph facade used for graph manipulation
      * @return a fully initialised YamlMapperFactory
      */
-    public static YamlMapperFactory fromYamlFile(String yamlFilePath, Classes classes, Properties properties) {
+    public static YamlMapperRegistry fromYamlFile(String yamlFilePath, KnowledgeGraphFacade knowledgeGraph) {
         try {
-            MappersConfig config = MappersConfigLoader.load(yamlFilePath);
-            return new YamlMapperFactory(config, classes, properties);
+            MapperConfigRegistry config = MappersConfigLoader.load(yamlFilePath);
+            return new YamlMapperRegistry(config, knowledgeGraph);
         } catch (Exception e) {
             throw new RuntimeException("Failed to load mapper configuration from " + yamlFilePath, e);
         }

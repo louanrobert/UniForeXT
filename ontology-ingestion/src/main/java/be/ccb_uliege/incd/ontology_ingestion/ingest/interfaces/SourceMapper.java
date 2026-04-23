@@ -1,6 +1,6 @@
 package be.ccb_uliege.incd.ontology_ingestion.ingest.interfaces;
 
-import org.apache.jena.rdf.model.Model;
+import be.ccb_uliege.incd.ontology_ingestion.owl.kg.KnowledgeGraphFacade;
 
 /**
  * This interface defines a mapper that takes a SourceRecord and maps it to a Jena Model.
@@ -9,11 +9,10 @@ import org.apache.jena.rdf.model.Model;
 public interface SourceMapper {
 
     /**
-     * Maps a SourceRecord to RDF triples and adds them to the provided Jena Model.
+     * Maps a SourceRecord to RDF triples using the mapper's knowledge graph facade.
      * @param record the source record to map
-     * @param model the Jena Model to which the RDF triples should be added
      * 
      * Implementations should handle any necessary transformations, URI generation, and triple creation based on the content of the SourceRecord.
      */
-    void map(SourceRecord record, Model model);
+    void map(SourceRecord record);
 }

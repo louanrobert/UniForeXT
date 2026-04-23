@@ -5,8 +5,6 @@ import java.nio.file.Path;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
-import org.apache.jena.rdf.model.Model;
-
 import be.ccb_uliege.incd.ontology_ingestion.ingest.interfaces.SourceIngester;
 import be.ccb_uliege.incd.ontology_ingestion.ingest.interfaces.SourceMapper;
 
@@ -17,7 +15,7 @@ import be.ccb_uliege.incd.ontology_ingestion.ingest.interfaces.SourceMapper;
  */
 public class CsvIngester implements SourceIngester {
     @Override
-    public void ingest(Path file, SourceMapper mapper, Model model, Character delimiter) {
+    public void ingest(Path file, SourceMapper mapper, Character delimiter) {
         try {
             var reader = Files.newBufferedReader(file);
             var csvParser = new CSVParser(reader, CSVFormat.Builder.create(CSVFormat.DEFAULT)
@@ -27,9 +25,7 @@ public class CsvIngester implements SourceIngester {
                     .build());
 
             for (var csvRecord : csvParser) {
-                // for each row, create a CsvRecord and pass it to the mapper
-                // with the model to be populated
-                mapper.map(new CsvRecord(csvRecord), model);
+                mapper.map(new CsvRecord(csvRecord));
             }
             csvParser.close();
         } catch (Exception e) {

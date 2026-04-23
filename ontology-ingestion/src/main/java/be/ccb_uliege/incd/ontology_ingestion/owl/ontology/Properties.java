@@ -1,14 +1,15 @@
-package be.ccb_uliege.incd.ontology_ingestion.owl;
+package be.ccb_uliege.incd.ontology_ingestion.owl.ontology;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.jena.datatypes.RDFDatatype;
-import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
+
+import be.ccb_uliege.incd.ontology_ingestion.owl.Loader;
 
 /**
  * This class is responsible for loading and managing the properties defined in the ontology.
@@ -22,35 +23,30 @@ public class Properties {
    private final Map<String, Property> properties = new HashMap<>();
 
    private final Map<String, Property> dataProperties = new HashMap<>();
-   private final Loader loader;
+   private final Model ontology;
 
-   public Properties(Loader loader) {
-      this.loader = loader;
+   public Properties(Model ontology) {
+      this.ontology = ontology;
       loadProperties();
-   }
-
-   public Properties(OntologyFacade facade) {
-      this(facade.getLoader());
    }
 
    private void loadProperties() {
       try {
-         loader.getOntologyModel()
-               .listResourcesWithProperty(loader.getOntologyModel().getProperty(RDF.type.getURI()),
-                     loader.getOntologyModel().getResource(OWL.ObjectProperty.getURI()))
+         ontology.listResourcesWithProperty(ontology.getProperty(RDF.type.getURI()),
+                     ontology.getResource(OWL.ObjectProperty.getURI()))
                .forEachRemaining(r -> {
                String localName = r.getLocalName();
                if (localName != null && !localName.isBlank()) {
-                  properties.put(localName, loader.getOntologyModel().getProperty(r.getURI()));
+                  properties.put(localName, ontology.getProperty(r.getURI()));
                }
                });
-         loader.getOntologyModel()
-               .listResourcesWithProperty(loader.getOntologyModel().getProperty(RDF.type.getURI()),
-                     loader.getOntologyModel().getResource(OWL.DatatypeProperty.getURI()))
+         ontology
+               .listResourcesWithProperty(ontology.getProperty(RDF.type.getURI()),
+                     ontology.getResource(OWL.DatatypeProperty.getURI()))
                .forEachRemaining(r -> {
                String localName = r.getLocalName();
                if (localName != null && !localName.isBlank()) {
-                  dataProperties.put(localName, loader.getOntologyModel().getProperty(r.getURI()));
+                  dataProperties.put(localName, ontology.getProperty(r.getURI()));
                }
                });
       } catch (Exception e) {
@@ -91,41 +87,4 @@ public class Properties {
       return property;
    }
 
-   /**
-    * Creates a typed literal with the given value and RDF datatype.
-    * @param value the value of the literal
-    * @param datatype the RDFDatatype to use for the literal
-    * @return a Literal representing the typed literal
-    */
-   public Literal createLiteralProperty(Object value, RDFDatatype datatype) {
-      return loader.getDataModel().createTypedLiteral(value, datatype);
-   }
-
-   /**
-    * Adds a data property to a resource only if it doesn't already exist.
-    *
-    * @param resource     the resource to add the property to
-    * @param propertyName the name of the data property
-    * @param value        the literal value
-    */
-   public void addUniqueDataProperty(Resource resource, String propertyName, Literal value) {
-      Property property = getDataProperty(propertyName);
-      if (!resource.hasProperty(property)) {
-         resource.addProperty(property, value);
-      }
-   }
-
-   /**
-    * Adds an object property to a resource only if it doesn't already exist.
-    *
-    * @param resource     the resource to add the property to
-    * @param propertyName the name of the object property
-    * @param value        the resource value
-    */
-   public void addUniqueObjectProperty(Resource resource, String propertyName, Resource value) {
-      Property property = getProperty(propertyName);
-      if (!resource.hasProperty(property)) {
-         resource.addProperty(property, value);
-      }
-   }
 }

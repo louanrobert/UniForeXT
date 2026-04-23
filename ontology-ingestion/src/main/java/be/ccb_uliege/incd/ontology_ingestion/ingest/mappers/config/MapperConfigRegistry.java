@@ -14,7 +14,7 @@ import lombok.Getter;
  * Read-only
  */
 @Getter
-public class MappersConfig {
+public class MapperConfigRegistry {
     private Map<String, List<FieldMappingConfig>> genericMappings;
     private List<MapperConfig> mappers;
 }

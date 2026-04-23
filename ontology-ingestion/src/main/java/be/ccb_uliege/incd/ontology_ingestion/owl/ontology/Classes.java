@@ -1,12 +1,14 @@
-package be.ccb_uliege.incd.ontology_ingestion.owl;
+package be.ccb_uliege.incd.ontology_ingestion.owl.ontology;
 
 import java.util.HashMap;
 import java.util.Map;
 
-
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
+
+import be.ccb_uliege.incd.ontology_ingestion.owl.Loader;
 
 /**
  * This class is responsible for loading and managing the classes defined in the ontology.
@@ -17,15 +19,11 @@ import org.apache.jena.vocabulary.RDF;
 public class Classes {
    
    private final Map<String, Resource> classes = new HashMap<>();
-   private final Loader loader;
+   private final Model ontology;
 
-   public Classes(Loader loader) {
-      this.loader = loader;
+   public Classes(Model ontology) {
+      this.ontology = ontology;
       loadClasses();
-   }
-
-   public Classes(OntologyFacade facade) {
-      this(facade.getLoader());
    }
 
    /**
@@ -35,7 +33,7 @@ public class Classes {
     */
    private void loadClasses() {
       try {
-      loader.getOntologyModel().listResourcesWithProperty(loader.getOntologyModel().getProperty(RDF.type.getURI()), loader.getOntologyModel().getResource(OWL.Class.getURI()))
+      ontology.listResourcesWithProperty(ontology.getProperty(RDF.type.getURI()), ontology.getResource(OWL.Class.getURI()))
             .forEachRemaining(r -> {
                String localName = r.getLocalName();
                if (localName != null && !localName.isBlank()) {
@@ -61,26 +59,4 @@ public class Classes {
       return classes.get(name);
    }
 
-   /**
-    * Creates an individual of a given class with a specified name.
-    * The method first retrieves the class resource using the getClass method. If the class is not found, it throws an IllegalArgumentException.
-    * It then creates a new resource for the individual with a URI based on the class name and individual name (special characters in the individual name are replaced with underscores).
-    * Finally, it adds a triple to the model indicating that the individual is of the specified class type and returns the created individual resource.
-    * 
-    * @param className the local name of the class to which the individual belongs
-    * @param individualName the name of the individual to create (will be sanitized to form a valid URI)
-    * @return the Resource representing the created individual
-    * @throws IllegalArgumentException if the specified class name does not exist in the ontology
-    */
-   public Resource createIndividual(String className, String individualName) throws IllegalArgumentException {
-      Resource cls = getClass(className);
-      if (cls == null) {
-         throw new IllegalArgumentException("Class not found: " + className);
-      }
-      individualName = individualName.replaceAll("[^a-zA-Z0-9]", "_");
-      String safeClassName = className.replaceAll("[^a-zA-Z0-9]", "_");
-      Resource individual = loader.getDataModel().createResource(Loader.getBase() + safeClassName + "-" + individualName);
-      individual.addProperty(RDF.type, cls);
-      return individual;
-   }
 }

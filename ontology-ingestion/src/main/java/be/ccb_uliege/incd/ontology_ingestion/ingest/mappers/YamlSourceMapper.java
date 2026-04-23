@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.jena.datatypes.xsd.impl.RDFLangString;
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 
 import be.ccb_uliege.incd.ontology_ingestion.ingest.interfaces.SourceMapper;
@@ -15,8 +13,7 @@ import be.ccb_uliege.incd.ontology_ingestion.ingest.interfaces.SourceRecord;
 import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.config.FieldMappingConfig;
 import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.config.MapperConfig;
 import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.config.StaticPropertyConfig;
-import be.ccb_uliege.incd.ontology_ingestion.owl.Classes;
-import be.ccb_uliege.incd.ontology_ingestion.owl.Properties;
+import be.ccb_uliege.incd.ontology_ingestion.owl.kg.KnowledgeGraphFacade;
 
 /*
  * SourceMapper implementation that creates OWL individuals based on YAML configuration.
@@ -28,14 +25,12 @@ public class YamlSourceMapper implements SourceMapper {
 
     private final MapperConfig config;
     private final Map<String, List<FieldMappingConfig>> genericMappings;
-    private final Classes classes;
-    private final Properties properties;
+    private final KnowledgeGraphFacade knowledgeGraph;
 
-    public YamlSourceMapper(MapperConfig config, Map<String, List<FieldMappingConfig>> genericMappings, Classes classes, Properties properties) {
+    public YamlSourceMapper(MapperConfig config, Map<String, List<FieldMappingConfig>> genericMappings, KnowledgeGraphFacade knowledgeGraph) {
         this.config = config;
         this.genericMappings = genericMappings != null ? genericMappings : Collections.emptyMap();
-        this.classes = classes;
-        this.properties = properties;
+        this.knowledgeGraph = knowledgeGraph;
     }
 
     public String getName() {
@@ -43,20 +38,20 @@ public class YamlSourceMapper implements SourceMapper {
     }
 
     @Override
-    public void map(SourceRecord r, Model model) {
+    public void map(SourceRecord r) {
         // Build identifier by joining resolved fields with separator
         String identifier = config.getIdentifier().getFields().stream()
                 .map(r::get)
                 .collect(Collectors.joining(config.getIdentifier().getSeparator()));
 
         // Create the OWL individual
-        Resource individual = classes.createIndividual(config.getOwlClass(), identifier);
+        Resource individual = knowledgeGraph.createIndividual(config.getOwlClass(), identifier);
 
         // Apply static properties unconditionally
         if (config.getStaticProperties() != null) {
             for (StaticPropertyConfig sp : config.getStaticProperties()) {
-                Literal lit = properties.createLiteralProperty(sp.getValue(), RDFLangString.rdfLangString);
-                individual.addProperty(properties.getDataProperty(sp.getOwlProperty()), lit);
+                knowledgeGraph.addDataProperty(individual, sp.getOwlProperty(),
+                        knowledgeGraph.createLiteral(sp.getValue(), RDFLangString.rdfLangString));
             }
         }
 
@@ -100,12 +95,13 @@ public class YamlSourceMapper implements SourceMapper {
         String value = fm.getPrefix() != null
                 ? fm.getPrefix() + r.get(fm.getSourceField())
                 : r.get(fm.getSourceField());
-        Literal lit = properties.createLiteralProperty(value, RDFLangString.rdfLangString);
 
         if (fm.isUnique()) {
-            properties.addUniqueDataProperty(parent, fm.getOwlProperty(), lit);
+            knowledgeGraph.addUniqueDataProperty(parent, fm.getOwlProperty(),
+                    knowledgeGraph.createLiteral(value, RDFLangString.rdfLangString));
         } else {
-            parent.addProperty(properties.getDataProperty(fm.getOwlProperty()), lit);
+            knowledgeGraph.addDataProperty(parent, fm.getOwlProperty(),
+                    knowledgeGraph.createLiteral(value, RDFLangString.rdfLangString));
         }
     }
 
@@ -129,7 +125,7 @@ public class YamlSourceMapper implements SourceMapper {
                     .collect(Collectors.joining(fm.getIdentifier().getSeparator()));
         }
 
-        Resource linked = classes.createIndividual(fm.getOwlClass(), id);
+        Resource linked = knowledgeGraph.createIndividual(fm.getOwlClass(), id);
 
         // Apply data properties on the linked individual
         if (fm.getDataProperties() != null) {
@@ -145,6 +141,6 @@ public class YamlSourceMapper implements SourceMapper {
             }
         }
 
-        properties.addUniqueObjectProperty(parent, fm.getLinkProperty(), linked);
+        knowledgeGraph.addUniqueObjectProperty(parent, fm.getLinkProperty(), linked);
     }
 }

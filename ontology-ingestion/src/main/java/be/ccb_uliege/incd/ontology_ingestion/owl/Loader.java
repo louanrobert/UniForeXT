@@ -6,16 +6,18 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 
+import be.ccb_uliege.incd.ontology_ingestion.owl.kg.KnowledgeGraphFacade;
+import be.ccb_uliege.incd.ontology_ingestion.owl.ontology.OntologyFacade;
 import lombok.Getter;
 
 @Getter
 public class Loader {
 
    /** The ontology schema model (read-only, loaded from file). */
-   private Model ontologyModel;
+   private Model ontology;
 
-   /** The data model for ingested triples. References the ontology via owl:imports and prefix. */
-   private Model dataModel;
+   /** The model for ingested triples. References the ontology via owl:imports and prefix. */
+   private Model knowledgeGraph;
 
    private static final String ONTOLOGY_PATH_ENV = "ONTOLOGY_FILE_PATH";
    private static final String DEFAULT_ONTOLOGY_PATH = "c:\\Users\\Robert_Louan\\OneDrive - FED BE\\Documents\\TFE\\ontology.rdf";
@@ -26,37 +28,44 @@ public class Loader {
 
    public Loader() {
       // Load the ontology schema from file
-      ontologyModel = ModelFactory.createDefaultModel();
-      ontologyModel.read(path);
+      ontology = ModelFactory.createDefaultModel();
+      ontology.read(path);
 
       // Create a separate data model for ingested instances
-      dataModel = ModelFactory.createDefaultModel();
+      knowledgeGraph = ModelFactory.createDefaultModel();
       String ontologyIRI = base.substring(0, base.length() - 1); // Remove trailing '#'
-      dataModel.setNsPrefix("ufr", base);
-      dataModel.setNsPrefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
-      dataModel.setNsPrefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
-      dataModel.setNsPrefix("owl", "http://www.w3.org/2002/07/owl#");
-      dataModel.setNsPrefix("xsd", "http://www.w3.org/2001/XMLSchema#");
+      knowledgeGraph.setNsPrefix("ufr", base);
+      knowledgeGraph.setNsPrefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+      knowledgeGraph.setNsPrefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
+      knowledgeGraph.setNsPrefix("owl", "http://www.w3.org/2002/07/owl#");
+      knowledgeGraph.setNsPrefix("xsd", "http://www.w3.org/2001/XMLSchema#");
 
       // Declare the data model as an ontology that imports the schema ontology
-      Resource dataOntology = dataModel.createResource(ontologyIRI + "/data");
+      Resource dataOntology = knowledgeGraph.createResource(ontologyIRI + "/data");
       dataOntology.addProperty(RDF.type, OWL.Ontology);
-      dataOntology.addProperty(OWL.imports, dataModel.createResource(ontologyIRI));
+      dataOntology.addProperty(OWL.imports, knowledgeGraph.createResource(ontologyIRI));
    }
 
    public long getOntologySize() {
-      return ontologyModel.size();
+      return ontology.size();
    }
 
    public long getDataSize() {
-      return dataModel.size();
+      return knowledgeGraph.size();
    }
 
    /**
-    * Factory method exposing this loader as part of a facade.
+    * Factory method exposing this loader as the ontology facade.
     */
-   public OntologyFacade asFacade() {
-      return new OntologyFacade(this);
+   public OntologyFacade asOntologyFacade() {
+      return new OntologyFacade(this.ontology);
+   }
+
+   /**
+    * Factory method exposing this loader as the knowledge-graph facade.
+    */
+   public KnowledgeGraphFacade asKnowledgeGraphFacade() {
+      return new KnowledgeGraphFacade(this.knowledgeGraph, this.asOntologyFacade());
    }
 
    public void prettyPrint() {
@@ -65,17 +74,17 @@ public class Loader {
       System.out.println("Data model size: " + getDataSize() + " statements");
       // List all classes (resources of type owl:Class)
       System.out.println("\n--- Classes ---");
-      ontologyModel.listResourcesWithProperty(RDF.type, OWL.Class)
+      ontology.listResourcesWithProperty(RDF.type, OWL.Class)
             .forEachRemaining(r -> System.out.println(r.getURI()));
 
       // List all properties
       System.out.println("\n--- Properties ---");
-      ontologyModel.listResourcesWithProperty(RDF.type, OWL.ObjectProperty)
+      ontology.listResourcesWithProperty(RDF.type, OWL.ObjectProperty)
             .forEachRemaining(r -> System.out.println(r.getURI()));
 
       // List all data properties
       System.out.println("\n--- Data Properties ---");
-      ontologyModel.listResourcesWithProperty(RDF.type, OWL.DatatypeProperty)
+      ontology.listResourcesWithProperty(RDF.type, OWL.DatatypeProperty)
             .forEachRemaining(r -> System.out.println(r.getURI()));
    }
 }

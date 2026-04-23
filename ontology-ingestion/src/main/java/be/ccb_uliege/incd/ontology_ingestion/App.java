@@ -6,7 +6,8 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 
 import be.ccb_uliege.incd.ontology_ingestion.ingest.IngestionPipeline;
-import be.ccb_uliege.incd.ontology_ingestion.owl.OntologyFacade;
+import be.ccb_uliege.incd.ontology_ingestion.owl.Loader;
+import be.ccb_uliege.incd.ontology_ingestion.owl.kg.KnowledgeGraphFacade;
 
 /**
  * Main application class
@@ -16,8 +17,9 @@ public final class App {
     }
 
     public static void main(String[] args) throws Exception {
-        OntologyFacade ontology = new OntologyFacade();
-        IngestionPipeline.run(ontology.getDataModel(), ontology.getClasses(), ontology.getProperties());
-        RDFDataMgr.write(new FileOutputStream("debug.ttl"), ontology.getDataModel(), RDFFormat.TURTLE_PRETTY);
+        Loader loader = new Loader();
+        KnowledgeGraphFacade knowledgeGraph = loader.asKnowledgeGraphFacade();
+        IngestionPipeline.run(knowledgeGraph);
+        RDFDataMgr.write(new FileOutputStream("debug.ttl"), knowledgeGraph.getDataModel(), RDFFormat.TURTLE_PRETTY);
     }
 }

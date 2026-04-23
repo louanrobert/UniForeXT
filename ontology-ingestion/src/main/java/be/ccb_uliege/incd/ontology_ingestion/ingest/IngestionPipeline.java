@@ -1,37 +1,14 @@
 package be.ccb_uliege.incd.ontology_ingestion.ingest;
 
-import java.nio.file.Path;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.jena.rdf.model.Model;
+import java.util.List;
 
 import be.ccb_uliege.incd.ontology_ingestion.ingest.implementations.csv.CsvIngester;
-import be.ccb_uliege.incd.ontology_ingestion.ingest.interfaces.SourceIngester;
-import be.ccb_uliege.incd.ontology_ingestion.ingest.interfaces.SourceMapper;
-import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.YamlMapperFactory;
-import be.ccb_uliege.incd.ontology_ingestion.owl.Classes;
-import be.ccb_uliege.incd.ontology_ingestion.owl.Properties;
-
-
-//TODO: This class needs refactoring to follow a real pipeline pattern, with separate stages for loading mappers, defining ingestion tasks, and executing them. 
-//
-// public class IngestionPipeline {
-
-//     private final List<IngestionStage> stages; // composable stages
-
-//     public IngestionPipeline(List<IngestionStage> stages) {
-//         this.stages = stages;
-//     }
-
-//     public void run(PipelineContext context) {
-//         for (IngestionStage stage : stages) {
-//             stage.execute(context); // each stage feeds the next
-//         }
-//     }
-// }
-
+import be.ccb_uliege.incd.ontology_ingestion.ingest.pipeline.DefineIngestionTasksStage;
+import be.ccb_uliege.incd.ontology_ingestion.ingest.pipeline.ExecuteIngestionTasksStage;
+import be.ccb_uliege.incd.ontology_ingestion.ingest.pipeline.IngestionStage;
+import be.ccb_uliege.incd.ontology_ingestion.ingest.pipeline.LoadMappersStage;
+import be.ccb_uliege.incd.ontology_ingestion.ingest.pipeline.PipelineContext;
+import be.ccb_uliege.incd.ontology_ingestion.owl.kg.KnowledgeGraphFacade;
 
 /**
  * This class orchestrates the ingestion process.
@@ -42,40 +19,29 @@ import be.ccb_uliege.incd.ontology_ingestion.owl.Properties;
  */
 public class IngestionPipeline {
 
-    public static void run(Model model, Classes classes, Properties properties) {
-        SourceIngester ingester = new CsvIngester();
+    private final List<IngestionStage> stages;
 
-        // Load YAML-driven mappers
-        YamlMapperFactory yamlMapperFactory = YamlMapperFactory.fromYamlFile("chainsaw-mappers.yaml", classes,
-                properties);
-
-        // TODO: This should be externalized to a config file or command-line arguments,
-        // rather than hardcoded in the code. For now, this is sufficient for testing
-        // and demonstration purposes.
-        // File/mapper pairs to ingest
-        Map<Path, Pair<SourceMapper, Character>> ingestionTasks = new LinkedHashMap<>();
-        ingestionTasks.put(
-                Path.of(
-                        "c:\\Users\\Robert_Louan\\Downloads\\DFIR_Automation_Results_2\\wks02\\QuickWins\\Chainsaw_results\\sigma.csv"),
-                Pair.of(yamlMapperFactory.getMapper("SigmaMapper"), ';'));
-        ingestionTasks.put(
-                Path.of(
-                        "c:\\Users\\Robert_Louan\\Downloads\\DFIR_Automation_Results_2\\wks02\\QuickWins\\Chainsaw_results\\antivirus.csv"),
-                Pair.of(yamlMapperFactory.getMapper("AntivirusMapper"), ';'));
-        ingestionTasks.put(
-                Path.of(
-                        "c:\\Users\\Robert_Louan\\Downloads\\DFIR_Automation_Results_2\\wks02\\QuickWins\\Chainsaw_results\\account_tampering.csv"),
-                Pair.of(yamlMapperFactory.getMapper("AccountTamperingMapper"), ';'));
-        // ingestionTasks.put(
-        // Path.of("c:\\Users\\Robert_Louan\\Downloads\\DFIR_Automation_Results_2\\wks02\\QuickWins\\Chainsaw_results\\indicator_removal.csv"),
-        // Pair.of(new IndicatorRemovalMapper(classes, properties), ';')
-        // );
-
-        // Execute ingestion tasks
-        ingestionTasks.forEach((file, mapperAndDelimiter) -> {
-            System.out.println("Ingesting file: " + file);
-            ingester.ingest(file, mapperAndDelimiter.getLeft(), model, mapperAndDelimiter.getRight());
-        });
+    public IngestionPipeline(List<IngestionStage> stages) {
+        this.stages = List.copyOf(stages);
     }
 
+    public void run(PipelineContext context) {
+        for (IngestionStage stage : stages) {
+            stage.execute(context);
+        }
+    }
+
+    public static void run(KnowledgeGraphFacade knowledgeGraph) {
+        IngestionPipeline pipeline = new IngestionPipeline(List.of(
+                new LoadMappersStage(),
+                new DefineIngestionTasksStage(),
+                new ExecuteIngestionTasksStage()));
+
+        PipelineContext context = new PipelineContext(
+                knowledgeGraph,
+                new CsvIngester(),
+                "chainsaw-mappers.yaml");
+
+        pipeline.run(context);
+    }
 }

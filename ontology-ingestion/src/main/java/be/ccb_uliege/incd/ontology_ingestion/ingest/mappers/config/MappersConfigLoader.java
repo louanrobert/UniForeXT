@@ -25,12 +25,12 @@ public class MappersConfigLoader {
      * @throws IllegalStateException if the file does not exist
      * @throws IOException           if the file cannot be read or parsed
      */
-    public static MappersConfig load(File yamlFile) throws IOException {
+    public static MapperConfigRegistry load(File yamlFile) throws IOException {
         if (!yamlFile.exists()) {
             throw new IllegalStateException(
                 "Mapper configuration file not found: " + yamlFile.getAbsolutePath());
         }
-        return YAML_MAPPER.readValue(yamlFile, MappersConfig.class);
+        return YAML_MAPPER.readValue(yamlFile, MapperConfigRegistry.class);
     }
 
     /**
@@ -40,7 +40,7 @@ public class MappersConfigLoader {
      * @return the parsed configuration
      * @throws IOException if the file cannot be read or parsed
      */
-    public static MappersConfig load(String yamlFilePath) throws IOException {
+    public static MapperConfigRegistry load(String yamlFilePath) throws IOException {
         return load(new File(yamlFilePath));
     }
 }
