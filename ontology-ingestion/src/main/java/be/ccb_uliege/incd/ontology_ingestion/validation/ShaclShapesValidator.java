@@ -1,20 +1,15 @@
 package be.ccb_uliege.incd.ontology_ingestion.validation;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.shacl.ShaclValidator;
 import org.apache.jena.shacl.Shapes;
 import org.apache.jena.shacl.validation.ReportEntry;
-import org.apache.jena.shacl.validation.ReportItem;
 import org.apache.jena.shacl.ValidationReport;
-import org.apache.jena.vocabulary.RDF;
 
 /**
  * Utility for validating RDF data against SHACL shapes.

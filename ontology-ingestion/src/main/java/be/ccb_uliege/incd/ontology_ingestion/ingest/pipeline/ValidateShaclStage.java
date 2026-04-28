@@ -1,17 +1,12 @@
 package be.ccb_uliege.incd.ontology_ingestion.ingest.pipeline;
 
 import java.util.Collection;
-import java.util.List;
-
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.shacl.ShaclException;
 import org.apache.jena.shacl.Shapes;
 import org.apache.jena.shacl.ValidationReport;
 import org.apache.jena.shacl.validation.ReportEntry;
 import org.apache.jena.shacl.vocabulary.SHACL;
-import org.apache.jena.sparql.function.library.leviathan.log;
-
 import be.ccb_uliege.incd.ontology_ingestion.validation.ShaclShapesValidator;
 
 /**

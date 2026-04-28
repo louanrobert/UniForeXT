@@ -1,6 +1,5 @@
 package be.ccb_uliege.incd.ontology_ingestion.ingest.pipeline;
 
-import org.apache.jena.sparql.function.library.leviathan.log;
 
 import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.YamlMapperRegistry;
 

@@ -4,9 +4,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 
-import be.ccb_uliege.incd.ontology_ingestion.owl.Loader;
-import lombok.Getter;
-
 /**
  * Facade exposing the ontology schema model and vocabulary helpers.
  * It coordinates low-level schema loading, class lookup, and property handling.

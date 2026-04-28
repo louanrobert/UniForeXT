@@ -17,16 +17,12 @@ public class ViewSelectorView {
     private final WebEngine webEngine;
     private final App app;
 
-    /** Strong references to prevent GC of bridge objects */
-    @SuppressWarnings("unused")
-    private App appRef;
     @SuppressWarnings("unused")
     private ViewSelectorBridge bridgeRef;
 
     @SuppressWarnings("removal")
     public ViewSelectorView(App app) {
         this.app = app;
-        this.appRef = app;
         this.bridgeRef = new ViewSelectorBridge();
 
         root = new BorderPane();

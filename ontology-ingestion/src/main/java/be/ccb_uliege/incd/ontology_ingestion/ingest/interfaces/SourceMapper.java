@@ -1,6 +1,5 @@
 package be.ccb_uliege.incd.ontology_ingestion.ingest.interfaces;
 
-import be.ccb_uliege.incd.ontology_ingestion.owl.kg.KnowledgeGraphFacade;
 
 /**
  * This interface defines a mapper that takes a SourceRecord and maps it to a Jena Model.
