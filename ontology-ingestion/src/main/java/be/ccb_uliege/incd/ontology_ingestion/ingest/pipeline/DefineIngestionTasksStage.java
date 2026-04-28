@@ -8,7 +8,7 @@ import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.YamlMapperRegistry;
 /**
  * Defines file-to-mapper ingestion tasks.
  */
-public class DefineIngestionTasksStage implements IngestionStage {
+public class DefineIngestionTasksStage extends IngestionStage {
 
     // TODO: Externalize these definitions to a file or command-line arguments.
     private static final List<TaskDefinition> TASK_DEFINITIONS = List.of(

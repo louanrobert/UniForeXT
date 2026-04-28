@@ -1,0 +1,355 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ufr: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#> .
+
+# SHACL profile for UFRO schema validation.
+
+ufr:DomainEntityShape
+  a sh:NodeShape ;
+  sh:targetClass ufr:Domain_entity .
+
+ufr:IndependentEntityShape
+  a sh:NodeShape ;
+  sh:targetClass ufr:Independent_entity ;
+  sh:property [
+    sh:path ufr:hasName ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasDescription ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasTimestamp ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:dateTimeStamp ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasTechnique ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasComputer ;
+    sh:maxCount 1 ;
+    sh:class ufr:Computer ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasUser ;
+    sh:maxCount 1 ;
+    sh:class ufr:User ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasCommand ;
+    sh:maxCount 1 ;
+    sh:class ufr:Command ;
+  ] .
+
+ufr:DetectionShape
+  a sh:NodeShape ;
+  sh:targetClass ufr:Detection ;
+  sh:property [
+    sh:path ufr:hasLogFile ;
+    sh:minCount 1 ;
+    sh:class ufr:LogFile ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasUser ;
+    sh:maxCount 1 ;
+    sh:class ufr:User ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasComputer ;
+    sh:maxCount 1 ;
+    sh:class ufr:Computer ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasExtraInformation ;
+    sh:datatype xsd:string ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasID ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:unsignedLong ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasName ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasTechnique ;
+    sh:datatype xsd:string ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasDescription ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasTimestamp ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:dateTimeStamp ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasLevel ;
+    sh:maxCount 1 ;
+    sh:in ( "High" "Info" "Low" "Medium" ) ;
+  ] .
+
+ufr:EventShape
+  a sh:NodeShape ;
+  sh:targetClass ufr:Event ;
+  sh:property [
+    sh:path ufr:hasDetection ;
+    sh:minCount 1 ;
+    sh:class ufr:Detection ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasComputer ;
+    sh:maxCount 1 ;
+    sh:class ufr:Computer ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasLogFile ;
+    sh:maxCount 1 ;
+    sh:class ufr:LogFile ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasUser ;
+    sh:maxCount 1 ;
+    sh:class ufr:User ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasExtraInformation ;
+    sh:minCount 1 ;
+    sh:datatype xsd:string ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasEventID ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:unsignedLong ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasTimestamp ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:dateTimeStamp ;
+  ] .
+
+ufr:ThreatShape
+  a sh:NodeShape ;
+  sh:targetClass ufr:Threat ;
+  sh:property [
+    sh:path ufr:hasCommand ;
+    sh:maxCount 1 ;
+    sh:class ufr:Command ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasComputer ;
+    sh:maxCount 1 ;
+    sh:class ufr:Computer ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasProcess ;
+    sh:maxCount 1 ;
+    sh:class ufr:Process ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasUser ;
+    sh:maxCount 1 ;
+    sh:class ufr:User ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasName ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasTechnique ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasTimestamp ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:dateTimeStamp ;
+  ] .
+
+ufr:ProcessShape
+  a sh:NodeShape ;
+  sh:targetClass ufr:Process ;
+  sh:property [
+    sh:path ufr:hasCommand ;
+    sh:maxCount 1 ;
+    sh:class ufr:Command ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasComputer ;
+    sh:maxCount 1 ;
+    sh:class ufr:Computer ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasParentProcess ;
+    sh:maxCount 1 ;
+    sh:class ufr:Process ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasName ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+  ] .
+
+ufr:LogFileShape
+  a sh:NodeShape ;
+  sh:targetClass ufr:LogFile ;
+  sh:property [
+    sh:path ufr:hasPath ;
+    sh:maxCount 1 ;
+    sh:class ufr:Path ;
+  ] .
+
+ufr:PathShape
+  a sh:NodeShape ;
+  sh:targetClass ufr:Path ;
+  sh:property [
+    sh:path ufr:hasContent ;
+    sh:minCount 1 ;
+    sh:datatype xsd:string ;
+  ] .
+
+ufr:SessionShape
+  a sh:NodeShape ;
+  sh:targetClass ufr:Session ;
+  sh:property [
+    sh:path ufr:hasLogonEvent ;
+    sh:maxCount 1 ;
+    sh:class ufr:LogonEvent ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasUser ;
+    sh:maxCount 1 ;
+    sh:class ufr:User ;
+  ] .
+
+ufr:LogonEventShape
+  a sh:NodeShape ;
+  sh:targetClass ufr:LogonEvent ;
+  sh:property [
+    sh:path ufr:hasLogonType ;
+    sh:maxCount 1 ;
+    sh:class ufr:LogonType ;
+  ] .
+
+ufr:ComputerShape
+  a sh:NodeShape ;
+  sh:targetClass ufr:Computer ;
+  sh:property [
+    sh:path ufr:hasDomain ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasHostname ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+  ] ;
+  sh:property [
+    sh:path ufr:hasIP ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+  ] .
+
+ufr:UserShape
+  a sh:NodeShape ;
+  sh:targetClass ufr:User ;
+  sh:property [
+    sh:path ufr:hasName ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+  ] .
+
+ufr:RegistryModificationConfigurationEventShape
+  a sh:NodeShape ;
+  sh:targetClass ufr:RegistryModification_configuration_event ;
+  sh:property [
+    sh:path ufr:hasValue ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:decimal ;
+  ] .
+
+# Domain/range checks for core properties.
+
+ufr:HasUserDomainShape
+  a sh:NodeShape ;
+  sh:targetSubjectsOf ufr:hasUser ;
+  sh:class ufr:Independent_entity .
+
+ufr:HasUserRangeShape
+  a sh:NodeShape ;
+  sh:targetObjectsOf ufr:hasUser ;
+  sh:class ufr:User .
+
+ufr:HasComputerDomainShape
+  a sh:NodeShape ;
+  sh:targetSubjectsOf ufr:hasComputer ;
+  sh:class ufr:Independent_entity .
+
+ufr:HasComputerRangeShape
+  a sh:NodeShape ;
+  sh:targetObjectsOf ufr:hasComputer ;
+  sh:class ufr:Computer .
+
+ufr:HasDetectionDomainShape
+  a sh:NodeShape ;
+  sh:targetSubjectsOf ufr:hasDetection ;
+  sh:class ufr:Event .
+
+ufr:HasDetectionRangeShape
+  a sh:NodeShape ;
+  sh:targetObjectsOf ufr:hasDetection ;
+  sh:class ufr:Detection .
+
+ufr:HasLogFileDomainShape
+  a sh:NodeShape ;
+  sh:targetSubjectsOf ufr:hasLogFile ;
+  sh:class ufr:Independent_entity .
+
+ufr:HasLogFileRangeShape
+  a sh:NodeShape ;
+  sh:targetObjectsOf ufr:hasLogFile ;
+  sh:class ufr:LogFile .
+
+ufr:HasProcessDomainShape
+  a sh:NodeShape ;
+  sh:targetSubjectsOf ufr:hasProcess ;
+  sh:class ufr:Independent_entity .
+
+ufr:HasProcessRangeShape
+  a sh:NodeShape ;
+  sh:targetObjectsOf ufr:hasProcess ;
+  sh:class ufr:Process .
+
+ufr:HasPathDomainShape
+  a sh:NodeShape ;
+  sh:targetSubjectsOf ufr:hasPath ;
+  sh:class ufr:LogFile .
+
+ufr:HasPathRangeShape
+  a sh:NodeShape ;
+  sh:targetObjectsOf ufr:hasPath ;
+  sh:class ufr:Path .
+
+# Optional strictness: enforce disjointness between Independent_entity and Value.
+
+ufr:IndependentEntityDisjointFromValueShape
+  a sh:NodeShape ;
+  sh:targetClass ufr:Independent_entity ;
+  sh:not [ sh:class ufr:Value ] .

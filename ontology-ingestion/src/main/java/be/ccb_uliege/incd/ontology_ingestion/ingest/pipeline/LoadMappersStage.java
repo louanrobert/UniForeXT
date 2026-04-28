@@ -1,14 +1,17 @@
 package be.ccb_uliege.incd.ontology_ingestion.ingest.pipeline;
 
+import org.apache.jena.sparql.function.library.leviathan.log;
+
 import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.YamlMapperRegistry;
 
 /**
  * Loads all source mappers from YAML into the pipeline context.
  */
-public class LoadMappersStage implements IngestionStage {
+public class LoadMappersStage extends IngestionStage {
 
     @Override
     public void execute(PipelineContext context) {
+        log("Loading mappers from config: " + context.getMapperConfigPath());
         YamlMapperRegistry mapperRegistry = YamlMapperRegistry.fromYamlFile(
                 context.getMapperConfigPath(),
                 context.getKnowledgeGraph());

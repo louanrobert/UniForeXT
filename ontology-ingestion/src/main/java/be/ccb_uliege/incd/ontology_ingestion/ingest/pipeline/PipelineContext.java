@@ -17,6 +17,7 @@ public class PipelineContext {
     private final KnowledgeGraphFacade knowledgeGraph;
     private final SourceIngester sourceIngester;
     private final String mapperConfigPath;
+    private final String SHACL_SHAPES_PATH = "shapes.ttl"; // TODO externalize to config
 
     private YamlMapperRegistry mapperRegistry;
     private final List<IngestionTask> ingestionTasks = new ArrayList<>();
@@ -37,6 +38,10 @@ public class PipelineContext {
 
     public String getMapperConfigPath() {
         return mapperConfigPath;
+    }
+
+    public String getShaclShapesPath() {
+        return SHACL_SHAPES_PATH;
     }
 
     public YamlMapperRegistry getMapperRegistry() {

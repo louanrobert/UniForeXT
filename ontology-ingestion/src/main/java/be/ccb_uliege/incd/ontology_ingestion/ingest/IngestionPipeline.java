@@ -8,6 +8,7 @@ import be.ccb_uliege.incd.ontology_ingestion.ingest.pipeline.ExecuteIngestionTas
 import be.ccb_uliege.incd.ontology_ingestion.ingest.pipeline.IngestionStage;
 import be.ccb_uliege.incd.ontology_ingestion.ingest.pipeline.LoadMappersStage;
 import be.ccb_uliege.incd.ontology_ingestion.ingest.pipeline.PipelineContext;
+import be.ccb_uliege.incd.ontology_ingestion.ingest.pipeline.ValidateShaclStage;
 import be.ccb_uliege.incd.ontology_ingestion.owl.kg.KnowledgeGraphFacade;
 
 /**
@@ -25,17 +26,18 @@ public class IngestionPipeline {
         this.stages = List.copyOf(stages);
     }
 
-    public void run(PipelineContext context) {
+    public void run(PipelineContext context) throws Exception {
         for (IngestionStage stage : stages) {
             stage.execute(context);
         }
     }
 
-    public static void run(KnowledgeGraphFacade knowledgeGraph) {
+    public static void run(KnowledgeGraphFacade knowledgeGraph) throws Exception {
         IngestionPipeline pipeline = new IngestionPipeline(List.of(
                 new LoadMappersStage(),
                 new DefineIngestionTasksStage(),
-                new ExecuteIngestionTasksStage()));
+                new ExecuteIngestionTasksStage(),
+                new ValidateShaclStage(true)));  // Set to 'false' to continue on validation errors
 
         PipelineContext context = new PipelineContext(
                 knowledgeGraph,
