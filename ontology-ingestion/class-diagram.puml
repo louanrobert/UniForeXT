@@ -28,8 +28,9 @@ package "ontology_ingestion.ingest.interfaces" {
 }
 
 package "ontology_ingestion.ingest.pipeline" {
-  interface IngestionStage {
-    +execute(context: PipelineContext): void
+  abstract class IngestionStage {
+    {abstract} +execute(context: PipelineContext): void
+    #log(message: String): void
   }
 
   class PipelineContext {
@@ -62,6 +63,10 @@ package "ontology_ingestion.ingest.pipeline" {
   }
 
   class ExecuteIngestionTasksStage {
+    +execute(context: PipelineContext): void
+  }
+
+  class ValidateShaclStage {
     +execute(context: PipelineContext): void
   }
 }
@@ -207,6 +212,7 @@ package "ontology_ingestion.owl.kg" {
 LoadMappersStage ..|> IngestionStage
 DefineIngestionTasksStage ..|> IngestionStage
 ExecuteIngestionTasksStage ..|> IngestionStage
+ValidateShaclStage ..|> IngestionStage
 CsvIngester ..|> SourceIngester
 CsvRecord ..|> SourceRecord
 YamlSourceMapper ..|> SourceMapper

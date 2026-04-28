@@ -73,4 +73,12 @@ public class KnowledgeGraphFacade {
          resource.addProperty(property, value);
       }
    }
+
+   public Model getModel() {
+        return this.knowledgeGraph;
+    }
+
+   public Model getOntologyModel() {
+      return this.ontologyFacade.getOntologyModel();
+   }
 }

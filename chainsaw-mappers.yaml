@@ -3,6 +3,7 @@ genericMappings:
     - sourceField: "timestamp"
       type: dataProperty
       owlProperty: hasTimestamp
+      dataType: xsd:dateTimeStamp
 
   addComputer:
     - type: linkedIndividual

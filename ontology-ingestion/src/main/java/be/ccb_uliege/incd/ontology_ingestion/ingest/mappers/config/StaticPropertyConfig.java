@@ -14,4 +14,5 @@ import lombok.Getter;
 public class StaticPropertyConfig {
     private String owlProperty; // 
     private String value;
+    private String dataType = "xsd:string";
 }

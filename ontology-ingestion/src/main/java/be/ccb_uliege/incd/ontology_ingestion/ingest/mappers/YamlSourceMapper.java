@@ -4,9 +4,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
-import org.apache.jena.datatypes.xsd.impl.RDFLangString;
+import org.apache.jena.datatypes.RDFDatatype;
+import org.apache.jena.datatypes.TypeMapper;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.XSD;
 
 import be.ccb_uliege.incd.ontology_ingestion.ingest.interfaces.SourceMapper;
 import be.ccb_uliege.incd.ontology_ingestion.ingest.interfaces.SourceRecord;
@@ -22,6 +33,18 @@ import be.ccb_uliege.incd.ontology_ingestion.owl.kg.KnowledgeGraphFacade;
  * It supports static properties, field mappings for data properties and linked individuals, and the use of generic mapping groups for reusable field mapping configurations.
  */
 public class YamlSourceMapper implements SourceMapper {
+
+    private static final String XSD_PREFIX = "xsd:";
+    private static final DateTimeFormatter OUTPUT_DATE_TIME_STAMP_FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+    private static final List<DateTimeFormatter> LOCAL_DATE_TIME_INPUT_FORMATTERS = List.of(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"),
+            DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm"),
+            DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss"),
+            DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss.SSS"),
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
 
     private final MapperConfig config;
     private final Map<String, List<FieldMappingConfig>> genericMappings;
@@ -50,8 +73,10 @@ public class YamlSourceMapper implements SourceMapper {
         // Apply static properties unconditionally
         if (config.getStaticProperties() != null) {
             for (StaticPropertyConfig sp : config.getStaticProperties()) {
+                RDFDatatype dataType = resolveDatatype(sp.getDataType());
+                String normalizedValue = normalizeLiteralValue(sp.getValue(), dataType);
                 knowledgeGraph.addDataProperty(individual, sp.getOwlProperty(),
-                        knowledgeGraph.createLiteral(sp.getValue(), RDFLangString.rdfLangString));
+                        knowledgeGraph.createLiteral(normalizedValue, dataType));
             }
         }
 
@@ -95,14 +120,82 @@ public class YamlSourceMapper implements SourceMapper {
         String value = fm.getPrefix() != null
                 ? fm.getPrefix() + r.get(fm.getSourceField())
                 : r.get(fm.getSourceField());
+        RDFDatatype dataType = resolveDatatype(fm.getDataType());
+        String normalizedValue = normalizeLiteralValue(value, dataType);
 
         if (fm.isUnique()) {
             knowledgeGraph.addUniqueDataProperty(parent, fm.getOwlProperty(),
-                    knowledgeGraph.createLiteral(value, RDFLangString.rdfLangString));
+                knowledgeGraph.createLiteral(normalizedValue, dataType));
         } else {
             knowledgeGraph.addDataProperty(parent, fm.getOwlProperty(),
-                    knowledgeGraph.createLiteral(value, RDFLangString.rdfLangString));
+                knowledgeGraph.createLiteral(normalizedValue, dataType));
         }
+    }
+
+    private RDFDatatype resolveDatatype(String configuredType) {
+        if (configuredType == null || configuredType.isBlank()) {
+            return XSDDatatype.XSDstring;
+        }
+
+        String normalizedType = configuredType.trim();
+        String datatypeUri = normalizedType.startsWith(XSD_PREFIX)
+                ? XSD.getURI() + normalizedType.substring(XSD_PREFIX.length())
+                : normalizedType;
+
+        RDFDatatype datatype = TypeMapper.getInstance().getTypeByName(datatypeUri);
+        if (datatype == null) {
+            throw new IllegalArgumentException("Unknown datatype: " + configuredType);
+        }
+        return datatype;
+    }
+
+    private String normalizeLiteralValue(String value, RDFDatatype datatype) {
+        if (value == null || datatype == null) {
+            return value;
+        }
+        if (XSDDatatype.XSDdateTimeStamp.getURI().equals(datatype.getURI())) {
+            return normalizeDateTimeStamp(value);
+        }
+        return value;
+    }
+
+    private String normalizeDateTimeStamp(String rawValue) {
+        String value = rawValue.trim();
+        if (value.isEmpty()) {
+            return value;
+        }
+
+        // Already valid dateTimeStamp lexical form.
+        try {
+            return OffsetDateTime.parse(value).format(OUTPUT_DATE_TIME_STAMP_FORMATTER);
+        } catch (DateTimeParseException ignored) {
+        }
+
+        try {
+            return ZonedDateTime.parse(value).toOffsetDateTime().format(OUTPUT_DATE_TIME_STAMP_FORMATTER);
+        } catch (DateTimeParseException ignored) {
+        }
+
+        try {
+            return Instant.parse(value).atOffset(ZoneOffset.UTC).format(OUTPUT_DATE_TIME_STAMP_FORMATTER);
+        } catch (DateTimeParseException ignored) {
+        }
+
+        for (DateTimeFormatter formatter : LOCAL_DATE_TIME_INPUT_FORMATTERS) {
+            try {
+                LocalDateTime dateTime = LocalDateTime.parse(value, formatter);
+                return dateTime.atOffset(ZoneOffset.UTC).format(OUTPUT_DATE_TIME_STAMP_FORMATTER);
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+
+        try {
+            LocalDate localDate = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
+            return localDate.atStartOfDay().atOffset(ZoneOffset.UTC).format(OUTPUT_DATE_TIME_STAMP_FORMATTER);
+        } catch (DateTimeParseException ignored) {
+        }
+
+        throw new IllegalArgumentException("Could not normalize xsd:dateTimeStamp value: " + rawValue);
     }
 
     private void applyLinkedIndividual(FieldMappingConfig fm, SourceRecord r, Resource parent) {

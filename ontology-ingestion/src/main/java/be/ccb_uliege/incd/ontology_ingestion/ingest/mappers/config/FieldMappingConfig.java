@@ -18,6 +18,7 @@ public class FieldMappingConfig {
     private String sourceField;
     private String owlProperty;
     private String type;
+    private String dataType = "xsd:string";
     private String prefix;
     private boolean unique = true;
     private String owlClass;
