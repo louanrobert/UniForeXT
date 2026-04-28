@@ -7,11 +7,11 @@ package be.ccb_uliege.incd.ontology_viewer;
  */
 public class JavaBridge {
 
-    private final OntologyService ontologyService;
+    private final KGService kgService;
     private final App app;
 
-    public JavaBridge(OntologyService ontologyService, App app) {
-        this.ontologyService = ontologyService;
+    public JavaBridge(KGService kgService, App app) {
+        this.kgService = kgService;
         this.app = app;
     }
 
@@ -20,7 +20,7 @@ public class JavaBridge {
      * Returns a JSON string: { "nodes": [...], "edges": [...] }
      */
     public String getNeighborsJson(String individualUri) {
-        return ontologyService.getNeighborsJson(individualUri);
+        return kgService.getNeighborsJson(individualUri);
     }
 
     /**
@@ -28,7 +28,7 @@ public class JavaBridge {
      * Returns JSON: { totalCount, literalCount, types: [{type, count, color}...] }
      */
     public String getNeighborSummaryJson(String individualUri) {
-        return ontologyService.getNeighborSummaryJson(individualUri);
+        return kgService.getNeighborSummaryJson(individualUri);
     }
 
     /**
@@ -40,7 +40,7 @@ public class JavaBridge {
     public String getFilteredNeighborsJson(String individualUri, String allowedTypesJson,
                                            int maxPerType, String includeLiterals) {
         boolean literals = "true".equals(includeLiterals);
-        return ontologyService.getFilteredNeighborsJson(individualUri, allowedTypesJson,
+        return kgService.getFilteredNeighborsJson(individualUri, allowedTypesJson,
                                                         maxPerType, literals);
     }
 
@@ -49,28 +49,28 @@ public class JavaBridge {
      * Returns a Vis.js-compatible JSON array.
      */
     public String getTimelineItemsJson() {
-        return ontologyService.getTimelineItemsJson();
+        return kgService.getTimelineItemsJson();
     }
 
     /**
      * Called from JavaScript to get timeline groups.
      */
     public String getTimelineGroupsJson() {
-        return ontologyService.getTimelineGroupsJson();
+        return kgService.getTimelineGroupsJson();
     }
 
     /**
      * Called from JavaScript to get undated individuals.
      */
     public String getUndatedIndividualsJson() {
-        return ontologyService.getUndatedIndividualsJson();
+        return kgService.getUndatedIndividualsJson();
     }
 
     /**
      * Called from JavaScript to check if a node has already been explored.
      */
     public boolean isExplored(String uri) {
-        return ontologyService.isExplored(uri);
+        return kgService.isExplored(uri);
     }
 
     /**
@@ -86,7 +86,15 @@ public class JavaBridge {
      * Used by the Event Explorer detail panel.
      */
     public String getIndividualDetailsJson(String individualUri) {
-        return ontologyService.getIndividualDetailsJson(individualUri);
+        return kgService.getIndividualDetailsJson(individualUri);
+    }
+
+    /**
+     * Called from JavaScript to execute a read-only SPARQL query.
+     * Supports SELECT, ASK, CONSTRUCT, and DESCRIBE.
+     */
+    public String executeSparqlJson(String sparql) {
+        return kgService.executeSparqlJson(sparql);
     }
 
     /**

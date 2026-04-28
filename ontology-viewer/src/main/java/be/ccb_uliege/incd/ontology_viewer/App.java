@@ -11,12 +11,12 @@ import java.io.File;
  * Main JavaFX application entry point.
  * Opens a file chooser to select a Turtle (.ttl) file,
  * then shows a view selector. From there the user can open
- * the Timeline view or the Event Explorer. Double-clicking
+ * the Timeline view, Event Explorer, or Query view. Double-clicking
  * items opens Graph views in separate windows.
  */
 public class App extends Application {
 
-    private OntologyService ontologyService;
+    private KGService kgService;
     private JavaBridge bridge;
     private Stage primaryStage;
 
@@ -54,8 +54,8 @@ public class App extends Application {
 
         System.out.println("Loading ontology from: " + ttlPath);
 
-        ontologyService = new OntologyService(ttlPath);
-        bridge = new JavaBridge(ontologyService, this);
+        kgService = new KGService(ttlPath);
+        bridge = new JavaBridge(kgService, this);
 
         primaryStage.setTitle("Ontology Viewer \u2014 " + new File(ttlPath).getName());
 
@@ -85,6 +85,10 @@ public class App extends Application {
             case "explorer" -> {
                 EventExplorerView explorerView = new EventExplorerView(bridge);
                 primaryStage.setScene(new Scene(explorerView.getRoot(), 1400, 800));
+            }
+            case "query" -> {
+                QueryView queryView = new QueryView(bridge);
+                primaryStage.setScene(new Scene(queryView.getRoot(), 1400, 800));
             }
             default -> System.out.println("Unknown view: " + viewName);
         }

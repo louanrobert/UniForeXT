@@ -11,11 +11,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.io.StringWriter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDF;
 
@@ -23,9 +25,9 @@ import org.apache.jena.vocabulary.RDF;
  * Service class that wraps Apache Jena to parse a Turtle (.ttl) file,
  * extract individuals with date/time properties, and resolve neighborhoods.
  */
-public class OntologyService {
+public class KGService {
 
-    private static final Logger LOG = Logger.getLogger(OntologyService.class.getName());
+    private static final Logger LOG = Logger.getLogger(KGService.class.getName());
 
     private final Model model;
     private final ObjectMapper mapper = new ObjectMapper();
@@ -72,7 +74,7 @@ public class OntologyService {
     private static final DateTimeFormatter DD_MM_YYYY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter ISO_OFFSET = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
-    public OntologyService(String ttlFilePath) {
+    public KGService(String ttlFilePath) {
         model = ModelFactory.createDefaultModel();
         model.read(ttlFilePath);
         // Pre-resolve frequently-used property references
@@ -878,5 +880,120 @@ public class OntologyService {
         result.set("incoming", incoming);
 
         return result.toString();
+    }
+
+    /**
+     * Execute a read-only SPARQL query and return a JSON envelope.
+     * Supported query forms: SELECT, ASK, CONSTRUCT, DESCRIBE.
+     */
+    public String executeSparqlJson(String sparql) {
+        ObjectNode response = mapper.createObjectNode();
+        if (sparql == null || sparql.isBlank()) {
+            response.put("ok", false);
+            response.put("message", "Query is empty.");
+            return response.toString();
+        }
+
+        final int maxRows = 500;
+
+        try {
+            Query query = QueryFactory.create(sparql);
+
+            // Guard against updates by allowing only read-only query forms.
+            if (!(query.isSelectType() || query.isAskType() || query.isConstructType() || query.isDescribeType())) {
+                response.put("ok", false);
+                response.put("message", "Only SELECT, ASK, CONSTRUCT, and DESCRIBE queries are allowed.");
+                return response.toString();
+            }
+
+            try (QueryExecution qexec = QueryExecutionFactory.create(query, model)) {
+                response.put("ok", true);
+
+                if (query.isSelectType()) {
+                    response.put("queryType", "SELECT");
+                    ResultSet rs = qexec.execSelect();
+                    ArrayNode columns = mapper.createArrayNode();
+                    for (String var : rs.getResultVars()) {
+                        columns.add(var);
+                    }
+
+                    ArrayNode rows = mapper.createArrayNode();
+                    int count = 0;
+                    while (rs.hasNext() && count < maxRows) {
+                        QuerySolution sol = rs.next();
+                        ObjectNode row = mapper.createObjectNode();
+                        for (String var : rs.getResultVars()) {
+                            RDFNode value = sol.get(var);
+                            row.set(var, rdfNodeToJson(value));
+                        }
+                        rows.add(row);
+                        count++;
+                    }
+
+                    response.set("columns", columns);
+                    response.set("rows", rows);
+                    response.put("rowCount", count);
+                    response.put("truncated", rs.hasNext());
+                    if (rs.hasNext()) {
+                        response.put("message", "Result truncated to " + maxRows + " rows.");
+                    }
+                } else if (query.isAskType()) {
+                    response.put("queryType", "ASK");
+                    response.put("boolean", qexec.execAsk());
+                } else {
+                    response.put("queryType", query.isConstructType() ? "CONSTRUCT" : "DESCRIBE");
+                    Model resultModel = query.isConstructType() ? qexec.execConstruct() : qexec.execDescribe();
+                    StringWriter writer = new StringWriter();
+                    resultModel.write(writer, "TURTLE");
+                    response.put("ttl", writer.toString());
+                    response.put("tripleCount", resultModel.size());
+                }
+            }
+        } catch (Exception e) {
+            response.put("ok", false);
+            response.put("message", e.getMessage() == null ? "Failed to execute query." : e.getMessage());
+        }
+
+        return response.toString();
+    }
+
+    private ObjectNode rdfNodeToJson(RDFNode node) {
+        ObjectNode out = mapper.createObjectNode();
+        if (node == null) {
+            out.put("kind", "null");
+            out.putNull("value");
+            return out;
+        }
+
+        if (node.isURIResource()) {
+            Resource r = node.asResource();
+            out.put("kind", "uri");
+            out.put("value", r.getURI());
+            out.put("display", localName(r.getURI()));
+            return out;
+        }
+
+        if (node.isLiteral()) {
+            Literal lit = node.asLiteral();
+            out.put("kind", "literal");
+            out.put("value", lit.getString());
+            if (lit.getDatatypeURI() != null) {
+                out.put("datatype", lit.getDatatypeURI());
+            }
+            if (lit.getLanguage() != null && !lit.getLanguage().isBlank()) {
+                out.put("lang", lit.getLanguage());
+            }
+            return out;
+        }
+
+        if (node.isAnon()) {
+            out.put("kind", "bnode");
+            out.put("value", node.asResource().getId().getLabelString());
+            return out;
+        }
+
+        out.put("kind", "unknown");
+        out.put("value", node.toString());
+        return out;
     }
 }

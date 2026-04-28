@@ -22,7 +22,7 @@ public class GraphView {
     public GraphView(JavaBridge bridge, String individualUri) {
 
         stage = new Stage();
-        stage.setTitle("Graph: " + OntologyService.localName(individualUri));
+        stage.setTitle("Graph: " + KGService.localName(individualUri));
         stage.setWidth(1000);
         stage.setHeight(700);
 

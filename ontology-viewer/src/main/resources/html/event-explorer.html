@@ -38,6 +38,8 @@
     <script src="https://unpkg.com/@sgratzl/chartjs-chart-boxplot@4"></script>
     <script src="https://unpkg.com/chartjs-chart-matrix@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <style>
         :root {
             font-family: Inter, sans-serif;
@@ -201,6 +203,53 @@
         }
         #search-input:focus { border-color: hsl(var(--ring)); }
         #search-input::placeholder { color: hsl(var(--muted-foreground)); }
+        .date-input-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .date-input-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: hsl(var(--muted-foreground));
+            white-space: nowrap;
+        }
+        .date-input {
+            background: hsl(var(--background));
+            border: 1px solid hsl(var(--border) / 0.3);
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 12px;
+            color: hsl(var(--foreground));
+            outline: none;
+        }
+        .date-input:focus { border-color: hsl(var(--ring)); }
+        .date-input::placeholder { color: hsl(var(--muted-foreground)); }
+        .date-range-separator {
+            font-size: 11px;
+            color: hsl(var(--muted-foreground));
+            white-space: nowrap;
+        }
+        #clear-dates-btn {
+            background: hsl(var(--background));
+            border: 1px solid hsl(var(--border) / 0.2);
+            color: hsl(var(--muted-foreground));
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        #clear-dates-btn:hover {
+            background: hsl(var(--accent));
+            color: hsl(var(--foreground));
+        }
+        #clear-dates-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         .type-filter-chip {
             display: inline-flex;
             align-items: center;
@@ -469,6 +518,111 @@
         ::-webkit-scrollbar-thumb { background: hsl(var(--muted)); border-radius: 9999px; }
         ::-webkit-scrollbar-thumb:hover { background: hsl(var(--accent)); }
     </style>
+    <style>
+        /* Flatpickr customization */
+        .flatpickr-calendar {
+            background: hsl(240 10% 10%);
+            border: 1px solid hsl(240 3.7% 25%);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            border-radius: 8px;
+        }
+        .flatpickr-months {
+            background: hsl(240 5.9% 20%);
+            color: hsl(0 0% 98%);
+        }
+        .flatpickr-month {
+            background: hsl(240 5.9% 20%);
+            color: hsl(0 0% 98%);
+        }
+        .flatpickr-prev-month, .flatpickr-next-month {
+            color: hsl(0 0% 98%);
+            fill: hsl(0 0% 98%);
+        }
+        .flatpickr-prev-month:hover, .flatpickr-next-month:hover {
+            background: hsl(240 3.7% 35%);
+        }
+        .flatpickr-weekdays {
+            background: hsl(240 5.9% 20%);
+            color: hsl(240 5% 64.9%);
+        }
+        .flatpickr-weekday {
+            color: hsl(240 5% 64.9%);
+            background: hsl(240 5.9% 20%);
+            font-weight: 600;
+        }
+        .flatpickr-days {
+            background: hsl(240 10% 10%);
+        }
+        .flatpickr-day {
+            color: hsl(0 0% 98%);
+            border-color: hsl(240 3.7% 25%);
+            background: hsl(240 10% 10%);
+        }
+        .flatpickr-day:hover {
+            background: hsl(240 3.7% 35%);
+            border-color: hsl(240 3.7% 35%);
+            color: hsl(0 0% 98%);
+        }
+        .flatpickr-day.selected {
+            background: hsl(0 0% 98%);
+            border-color: hsl(0 0% 98%);
+            color: hsl(240 5.9% 10%);
+        }
+        .flatpickr-day.selected:hover {
+            background: hsl(0 0% 85%);
+            border-color: hsl(0 0% 85%);
+        }
+        .flatpickr-day.today {
+            border-color: hsl(240 4.9% 83.9%);
+            color: hsl(240 4.9% 83.9%);
+            font-weight: 700;
+        }
+        .flatpickr-day.disabled, .flatpickr-day.prevMonthDay.disabled, .flatpickr-day.nextMonthDay.disabled, .flatpickr-day.notAllowed, .flatpickr-day.notAllowed.prevMonthDay, .flatpickr-day.notAllowed.nextMonthDay {
+            color: hsl(240 3.7% 30%);
+            background: hsl(240 10% 10%) !important;
+            cursor: not-allowed;
+            opacity: 0.4;
+            border-color: transparent;
+        }
+        .flatpickr-day.hasEvents {
+            background: hsl(240 3.7% 25%);
+            font-weight: 700;
+            color: hsl(0 0% 98%);
+            border: 1px solid hsl(240 4.9% 83.9%);
+        }
+        .flatpickr-day.hasEvents:hover {
+            background: hsl(240 3.7% 35%);
+            border-color: hsl(240 4.9% 83.9%);
+        }
+        .flatpickr-day.hasEvents.selected {
+            background: hsl(0 0% 98%);
+            color: hsl(240 5.9% 10%);
+            border-color: hsl(0 0% 98%);
+        }
+        .flatpickr-time {
+            background: hsl(240 10% 12%);
+            border-top: 1px solid hsl(240 3.7% 25%);
+        }
+        .flatpickr-time input {
+            background: hsl(240 10% 10%);
+            color: hsl(0 0% 98%);
+            border: 1px solid hsl(240 3.7% 25%);
+        }
+        .flatpickr-time input:focus {
+            border-color: hsl(240 4.9% 83.9%);
+            box-shadow: 0 0 0 2px hsl(240 4.9% 83.9% / 0.1);
+        }
+        .flatpickr-time.hasSeconds .flatpickr-time-separator, .flatpickr-time .flatpickr-am-pm {
+            color: hsl(240 5% 64.9%);
+        }
+        .flatpickr-am-pm {
+            color: hsl(240 5% 64.9%);
+            background: hsl(240 10% 12%);
+        }
+        .flatpickr-am-pm:hover {
+            background: hsl(240 3.7% 30%);
+        }
+    </style>
 </head>
 <body>
     <!-- Header -->
@@ -518,6 +672,14 @@
             <div id="filter-bar">
                 <span style="font-size:10px; text-transform:uppercase; color:hsl(var(--muted-foreground)); flex-shrink:0;">Filter:</span>
                 <input type="text" id="search-input" placeholder="Search events..." oninput="applyFilters()">
+                <div class="date-input-group">
+                    <span class="date-input-label">Timeframe:</span>
+                    <input type="text" id="date-start" class="date-input" placeholder="Start date..." title="Start date and time">
+                    <span class="date-range-separator">→</span>
+                    <input type="text" id="date-end" class="date-input" placeholder="End date..." title="End date and time">
+                    <button id="clear-dates-btn" onclick="clearDateRange()" disabled>Clear</button>
+                    <span style="font-size:10px; color:hsl(var(--muted-foreground)); white-space:nowrap;">Ctrl + wheel zooms</span>
+                </div>
                 <div id="type-chips" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
                 <span id="match-count"></span>
                 <div id="filter-tags" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
@@ -573,9 +735,164 @@
         var currentBucketUnit = 'auto';
         var currentChartType = 'bar';
         var autoBucketUnit = 'day';
+        var chartEvents = [];
+        var dataTimeMin = null;
+        var dataTimeMax = null;
 
         var nameIncludes = [];  // [{text:'...'}] — event must match at least one
         var nameExcludes = [];  // [{text:'...'}] — event must not match any
+        var dateStartIso = null;  // ISO datetime string or null
+        var dateEndIso = null;    // ISO datetime string or null
+
+        function getEventTimestamp(eventItem) {
+            var ts = new Date(eventItem.start).getTime();
+            return isNaN(ts) ? null : ts;
+        }
+
+        var fpStart = null;  // flatpickr instance for start date
+        var fpEnd = null;    // flatpickr instance for end date
+        var enabledDates = [];  // array of available dates with events
+
+        function formatDateTimeLocal(ms) {
+            var d = new Date(ms);
+            var pad = function(value) { return String(value).padStart(2, '0'); };
+            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+        }
+
+        function updateDateRangeControls() {
+            // Collect all unique dates from events
+            var dateSet = {};
+            var firstEventDate = null;
+            var lastEventDate = null;
+            
+            allEvents.forEach(function(e) {
+                if (e.start) {
+                    var d = new Date(e.start);
+                    var dateKey = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                    dateSet[dateKey] = true;
+                    if (!firstEventDate) firstEventDate = new Date(e.start);
+                    lastEventDate = new Date(e.start);
+                }
+            });
+            enabledDates = Object.keys(dateSet).sort();
+
+            // Initialize flatpickr for start date if not already initialized
+            if (!fpStart) {
+                fpStart = flatpickr('#date-start', {
+                    enableTime: true,
+                    dateFormat: 'Y-m-d H:i',
+                    time_24hr: true,
+                    enable: enabledDates,
+                    onOpen: function() {
+                        if (firstEventDate && !fpStart.selectedDates.length) {
+                            fpStart.currentMonth = firstEventDate.getMonth();
+                            fpStart.currentYear = firstEventDate.getFullYear();
+                            fpStart.redraw();
+                        }
+                    },
+                    onClose: function() { applyFilters(); },
+                    onDayCreate: function(dObj, dStr, fp, dayElem) {
+                        var dateStr = dayElem.dateObj.getFullYear() + '-' + 
+                                      String(dayElem.dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                                      String(dayElem.dateObj.getDate()).padStart(2, '0');
+                        if (enabledDates.indexOf(dateStr) >= 0) {
+                            dayElem.classList.add('hasEvents');
+                        }
+                    }
+                });
+            }
+
+            // Initialize flatpickr for end date if not already initialized
+            if (!fpEnd) {
+                fpEnd = flatpickr('#date-end', {
+                    enableTime: true,
+                    dateFormat: 'Y-m-d H:i',
+                    time_24hr: true,
+                    enable: enabledDates,
+                    onOpen: function() {
+                        if (lastEventDate && !fpEnd.selectedDates.length) {
+                            fpEnd.currentMonth = lastEventDate.getMonth();
+                            fpEnd.currentYear = lastEventDate.getFullYear();
+                            fpEnd.redraw();
+                        }
+                    },
+                    onClose: function() { applyFilters(); },
+                    onDayCreate: function(dObj, dStr, fp, dayElem) {
+                        var dateStr = dayElem.dateObj.getFullYear() + '-' + 
+                                      String(dayElem.dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                                      String(dayElem.dateObj.getDate()).padStart(2, '0');
+                        if (enabledDates.indexOf(dateStr) >= 0) {
+                            dayElem.classList.add('hasEvents');
+                        }
+                    }
+                });
+            }
+
+            var clearBtn = document.getElementById('clear-dates-btn');
+            if (clearBtn) clearBtn.disabled = !dateStartIso && !dateEndIso;
+        }
+
+        function updateAutoBucketUnit(events) {
+            var sourceEvents = events || allEvents;
+            if (sourceEvents.length === 0) {
+                autoBucketUnit = 'day';
+                updateAutoLabel();
+                return;
+            }
+            var timestamps = sourceEvents.map(function(e) { return getEventTimestamp(e); }).filter(function(ts) { return ts !== null; });
+            if (timestamps.length === 0) {
+                autoBucketUnit = 'day';
+                updateAutoLabel();
+                return;
+            }
+            var minT = Math.min.apply(null, timestamps);
+            var maxT = Math.max.apply(null, timestamps);
+            var range = maxT - minT;
+            var msDay = 86400000, msMonth = msDay * 30, msYear = msDay * 365;
+            if (range > msYear * 10) autoBucketUnit = 'year';
+            else if (range > msYear * 2) autoBucketUnit = 'quarter';
+            else if (range > msMonth * 6) autoBucketUnit = 'month';
+            else if (range > msDay * 30) autoBucketUnit = 'week';
+            else autoBucketUnit = 'day';
+            updateAutoLabel();
+        }
+
+        function applyTimeframeZoom(deltaY) {
+            if (dataTimeMin === null || dataTimeMax === null) return;
+
+            var baseStart = dateStartIso ? new Date(dateStartIso).getTime() : dataTimeMin;
+            var baseEnd = dateEndIso ? new Date(dateEndIso).getTime() : dataTimeMax;
+            var range = Math.max(1, baseEnd - baseStart);
+            var center = baseStart + range / 2;
+            var zoomFactor = deltaY > 0 ? 1.25 : 0.8;
+            var nextRange = Math.max(60 * 1000, range * zoomFactor);
+            var nextStart = center - nextRange / 2;
+            var nextEnd = center + nextRange / 2;
+
+            if (nextStart < dataTimeMin) {
+                nextEnd += dataTimeMin - nextStart;
+                nextStart = dataTimeMin;
+            }
+            if (nextEnd > dataTimeMax) {
+                nextStart -= nextEnd - dataTimeMax;
+                nextEnd = dataTimeMax;
+            }
+
+            nextStart = Math.max(dataTimeMin, nextStart);
+            nextEnd = Math.min(dataTimeMax, nextEnd);
+            if (nextEnd <= nextStart) nextEnd = Math.min(dataTimeMax, nextStart + 60 * 1000);
+
+            dateStartIso = new Date(Math.floor(nextStart)).toISOString();
+            dateEndIso = new Date(Math.ceil(nextEnd)).toISOString();
+            updateDateRangeControls();
+            applyFilters();
+        }
+
+        function handleWheelShortcut(evt) {
+            if (!evt.ctrlKey) return;
+            evt.preventDefault();
+            applyTimeframeZoom(evt.deltaY);
+        }
 
         function initExplorer() {
             try {
@@ -604,16 +921,26 @@
                     };
                 });
 
+                var timestamps = allEvents.map(function(e) { return getEventTimestamp(e); }).filter(function(ts) { return ts !== null; });
+                if (timestamps.length > 0) {
+                    dataTimeMin = Math.min.apply(null, timestamps);
+                    dataTimeMax = Math.max.apply(null, timestamps);
+                }
+
                 document.getElementById('stats').textContent = allEvents.length + ' events loaded';
 
                 // Build type chips
                 buildTypeChips(groups);
+
+                updateDateRangeControls();
 
                 // Initial render
                 applyFilters();
 
                 // Build histogram
                 buildHistogram();
+
+                window.addEventListener('wheel', handleWheelShortcut, { passive: false });
 
                 javaBridge.log('Event Explorer initialized with ' + allEvents.length + ' events');
             } catch (e) {
@@ -627,18 +954,6 @@
 
         function buildHistogram() {
             if (allEvents.length === 0) return;
-            // Compute auto bucket unit from time range
-            var timestamps = allEvents.map(function(e) { return new Date(e.start).getTime(); });
-            var minT = Math.min.apply(null, timestamps);
-            var maxT = Math.max.apply(null, timestamps);
-            var range = maxT - minT;
-            var msDay = 86400000, msMonth = msDay * 30, msYear = msDay * 365;
-            if (range > msYear * 10) autoBucketUnit = 'year';
-            else if (range > msYear * 2) autoBucketUnit = 'quarter';
-            else if (range > msMonth * 6) autoBucketUnit = 'month';
-            else if (range > msDay * 30) autoBucketUnit = 'week';
-            else autoBucketUnit = 'day';
-            updateAutoLabel();
             rebuildHistogram();
         }
 
@@ -672,7 +987,9 @@
 
         function rebuildHistogram() {
             if (histogramChart) { histogramChart.destroy(); histogramChart = null; }
-            if (allEvents.length === 0) return;
+            chartEvents = filteredEvents.slice();
+            updateAutoBucketUnit(chartEvents.length > 0 ? chartEvents : allEvents);
+            if (chartEvents.length === 0) return;
             var unit = getEffectiveUnit();
             switch (currentChartType) {
                 case 'bar':        buildBarChart(unit); break;
@@ -710,7 +1027,7 @@
         function aggregateIntoBuckets(unit) {
             var byType = {};
             var allBucketKeys = new Set();
-            allEvents.forEach(function(e) {
+            chartEvents.forEach(function(e) {
                 var bk = getBucketStart(e.start, unit);
                 allBucketKeys.add(bk);
                 if (!byType[e.type]) byType[e.type] = {};
@@ -917,7 +1234,7 @@
             var typeBucketSubs = {};
             var allMainBuckets = new Set();
 
-            allEvents.forEach(function(e) {
+            chartEvents.forEach(function(e) {
                 var mainBk = getBucketStart(e.start, unit);
                 var subBk = getBucketStart(e.start, subUnit);
                 allMainBuckets.add(mainBk);
@@ -1149,7 +1466,7 @@
             var subUnit = getSubUnit(unit);
             var typeBucketSubs = {};
             var allMainBuckets = new Set();
-            allEvents.forEach(function(e) {
+            chartEvents.forEach(function(e) {
                 var mainBk = getBucketStart(e.start, unit);
                 var subBk = getBucketStart(e.start, subUnit);
                 allMainBuckets.add(mainBk);
@@ -1221,7 +1538,7 @@
 
         function buildPieChart() {
             var counts = {};
-            allEvents.forEach(function(e) {
+            chartEvents.forEach(function(e) {
                 counts[e.type] = (counts[e.type] || 0) + 1;
             });
             var types = Object.keys(counts).filter(function(t) { return activeTypes.has(t); });
@@ -1270,11 +1587,11 @@
         function buildScatterChart(unit) {
             var types = [];
             var typeSet = new Set();
-            allEvents.forEach(function(e) {
+            chartEvents.forEach(function(e) {
                 if (!typeSet.has(e.type)) { typeSet.add(e.type); types.push(e.type); }
             });
             var dataByType = {};
-            allEvents.forEach(function(e) {
+            chartEvents.forEach(function(e) {
                 if (!dataByType[e.type]) dataByType[e.type] = [];
                 dataByType[e.type].push({
                     x: new Date(e.start).getTime(),
@@ -1431,7 +1748,7 @@
         function buildHeatmapChart(unit) {
             var cfg = getHeatmapConfig(unit);
             var matrix = {};
-            allEvents.forEach(function(e) {
+            chartEvents.forEach(function(e) {
                 if (!activeTypes.has(e.type)) return;
                 var d = new Date(e.start);
                 var row = cfg.getRow(d);
@@ -1571,7 +1888,7 @@
         function buildRadarChart(unit) {
             var cfg = getRadarConfig(unit);
             var byType = {};
-            allEvents.forEach(function(e) {
+            chartEvents.forEach(function(e) {
                 if (!byType[e.type]) {
                     byType[e.type] = [];
                     for (var i = 0; i < cfg.count; i++) byType[e.type].push(0);
@@ -1690,8 +2007,26 @@
 
         /* ── Filter & Sort ── */
 
+        function parseFlatpickrDate(dateStr) {
+            // Convert "Y-m-d H:i" to ISO format
+            if (!dateStr) return null;
+            var match = dateStr.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+            if (!match) return null;
+            return new Date(match[1], parseInt(match[2]) - 1, match[3], match[4], match[5]).toISOString();
+        }
+
         function applyFilters() {
             var query = (document.getElementById('search-input').value || '').toLowerCase();
+
+            // Get date inputs (flatpickr format: "Y-m-d H:i")
+            var dateStartInput = document.getElementById('date-start').value;
+            var dateEndInput = document.getElementById('date-end').value;
+            dateStartIso = parseFlatpickrDate(dateStartInput);
+            dateEndIso = parseFlatpickrDate(dateEndInput);
+
+            // Update clear button state
+            var clearBtn = document.getElementById('clear-dates-btn');
+            if (clearBtn) clearBtn.disabled = !dateStartInput && !dateEndInput;
 
             filteredEvents = allEvents.filter(function(e) {
                 if (!activeTypes.has(e.type)) return false;
@@ -1717,6 +2052,13 @@
                     if (e.label.toLowerCase().indexOf(eq) >= 0 || e.uri.toLowerCase().indexOf(eq) >= 0) return false;
                 }
 
+                // Date range filter
+                var ts = getEventTimestamp(e);
+                if (ts !== null) {
+                    if (dateStartIso && ts < new Date(dateStartIso).getTime()) return false;
+                    if (dateEndIso && ts > new Date(dateEndIso).getTime()) return false;
+                }
+
                 return true;
             });
 
@@ -1730,7 +2072,7 @@
 
             renderTable();
             updateMatchCount();
-            updateHistogramVisibility();
+            rebuildHistogram();
         }
 
         function sortBy(field) {
@@ -1751,20 +2093,6 @@
         function updateMatchCount() {
             document.getElementById('match-count').textContent =
                 filteredEvents.length + ' / ' + allEvents.length + ' events';
-        }
-
-        function updateHistogramVisibility() {
-            if (!histogramChart) return;
-            // Pie and heatmap must be fully rebuilt when type filters change
-            if (currentChartType === 'pie' || currentChartType === 'heatmap') {
-                rebuildHistogram();
-                return;
-            }
-            // Show/hide datasets based on active types
-            histogramChart.data.datasets.forEach(function(ds) {
-                ds.hidden = !activeTypes.has(ds.label);
-            });
-            histogramChart.update('none');
         }
 
         /* ── Table rendering ── */
@@ -2041,6 +2369,14 @@
             nameExcludes = [];
             renderFilterTags();
             selectAllTypes();
+        }
+
+        function clearDateRange() {
+            if (fpStart) fpStart.clear();
+            if (fpEnd) fpEnd.clear();
+            dateStartIso = null;
+            dateEndIso = null;
+            applyFilters();
         }
     </script>
     <script>lucide.createIcons();</script>

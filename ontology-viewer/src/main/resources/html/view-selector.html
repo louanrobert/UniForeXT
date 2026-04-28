@@ -38,9 +38,9 @@
                 <div class="size-12 rounded-xl flex items-center justify-center mb-4 bg-accent-soft transition-transform duration-300 group-hover:scale-110">
                     <i data-lucide="calendar-clock" class="size-6 text-accent"></i>
                 </div>
-                <div class="text-lg font-semibold mb-2 text-white">Historical Timeline</div>
+                <div class="text-lg font-semibold mb-2 text-white">Historical timeline</div>
                 <div class="text-xs text-muted leading-relaxed">
-                    Interactive Vis.js timeline showing dated events grouped by type.
+                    Interactiv timeline showing dated events grouped by type.
                     Filter, search, and double-click to explore entity graphs.
                 </div>
             </div>
@@ -52,10 +52,24 @@
                 <div class="size-12 rounded-xl flex items-center justify-center mb-4 bg-green-soft transition-transform duration-300 group-hover:scale-110">
                     <i data-lucide="bar-chart-3" class="size-6 text-green"></i>
                 </div>
-                <div class="text-lg font-semibold mb-2 text-white">Event Explorer</div>
+                <div class="text-lg font-semibold mb-2 text-white">Event explorer</div>
                 <div class="text-xs text-muted leading-relaxed">
-                    Histogram overview of event distribution over time, with a
+                    Overview of event distribution over time, with a
                     searchable event table and detailed property inspector.
+                </div>
+            </div>
+            <div class="group bg-card hover:bg-card-hover border border-white/[0.06] hover:border-white/[0.12] rounded-xl py-8 px-7 w-80 cursor-pointer text-left relative transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 active:translate-y-0"
+                 onclick="viewSelector.openView('query')">
+                <span class="absolute top-8 right-6 text-muted transition-all duration-300 group-hover:translate-x-1 group-hover:text-white">
+                    <i data-lucide="arrow-right" class="size-5"></i>
+                </span>
+                <div class="size-12 rounded-xl flex items-center justify-center mb-4 bg-orange-500/15 transition-transform duration-300 group-hover:scale-110">
+                    <i data-lucide="terminal-square" class="size-6 text-orange-400"></i>
+                </div>
+                <div class="text-lg font-semibold mb-2 text-white">Query</div>
+                <div class="text-xs text-muted leading-relaxed">
+                    Run read-only SPARQL queries against the loaded knowledge graph.
+                    Supports SELECT, ASK, CONSTRUCT, and DESCRIBE results.
                 </div>
             </div>
         </div>
