@@ -84,6 +84,24 @@
             white-space: pre;
             border: 1px solid hsl(var(--border) / 0.2);
         }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: hsl(var(--background));
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: hsl(var(--muted));
+            border-radius: 9999px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: hsl(var(--accent));
+        }
     </style>
 </head>
 
@@ -277,6 +295,18 @@
             for (var r = 0; r < rows.length; r++) {
                 var tr = document.createElement('tr');
                 var row = rows[r];
+                var rowUri = getRowUri(row, columns);
+
+                if (rowUri) {
+                    tr.style.cursor = 'pointer';
+                    tr.title = 'Double-click to open graph view';
+                    tr.addEventListener('dblclick', (function (uri) {
+                        return function () {
+                            openGraphView(uri);
+                        };
+                    })(rowUri));
+                }
+
                 for (var c = 0; c < columns.length; c++) {
                     var col = columns[c];
                     var cell = document.createElement('td');
@@ -298,6 +328,26 @@
             table.appendChild(tbody);
             wrap.appendChild(table);
             return wrap;
+        }
+
+        function getRowUri(row, columns) {
+            for (var i = 0; i < columns.length; i++) {
+                var value = row[columns[i]];
+                if (value && value.kind === 'uri' && value.value) {
+                    return value.value;
+                }
+            }
+            return null;
+        }
+
+        function openGraphView(uri) {
+            try {
+                if (javaBridge && typeof javaBridge.openGraphForIndividual === 'function') {
+                    javaBridge.openGraphForIndividual(uri);
+                }
+            } catch (e) {
+                console.error('Failed to open graph view:', e);
+            }
         }
 
         function toKind(v) {
