@@ -35,6 +35,8 @@ public class ValidateShaclStage extends IngestionStage {
             
             // Load shapes graph
             Shapes shapesGraph = ShaclShapesValidator.loadShapes(context.getShaclShapesPath());
+
+            this.log("Loaded " + shapesGraph.getShapeMap().size() + " shapes. Starting validation...");
             
             // Get the ingested data graph from context
             Model dataGraph = context.getKnowledgeGraph().getModel();
@@ -54,15 +56,15 @@ public class ValidateShaclStage extends IngestionStage {
 
     private void logReport(ValidationReport report) {
         if (report.conforms()) {
-            System.out.println("Data conforms to shapes.");
+            this.log("Data conforms to shapes.");
         } else {
-            System.out.println("Data does not conform to shapes:");
+            this.log("Data does not conform to shapes:");
             Collection<ReportEntry> items = report.getEntries();
             for (ReportEntry item : items) {
                 String message = item.message();
                 String focusNode = item.focusNode() != null ? item.focusNode().toString() : "unknown";
                 String severity = nodeToSeverityString(item);
-                System.out.println(String.format("[%s] %s (focusNode: %s)", severity, message, focusNode));
+                this.log(String.format("[%s] %s (focusNode: %s)", severity, message, focusNode));
             }
         }
     }

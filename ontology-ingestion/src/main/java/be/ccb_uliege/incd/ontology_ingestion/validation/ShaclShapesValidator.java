@@ -60,18 +60,4 @@ public class ShaclShapesValidator {
             }
         return errors;
     }
-
-    /**
-     * Print validation report to stdout for debugging.
-     * 
-     * @param report The ValidationReport to print.
-     */
-    public static void printReport(ValidationReport report) {
-        if (report.conforms()) {
-            System.out.println("Data conforms to shapes.");
-        } else {
-            System.out.println("Data does not conform to shapes:");
-            System.out.println(report.toString());
-        }
-    }
 }
