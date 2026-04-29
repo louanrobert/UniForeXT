@@ -1,5 +1,6 @@
 package be.ccb_uliege.incd.ontology_ingestion.ingest.mappers;
 
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +59,10 @@ public class YamlSourceMapper implements SourceMapper {
 
     public String getName() {
         return config.getName();
+    }
+
+    public Path getFilePath() {
+        return config.getFile();
     }
 
     @Override

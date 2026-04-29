@@ -53,7 +53,7 @@ genericMappings:
 
 mappers:
   - name: AntivirusMapper
-    file: TODO
+    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\antivirus.csv
     owlClass: Antivirus
     identifier:
       fields:
@@ -90,7 +90,7 @@ mappers:
         prefix: "Threat Type: "
 
   - name: SigmaMapper
-    file: TODO
+    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\sigma.csv
     owlClass: Sigma
     identifier:
       fields:
@@ -111,7 +111,7 @@ mappers:
         owlProperty: hasExtraInformation
 
   - name: AccountTamperingMapper
-    file: TODO
+    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\account_tampering.csv
     owlClass: AccountTampering
     identifier:
       fields:

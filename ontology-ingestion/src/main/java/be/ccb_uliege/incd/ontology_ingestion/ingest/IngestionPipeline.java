@@ -42,7 +42,7 @@ public class IngestionPipeline {
         PipelineContext context = new PipelineContext(
                 knowledgeGraph,
                 new CsvIngester(),
-                "chainsaw-mappers.yaml");
+                "ingestion-config");
 
         pipeline.run(context);
     }
