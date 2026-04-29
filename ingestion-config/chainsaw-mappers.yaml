@@ -137,3 +137,258 @@ mappers:
         owlProperty: hasExtraInformation
         unique: false
         prefix: "Member SID: "
+
+  - name: RDPEventsMapper
+    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\rdp_events.csv
+    owlClass: RDPEvent
+    identifier:
+      fields:
+        - "detections"
+        - "timestamp"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addLogFile
+    fieldMappings:
+      - sourceField: "detections"
+        type: dataProperty
+        owlProperty: hasName
+      - sourceField: "Event ID"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Event ID: "
+      - sourceField: "Channel"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Channel: "
+      - sourceField: "Information"
+        type: dataProperty
+        owlProperty: hasDescription
+
+  - name: ServiceInstallationMapper
+    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\service_installation.csv
+    owlClass: ServiceInstallation
+    identifier:
+      fields:
+        - "Service Name"
+        - "timestamp"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addLogFile
+    fieldMappings:
+      - sourceField: "Service Name"
+        type: dataProperty
+        owlProperty: hasName
+      - sourceField: "Service File Name"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Service File: "
+      - sourceField: "Service Type"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Service Type: "
+      - sourceField: "Service Start Type"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Start Type: "
+      - sourceField: "Service Account"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Account: "
+      - sourceField: "detections"
+        type: dataProperty
+        owlProperty: hasDescription
+
+  - name: IndicatorRemovalMapper
+    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\indicator_removal.csv
+    owlClass: IndicatorRemoval
+    identifier:
+      fields:
+        - "Scheduled Task Name"
+        - "timestamp"
+      separator: "_"
+      useHash: true
+    generics:
+      - addTimestamp
+      - addComputer
+      - addLogFile
+    fieldMappings:
+      - sourceField: "Scheduled Task Name"
+        type: dataProperty
+        owlProperty: hasName
+      - sourceField: "User Name"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "User: "
+      - sourceField: "detections"
+        type: dataProperty
+        owlProperty: hasDescription
+
+  - name: UserProfileDiskMapper
+    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\microsoft_rds_events_-_user_profile_disk.csv
+    owlClass: UserProfileDisk
+    identifier:
+      fields:
+        - "Information"
+        - "timestamp"
+      separator: "_"
+      useHash: true
+    generics:
+      - addTimestamp
+      - addComputer
+      - addLogFile
+    fieldMappings:
+      - sourceField: "detections"
+        type: dataProperty
+        owlProperty: hasName
+      - sourceField: "Information"
+        type: dataProperty
+        owlProperty: hasDescription
+
+  - name: PersistenceMapper
+    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\persistence.csv
+    owlClass: Persistence
+    identifier:
+      fields:
+        - "Scheduled Task Name"
+        - "timestamp"
+      separator: "_"
+      useHash: true
+    generics:
+      - addTimestamp
+      - addComputer
+      - addLogFile
+    fieldMappings:
+      - sourceField: "Scheduled Task Name"
+        type: dataProperty
+        owlProperty: hasName
+      - sourceField: "User Name"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "User: "
+      - sourceField: "detections"
+        type: dataProperty
+        owlProperty: hasDescription
+
+  - name: PowerShellEngineStateMapper
+    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\powershell_engine_state.csv
+    owlClass: RegistryLoad_configuration_event
+    identifier:
+      fields:
+        - "detections"
+        - "timestamp"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addLogFile
+    fieldMappings:
+      - sourceField: "detections"
+        type: dataProperty
+        owlProperty: hasName
+      - sourceField: "CommandLine"
+        type: dataProperty
+        owlProperty: hasDescription
+      - sourceField: "HostName"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Host: "
+      - sourceField: "HostVersion"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Version: "
+
+  - name: RDPAttacksMapper
+    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\rdp_attacks.csv
+    delimiter: ','
+    owlClass: RDPAttack
+    identifier:
+      fields:
+        - "detections"
+        - "timestamp"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addLogFile
+    fieldMappings:
+      - sourceField: "detections"
+        type: dataProperty
+        owlProperty: hasName
+      - sourceField: "ip address"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "IP Address: "
+      - sourceField: "username"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Username: "
+      - sourceField: "logon type"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Logon Type: "
+      - sourceField: "domain"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Domain: "
+
+  - name: LateralMovementMapper
+    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\lateral_movement.csv
+    owlClass: LateralMovement
+    identifier:
+      fields:
+        - "detections"
+        - "timestamp"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addLogFile
+    fieldMappings:
+      - sourceField: "detections"
+        type: dataProperty
+        owlProperty: hasName
+      - sourceField: "User"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "User: "
+      - sourceField: "Logon Type"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Logon Type: "
+      - sourceField: "IP Address"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "IP Address: "
+      - sourceField: "Dest Address"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Destination: "
+      - sourceField: "Dest Port"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Port: "
+
+  - name: LogTamperingMapper
+    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\log_tampering.csv
+    owlClass: LogTampering
+    identifier:
+      fields:
+        - "detections"
+        - "timestamp"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addLogFile
+    fieldMappings:
+      - sourceField: "detections"
+        type: dataProperty
+        owlProperty: hasName
+      - sourceField: "User"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "User: "

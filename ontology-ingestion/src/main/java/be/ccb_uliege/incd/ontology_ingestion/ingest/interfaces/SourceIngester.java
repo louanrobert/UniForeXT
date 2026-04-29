@@ -17,7 +17,7 @@ public interface SourceIngester {
      *
      * @param file      path to the source file
      * @param mapper    mapper that converts individual records into RDF
-     * @param delimiter the field delimiter used in the source file
+     * @param delimiter optional field delimiter used in the source file (null for non-delimited formats)
      */
     void ingest(Path file, SourceMapper mapper, Character delimiter);
 }

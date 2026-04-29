@@ -17,11 +17,12 @@ public class CsvIngester implements SourceIngester {
     @Override
     public void ingest(Path file, SourceMapper mapper, Character delimiter) {
         try {
+            char effectiveDelimiter = delimiter != null ? delimiter : ';';
             var reader = Files.newBufferedReader(file);
             var csvParser = new CSVParser(reader, CSVFormat.Builder.create(CSVFormat.DEFAULT)
                     .setHeader()
                     .setSkipHeaderRecord(true)
-                    .setDelimiter(delimiter)
+                    .setDelimiter(effectiveDelimiter)
                     .build());
 
             for (var csvRecord : csvParser) {

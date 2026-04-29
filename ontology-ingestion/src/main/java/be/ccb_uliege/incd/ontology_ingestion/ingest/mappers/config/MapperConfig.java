@@ -19,6 +19,7 @@ public class MapperConfig {
     private String name;
     private String owlClass;
     private Path file;
+    private Character delimiter;
     private IdentifierConfig identifier;
     private List<String> generics;
     private List<StaticPropertyConfig> staticProperties;

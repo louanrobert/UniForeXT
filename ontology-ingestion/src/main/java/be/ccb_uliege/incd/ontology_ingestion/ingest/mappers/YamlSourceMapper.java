@@ -65,6 +65,10 @@ public class YamlSourceMapper implements SourceMapper {
         return config.getFile();
     }
 
+    public Character getDelimiter() {
+        return config.getDelimiter();
+    }
+
     @Override
     public void map(SourceRecord r) {
         // Build identifier by joining resolved fields with separator

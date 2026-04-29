@@ -61,17 +61,14 @@ ufr:DetectionShape
   sh:targetClass ufr:Detection ;
   sh:property [
     sh:path ufr:hasLogFile ;
-    sh:minCount 1 ;
     sh:class ufr:LogFile ;
   ] ;
   sh:property [
     sh:path ufr:hasUser ;
-    sh:maxCount 1 ;
     sh:class ufr:User ;
   ] ;
   sh:property [
     sh:path ufr:hasComputer ;
-    sh:maxCount 1 ;
     sh:class ufr:Computer ;
   ] ;
   sh:property [
@@ -113,7 +110,6 @@ ufr:EventShape
   sh:targetClass ufr:Event ;
   sh:property [
     sh:path ufr:hasDetection ;
-    sh:minCount 1 ;
     sh:class ufr:Detection ;
   ] ;
   sh:property [
@@ -133,7 +129,6 @@ ufr:EventShape
   ] ;
   sh:property [
     sh:path ufr:hasExtraInformation ;
-    sh:minCount 1 ;
     sh:datatype xsd:string ;
   ] ;
   sh:property [
@@ -172,13 +167,11 @@ ufr:ThreatShape
   ] ;
   sh:property [
     sh:path ufr:hasName ;
-    sh:minCount 1 ;
     sh:maxCount 1 ;
     sh:datatype xsd:string ;
   ] ;
   sh:property [
     sh:path ufr:hasTechnique ;
-    sh:minCount 1 ;
     sh:maxCount 1 ;
     sh:datatype xsd:string ;
   ] ;
@@ -360,4 +353,3 @@ ufr:IndependentEntityDisjointFromValueShape
   a sh:NodeShape ;
   sh:targetClass ufr:Independent_entity ;
   sh:not [ sh:class ufr:Value ] .
-

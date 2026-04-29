@@ -23,7 +23,7 @@ public class DefineIngestionTasksStage extends IngestionStage {
             IngestionTask task = new IngestionTask(
                     yamlSourceMapper.getFilePath(),
                     yamlSourceMapper,
-                    ';');
+                    yamlSourceMapper.getDelimiter());
             context.addTask(task);
         }
     }
