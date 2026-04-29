@@ -4,6 +4,13 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix ufr: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#> .
 
+@prefix :      <http://www.w3.org/2006/time#> .
+@prefix dct:   <http://purl.org/dc/terms/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix terms: <http://purl.org/dc/terms/> .
+@prefix afn:   <http://jena.apache.org/ARQ/function#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
 # SHACL profile for UFRO schema validation.
 
 ufr:DomainEntityShape
@@ -353,3 +360,4 @@ ufr:IndependentEntityDisjointFromValueShape
   a sh:NodeShape ;
   sh:targetClass ufr:Independent_entity ;
   sh:not [ sh:class ufr:Value ] .
+
