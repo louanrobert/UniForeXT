@@ -1,4 +1,4 @@
-﻿package be.ccb_uliege.incd.ontology_viewer;
+package be.ccb_uliege.incd.ontology_viewer;
 
 import javafx.concurrent.Worker;
 import javafx.scene.Scene;
