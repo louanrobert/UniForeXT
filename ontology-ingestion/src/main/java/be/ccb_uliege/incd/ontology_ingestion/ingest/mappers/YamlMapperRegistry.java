@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +15,6 @@ import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.config.MapperConfigR
 import be.ccb_uliege.incd.ontology_ingestion.ingest.mappers.config.MappersConfigLoader;
 import be.ccb_uliege.incd.ontology_ingestion.owl.kg.KnowledgeGraphFacade;
 
-// TODO: rename to SourceMapperRegistry because it is not a factory in the traditional sense of creating new instances on demand, but rather a registry of pre-built mappers.
 
 /**
  * Factory that creates SourceMapper instances from a MappersConfig.

@@ -229,7 +229,7 @@ mappers:
 
   - name: UserProfileDiskMapper
     file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\microsoft_rds_events_-_user_profile_disk.csv
-    owlClass: UserProfileDisk
+    owlClass: RegistryLoad_configuration_event
     identifier:
       fields:
         - "Information"

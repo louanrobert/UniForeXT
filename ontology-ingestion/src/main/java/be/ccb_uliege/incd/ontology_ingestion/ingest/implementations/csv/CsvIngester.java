@@ -1,5 +1,6 @@
 package be.ccb_uliege.incd.ontology_ingestion.ingest.implementations.csv;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -18,7 +19,7 @@ public class CsvIngester implements SourceIngester {
     public void ingest(Path file, SourceMapper mapper, Character delimiter) {
         try {
             char effectiveDelimiter = delimiter != null ? delimiter : ';';
-            var reader = Files.newBufferedReader(file);
+            var reader = Files.newBufferedReader(file, StandardCharsets.ISO_8859_1);
             var csvParser = new CSVParser(reader, CSVFormat.Builder.create(CSVFormat.DEFAULT)
                     .setHeader()
                     .setSkipHeaderRecord(true)

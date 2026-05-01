@@ -28,6 +28,10 @@ public class ValidateShaclStage extends IngestionStage {
         this.strictMode = strictMode;
     }
 
+    public boolean isStrictMode() {
+        return strictMode;
+    }
+
     @Override
     public void execute(PipelineContext context) {
         try {

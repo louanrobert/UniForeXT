@@ -33,17 +33,11 @@ public class Loader {
 
       // Create a separate data model for ingested instances
       knowledgeGraph = ModelFactory.createDefaultModel();
-      String ontologyIRI = base.substring(0, base.length() - 1); // Remove trailing '#'
       knowledgeGraph.setNsPrefix("ufr", base);
       knowledgeGraph.setNsPrefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
       knowledgeGraph.setNsPrefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
       knowledgeGraph.setNsPrefix("owl", "http://www.w3.org/2002/07/owl#");
       knowledgeGraph.setNsPrefix("xsd", "http://www.w3.org/2001/XMLSchema#");
-
-      // Declare the data model as an ontology that imports the schema ontology
-      Resource dataOntology = knowledgeGraph.createResource(ontologyIRI + "/data");
-      dataOntology.addProperty(RDF.type, OWL.Ontology);
-      dataOntology.addProperty(OWL.imports, knowledgeGraph.createResource(ontologyIRI));
    }
 
    public long getOntologySize() {
