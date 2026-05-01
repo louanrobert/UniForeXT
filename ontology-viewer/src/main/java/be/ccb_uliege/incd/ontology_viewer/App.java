@@ -82,6 +82,10 @@ public class App extends Application {
                 TimelineView timelineView = new TimelineView(bridge);
                 primaryStage.setScene(new Scene(timelineView.getRoot(), 1400, 800));
             }
+            case "timeline-fast" -> {
+                FastTimelineView timelineFastView = new FastTimelineView(bridge);
+                primaryStage.setScene(new Scene(timelineFastView.getRoot(), 1400, 800));
+            }
             case "explorer" -> {
                 EventExplorerView explorerView = new EventExplorerView(bridge);
                 primaryStage.setScene(new Scene(explorerView.getRoot(), 1400, 800));

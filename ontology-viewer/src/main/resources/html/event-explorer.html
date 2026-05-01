@@ -701,6 +701,11 @@
                     <tbody id="event-tbody"></tbody>
                 </table>
             </div>
+            <div class="flex items-center gap-2 px-4 py-2 border-t border-border/15 bg-card shrink-0 text-xs text-muted-foreground" id="table-pagination">
+                <button class="uk-btn uk-btn-default uk-btn-xs" onclick="prevPage()" id="page-prev">Prev</button>
+                <button class="uk-btn uk-btn-default uk-btn-xs" onclick="nextPage()" id="page-next">Next</button>
+                <span id="page-info"></span>
+            </div>
         </div>
 
         <!-- Detail panel -->
@@ -738,6 +743,8 @@
         var chartEvents = [];
         var dataTimeMin = null;
         var dataTimeMax = null;
+        var eventPageSize = 250;
+        var eventPageIndex = 0;
 
         var nameIncludes = [];  // [{text:'...'}] — event must match at least one
         var nameExcludes = [];  // [{text:'...'}] — event must not match any
@@ -745,6 +752,7 @@
         var dateEndIso = null;    // ISO datetime string or null
 
         function getEventTimestamp(eventItem) {
+            if (typeof eventItem.timestamp === 'number') return eventItem.timestamp;
             var ts = new Date(eventItem.start).getTime();
             return isNaN(ts) ? null : ts;
         }
@@ -908,16 +916,17 @@
 
                 // Parse items into our event list
                 allEvents = items.map(function(it) {
-                    // Extract plain text from content (might have HTML)
-                    var tmp = document.createElement('div');
-                    tmp.innerHTML = it.content || '';
-                    var label = tmp.textContent || tmp.innerText || '';
+                    var label = it.label || it.content || it.id || '';
+                    var type = it.group || 'Unknown';
+                    var timestamp = typeof it.timestamp === 'number' ? it.timestamp : new Date(it.start).getTime();
                     return {
                         uri: it.id,
                         label: label,
-                        type: it.group || 'Unknown',
+                        type: type,
                         start: it.start,
-                        tooltip: it.title || ''
+                        timestamp: isNaN(timestamp) ? null : timestamp,
+                        tooltip: it.title || '',
+                        searchText: (label + ' ' + type + ' ' + (it.id || '')).toLowerCase()
                     };
                 });
 
@@ -2031,9 +2040,7 @@
             filteredEvents = allEvents.filter(function(e) {
                 if (!activeTypes.has(e.type)) return false;
                 if (query.length > 0) {
-                    if (e.label.toLowerCase().indexOf(query) < 0 &&
-                        e.uri.toLowerCase().indexOf(query) < 0 &&
-                        e.type.toLowerCase().indexOf(query) < 0) return false;
+                    if (e.searchText.indexOf(query) < 0) return false;
                 }
 
                 // Name includes: event must match at least one
@@ -2041,7 +2048,7 @@
                     var matchesAny = false;
                     for (var i = 0; i < nameIncludes.length; i++) {
                         var q = nameIncludes[i].text.toLowerCase();
-                        if (e.label.toLowerCase().indexOf(q) >= 0 || e.uri.toLowerCase().indexOf(q) >= 0) { matchesAny = true; break; }
+                        if (e.searchText.indexOf(q) >= 0) { matchesAny = true; break; }
                     }
                     if (!matchesAny) return false;
                 }
@@ -2049,7 +2056,7 @@
                 // Name excludes: event must not match any
                 for (var j = 0; j < nameExcludes.length; j++) {
                     var eq = nameExcludes[j].text.toLowerCase();
-                    if (e.label.toLowerCase().indexOf(eq) >= 0 || e.uri.toLowerCase().indexOf(eq) >= 0) return false;
+                    if (e.searchText.indexOf(eq) >= 0) return false;
                 }
 
                 // Date range filter
@@ -2064,13 +2071,15 @@
 
             // Sort
             filteredEvents.sort(function(a, b) {
-                var va = a[sortField] || '';
-                var vb = b[sortField] || '';
+                var va = sortField === 'start' ? (a.timestamp || 0) : (a[sortField] || '');
+                var vb = sortField === 'start' ? (b.timestamp || 0) : (b[sortField] || '');
                 var cmp = (va < vb) ? -1 : (va > vb) ? 1 : 0;
                 return sortAsc ? cmp : -cmp;
             });
 
+            eventPageIndex = 0;
             renderTable();
+            updatePagination();
             updateMatchCount();
             rebuildHistogram();
         }
@@ -2095,12 +2104,52 @@
                 filteredEvents.length + ' / ' + allEvents.length + ' events';
         }
 
+        function getPageStart() {
+            return eventPageIndex * eventPageSize;
+        }
+
+        function getPageEnd() {
+            return Math.min(filteredEvents.length, getPageStart() + eventPageSize);
+        }
+
+        function updatePagination() {
+            var pageInfo = document.getElementById('page-info');
+            var prevBtn = document.getElementById('page-prev');
+            var nextBtn = document.getElementById('page-next');
+            var total = filteredEvents.length;
+            var totalPages = Math.max(1, Math.ceil(total / eventPageSize));
+            if (eventPageIndex >= totalPages) eventPageIndex = totalPages - 1;
+            var start = total === 0 ? 0 : getPageStart() + 1;
+            var end = getPageEnd();
+            pageInfo.textContent = total === 0 ? 'No rows' : 'Showing ' + start + '-' + end + ' of ' + total + ' rows';
+            prevBtn.disabled = eventPageIndex <= 0;
+            nextBtn.disabled = eventPageIndex >= totalPages - 1;
+        }
+
+        function prevPage() {
+            if (eventPageIndex <= 0) return;
+            eventPageIndex--;
+            renderTable();
+            updatePagination();
+        }
+
+        function nextPage() {
+            var totalPages = Math.max(1, Math.ceil(filteredEvents.length / eventPageSize));
+            if (eventPageIndex >= totalPages - 1) return;
+            eventPageIndex++;
+            renderTable();
+            updatePagination();
+        }
+
         /* ── Table rendering ── */
 
         function renderTable() {
             var tbody = document.getElementById('event-tbody');
             var html = '';
-            filteredEvents.forEach(function(e) {
+            var start = getPageStart();
+            var end = getPageEnd();
+            var pageItems = filteredEvents.slice(start, end);
+            pageItems.forEach(function(e) {
                 var color = typeColorMap[e.type] || '#a6cee3';
                 var isSelected = e.uri === selectedUri;
                 var dateStr = formatDate(e.start);
@@ -2367,6 +2416,7 @@
             document.getElementById('search-input').value = '';
             nameIncludes = [];
             nameExcludes = [];
+            eventPageIndex = 0;
             renderFilterTags();
             selectAllTypes();
         }

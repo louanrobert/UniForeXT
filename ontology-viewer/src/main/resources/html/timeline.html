@@ -160,7 +160,7 @@
     </div>
     <div id="filter-bar" class="bg-card flex items-center gap-2.5 px-4 py-2 shrink-0 flex-wrap">
         <span class="shrink-0 uppercase text-muted-foreground">Filter:</span>
-        <input type="text" class="uk-input bg-background border border-border rounded-md text-foreground text-xs outline-none shrink-0" id="name-filter" placeholder="Search by name..." oninput="applyFilters()">
+        <input type="text" class="uk-input bg-background border border-border rounded-md text-foreground text-xs outline-none shrink-0" id="name-filter" placeholder="Search by name..." oninput="scheduleApplyFilters()">
         <div class="flex flex-row gap-2.5" id="category-chips"></div>
         <span class="text-xs text-muted-foreground shrink-0" id="filter-match-count"></span>
         <div class="flex items-center gap-1 flex-wrap" id="filter-tags"></div>
@@ -203,6 +203,20 @@
         var allGroups = [];
         var nameIncludes = [];  // [{text:'...'}] — item must match at least one
         var nameExcludes = [];  // [{text:'...'}] — item must not match any
+        var filteredItems = [];
+        var filteredItemsSorted = [];
+        var filterDebounceTimer = null;
+        var rangeUpdateScheduled = false;
+        var MAX_VISIBLE_ITEMS = 2000;
+        var lastRenderedCount = 0;
+        var filterRevision = 0;
+        var categoryRevision = 0;
+        var lastWindowSliceKey = '';
+        var lastWindowFilterRevision = -1;
+        var lastGroupVisibilityKey = '';
+        var currentFilteredTimestamps = [];
+        var AUTO_DESELECT_ABSOLUTE = 3000;
+        var AUTO_DESELECT_RATIO = 0.25;
 
         function initTimeline() {
             try {
@@ -210,13 +224,31 @@
                 var groupsJson = javaBridge.getTimelineGroupsJson();
                 var undatedJson = javaBridge.getUndatedIndividualsJson();
 
-                allItems = JSON.parse(itemsJson);
+                allItems = JSON.parse(itemsJson).map(function(it) {
+                    var label = it.label || it.content || it.id || '';
+                    var type = it.group || 'Unknown';
+                    var timestamp = typeof it.timestamp === 'number' ? it.timestamp : new Date(it.start).getTime();
+                    var id = it.id || '';
+                    return {
+                        id: id,
+                        uri: it.uri || id,
+                        label: label,
+                        content: it.content || label,
+                        group: type,
+                        start: it.start,
+                        timestamp: isNaN(timestamp) ? null : timestamp,
+                        title: it.title || '',
+                        style: it.style,
+                        idLower: id.toLowerCase(),
+                        searchText: (label + ' ' + type + ' ' + id).toLowerCase()
+                    };
+                });
                 var groups = JSON.parse(groupsJson);
                 allUndated = JSON.parse(undatedJson);
 
                 // Pre-compute timestamps for minimap (avoids repeated Date parsing)
                 allItemTimestamps = allItems.map(function(it) {
-                    return { ts: new Date(it.start).getTime(), group: it.group };
+                    return { ts: typeof it.timestamp === 'number' ? it.timestamp : new Date(it.start).getTime(), group: it.group };
                 });
 
                 // Update stats
@@ -239,9 +271,7 @@
                     // then convert to time units so the item box won't clip at edges.
                     var maxContentLen = 0;
                     allItems.forEach(function(it) {
-                        var tmp = document.createElement('div');
-                        tmp.innerHTML = it.content || '';
-                        var plain = tmp.textContent || tmp.innerText || '';
+                        var plain = it.label || it.content || '';
                         if (plain.length > maxContentLen) maxContentLen = plain.length;
                     });
                     // ~6.5px per char at 11px font, plus ~20px padding inside the vis-item box
@@ -264,11 +294,12 @@
 
                 // Build category chips
                 allGroups = groups;
-                buildCategoryChips(groups);
+                var groupCounts = initializeActiveCategories(groups);
+                buildCategoryChips(groups, groupCounts);
 
-                // Create timeline
+                // Create timeline (windowed rendering keeps the timeline responsive on large datasets)
                 var container = document.getElementById('timeline-container');
-                itemsDataSet = new vis.DataSet(allItems);
+                itemsDataSet = new vis.DataSet([]);
                 groupSet = new vis.DataSet(groups);
 
                 var options = {
@@ -285,7 +316,11 @@
                         overflowMethod: 'cap'
                     },
                     margin: { item: 5 },
-                    zoomKey: 'ctrlKey'
+                    zoomKey: 'ctrlKey',
+                    cluster: {
+                        maxItems: 2,
+                        titleTemplate: '{count} events'
+                    }
                 };
 
                 timeline = new vis.Timeline(container, itemsDataSet, groupSet, options);
@@ -318,9 +353,9 @@
                 // Hide context menu on click anywhere
                 document.addEventListener('click', function() { hideContextMenu(); });
 
-                // Update minimap and group visibility on range change (both during drag and on release)
-                timeline.on('rangechanged', function() { updateMinimapViewport(); hideEmptyGroupsForWindow(); });
-                timeline.on('rangechange', function() { updateMinimapViewport(); hideEmptyGroupsForWindow(); });
+                // Update minimap and visible events on range change (throttled)
+                timeline.on('rangechanged', scheduleRangeUpdate);
+                timeline.on('rangechange', scheduleRangeUpdate);
 
                 // Populate undated sidebar
                 renderUndated(allUndated);
@@ -329,6 +364,9 @@
                 drawMinimapFromTimestamps(allItemTimestamps);
                 updateMinimapViewport();
                 setupMinimapInteraction();
+
+                // Build initial filtered cache and render only the current window.
+                applyFilters();
 
                 // Redraw minimap on resize
                 window.addEventListener('resize', function() {
@@ -343,6 +381,144 @@
                     '<div style="padding:40px;text-align:center;color:#ef4444;">' +
                     '<h2>Error loading timeline</h2><p>' + e.message + '</p></div>';
             }
+        }
+
+        function initializeActiveCategories(groups) {
+            var counts = {};
+            var total = 0;
+            for (var i = 0; i < allItems.length; i++) {
+                var g = allItems[i].group;
+                counts[g] = (counts[g] || 0) + 1;
+                total++;
+            }
+
+            activeCategories.clear();
+            for (var j = 0; j < groups.length; j++) {
+                activeCategories.add(groups[j].id);
+            }
+
+            if (groups.length <= 1 || total <= 0) return counts;
+
+            var deselected = 0;
+            for (var k = 0; k < groups.length; k++) {
+                var id = groups[k].id;
+                var c = counts[id] || 0;
+                var isHeavy = c >= AUTO_DESELECT_ABSOLUTE || (c / total) >= AUTO_DESELECT_RATIO;
+                if (isHeavy && activeCategories.size > 1) {
+                    activeCategories.delete(id);
+                    deselected++;
+                }
+            }
+
+            if (deselected > 0) {
+                javaBridge.log('Auto-deselected ' + deselected + ' high-volume categories on initial load');
+            }
+
+            return counts;
+        }
+
+        function scheduleApplyFilters() {
+            if (filterDebounceTimer) clearTimeout(filterDebounceTimer);
+            filterDebounceTimer = setTimeout(function() {
+                applyFilters();
+            }, 120);
+        }
+
+        function scheduleRangeUpdate() {
+            if (rangeUpdateScheduled) return;
+            rangeUpdateScheduled = true;
+            requestAnimationFrame(function() {
+                rangeUpdateScheduled = false;
+                updateMinimapViewport();
+                updateVisibleItemsForWindow();
+            });
+        }
+
+        function lowerBoundByTimestamp(arr, targetTs) {
+            var lo = 0;
+            var hi = arr.length;
+            while (lo < hi) {
+                var mid = (lo + hi) >> 1;
+                if (arr[mid].timestamp < targetTs) lo = mid + 1;
+                else hi = mid;
+            }
+            return lo;
+        }
+
+        function upperBoundByTimestamp(arr, targetTs) {
+            var lo = 0;
+            var hi = arr.length;
+            while (lo < hi) {
+                var mid = (lo + hi) >> 1;
+                if (arr[mid].timestamp <= targetTs) lo = mid + 1;
+                else hi = mid;
+            }
+            return lo;
+        }
+
+        function syncVisibleItems(newItems) {
+            var nextIds = new Set();
+            for (var i = 0; i < newItems.length; i++) nextIds.add(newItems[i].id);
+
+            var currentIds = itemsDataSet.getIds();
+            var removeIds = [];
+            for (var j = 0; j < currentIds.length; j++) {
+                if (!nextIds.has(currentIds[j])) removeIds.push(currentIds[j]);
+            }
+
+            var currentIdSet = new Set(currentIds);
+            var addItems = [];
+            for (var k = 0; k < newItems.length; k++) {
+                if (!currentIdSet.has(newItems[k].id)) addItems.push(newItems[k]);
+            }
+
+            if (removeIds.length > 0) itemsDataSet.remove(removeIds);
+            if (addItems.length > 0) itemsDataSet.add(addItems);
+            lastRenderedCount = newItems.length;
+        }
+
+        function updateFilterMatchCount() {
+            var countEl = document.getElementById('filter-match-count');
+            if (!countEl) return;
+            countEl.textContent =
+                filteredItems.length + ' / ' + allItems.length + ' events (showing ' + lastRenderedCount + ')';
+        }
+
+        function updateVisibleItemsForWindow() {
+            if (!timeline || !itemsDataSet) return;
+
+            var win = timeline.getWindow();
+            var winStart = win.start.getTime();
+            var winEnd = win.end.getTime();
+            var winSize = Math.max(winEnd - winStart, 1);
+            var buffer = Math.max(Math.floor(winSize * 0.6), 1000 * 60 * 60 * 24); // >= 1 day buffer
+            var fromTs = winStart - buffer;
+            var toTs = winEnd + buffer;
+
+            var fromIdx = lowerBoundByTimestamp(filteredItemsSorted, fromTs);
+            var toIdx = upperBoundByTimestamp(filteredItemsSorted, toTs);
+            var visible = filteredItemsSorted.slice(fromIdx, toIdx);
+            var stride = 1;
+
+            // Hard cap rendered items to preserve interaction smoothness.
+            if (visible.length > MAX_VISIBLE_ITEMS) {
+                stride = Math.ceil(visible.length / MAX_VISIBLE_ITEMS);
+                var sampled = [];
+                for (var s = 0; s < visible.length; s += stride) sampled.push(visible[s]);
+                visible = sampled;
+            }
+
+            // Skip expensive DataSet diff when effective visible slice is unchanged.
+            var sliceKey = fromIdx + ':' + toIdx + ':' + stride;
+            var shouldSyncItems = !(filterRevision === lastWindowFilterRevision && sliceKey === lastWindowSliceKey);
+            if (shouldSyncItems) {
+                syncVisibleItems(visible);
+                lastWindowSliceKey = sliceKey;
+                lastWindowFilterRevision = filterRevision;
+                updateFilterMatchCount();
+            }
+
+            hideEmptyGroupsForWindow(visible, winStart, winEnd);
         }
 
         /* ── Minimap (colored event scrollbar) ── uses pre-computed timestamps */
@@ -475,20 +651,24 @@
 
         /* ── Timeline event filtering ── */
 
-        function buildCategoryChips(groups) {
+        function buildCategoryChips(groups, precomputedCounts) {
             var container = document.getElementById('category-chips');
             container.innerHTML = '';
             // Count items per group
-            var counts = {};
-            allItems.forEach(function(it) {
-                counts[it.group] = (counts[it.group] || 0) + 1;
-            });
+            var counts = precomputedCounts || {};
+            if (!precomputedCounts) {
+                allItems.forEach(function(it) {
+                    counts[it.group] = (counts[it.group] || 0) + 1;
+                });
+            }
             groups.forEach(function(g) {
-                activeCategories.add(g.id);
                 var color = typeColorMap[g.id] || '#a6cee3';
                 var chip = document.createElement('span');
-                chip.className = 'category-chip active flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs cursor-pointer select-none whitespace-nowrap';
-                chip.style.background = color + '33';
+                var active = activeCategories.has(g.id);
+                chip.className = active
+                    ? 'category-chip active flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs cursor-pointer select-none whitespace-nowrap'
+                    : 'category-chip inactive flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs cursor-pointer select-none whitespace-nowrap';
+                chip.style.background = active ? (color + '33') : '';
                 chip.dataset.type = g.id;
                 chip.dataset.color = color;
                 chip.innerHTML = '<span class="chip-dot w-2 h-2 rounded-full shrink-0" style="background:' + color + '"></span>' +
@@ -505,6 +685,7 @@
             } else {
                 activeCategories.add(type);
             }
+            categoryRevision++;
             refreshCategoryChips();
             applyFilters();
         }
@@ -512,12 +693,14 @@
         function selectAllCategories() {
             var chips = document.querySelectorAll('.category-chip');
             chips.forEach(function(c) { activeCategories.add(c.dataset.type); });
+            categoryRevision++;
             refreshCategoryChips();
             applyFilters();
         }
 
         function selectNoCategories() {
             activeCategories.clear();
+            categoryRevision++;
             refreshCategoryChips();
             applyFilters();
         }
@@ -547,82 +730,92 @@
 
         function applyFilters() {
             var nameQuery = (document.getElementById('name-filter').value || '').toLowerCase();
+            var includeTerms = nameIncludes.map(function(f) { return f.text.toLowerCase(); });
+            var excludeTerms = nameExcludes.map(function(f) { return f.text.toLowerCase(); });
 
-            var filtered = allItems.filter(function(item) {
+            filteredItems = [];
+            currentFilteredTimestamps = [];
+
+            for (var idx = 0; idx < allItems.length; idx++) {
+                var item = allItems[idx];
                 // Category filter
-                if (!activeCategories.has(item.group)) return false;
+                if (!activeCategories.has(item.group)) continue;
 
-                var text = (item.content || '').toLowerCase();
-                var id = (item.id || '').toLowerCase();
+                var text = (item.searchText || ((item.label || item.content || item.id || '') + ' ' + (item.group || '')).toLowerCase());
+                var id = item.idLower || '';
 
                 // Search box filter
                 if (nameQuery.length > 0) {
-                    if (text.indexOf(nameQuery) < 0 && id.indexOf(nameQuery) < 0) return false;
+                    if (text.indexOf(nameQuery) < 0 && id.indexOf(nameQuery) < 0) continue;
                 }
 
                 // Name includes: item must match at least one
-                if (nameIncludes.length > 0) {
+                if (includeTerms.length > 0) {
                     var matchesAny = false;
-                    for (var i = 0; i < nameIncludes.length; i++) {
-                        var q = nameIncludes[i].text.toLowerCase();
+                    for (var i = 0; i < includeTerms.length; i++) {
+                        var q = includeTerms[i];
                         if (text.indexOf(q) >= 0 || id.indexOf(q) >= 0) { matchesAny = true; break; }
                     }
-                    if (!matchesAny) return false;
+                    if (!matchesAny) continue;
                 }
 
                 // Name excludes: item must not match any
-                for (var j = 0; j < nameExcludes.length; j++) {
-                    var eq = nameExcludes[j].text.toLowerCase();
-                    if (text.indexOf(eq) >= 0 || id.indexOf(eq) >= 0) return false;
+                var excluded = false;
+                for (var j = 0; j < excludeTerms.length; j++) {
+                    var eq = excludeTerms[j];
+                    if (text.indexOf(eq) >= 0 || id.indexOf(eq) >= 0) { excluded = true; break; }
                 }
+                if (excluded) continue;
 
-                return true;
-            });
-
-            // Update the DataSet efficiently: compute ids to add/remove
-            var filteredIds = new Set();
-            filtered.forEach(function(it) { filteredIds.add(it.id); });
-            var currentIds = itemsDataSet.getIds();
-            var toRemove = [];
-            for (var r = 0; r < currentIds.length; r++) {
-                if (!filteredIds.has(currentIds[r])) toRemove.push(currentIds[r]);
+                filteredItems.push(item);
+                if (typeof item.timestamp === 'number' && !isNaN(item.timestamp)) {
+                    currentFilteredTimestamps.push({ ts: item.timestamp, group: item.group });
+                }
             }
-            var currentIdSet = new Set(currentIds);
-            var toAdd = filtered.filter(function(it) { return !currentIdSet.has(it.id); });
-            if (toRemove.length > 0) itemsDataSet.remove(toRemove);
-            if (toAdd.length > 0) itemsDataSet.add(toAdd);
 
-            // Hide empty groups, show non-empty ones (considering visible time window)
-            hideEmptyGroupsForWindow();
+            filteredItemsSorted = filteredItems
+                .filter(function(it) { return typeof it.timestamp === 'number' && !isNaN(it.timestamp); })
+                .slice()
+                .sort(function(a, b) { return a.timestamp - b.timestamp; });
+
+            filterRevision++;
+            lastWindowSliceKey = '';
+            lastWindowFilterRevision = -1;
+            lastGroupVisibilityKey = '';
+
+            updateVisibleItemsForWindow();
 
             // Update match count
-            document.getElementById('filter-match-count').textContent =
-                filtered.length + ' / ' + allItems.length + ' events';
+            updateFilterMatchCount();
 
-            // Redraw minimap with filtered items only — build timestamps on the fly
-            var filteredTimestamps = filtered.map(function(it) {
-                return { ts: new Date(it.start).getTime(), group: it.group };
-            });
-            drawMinimapFromTimestamps(filteredTimestamps);
+            // Redraw minimap with filtered items only
+            drawMinimapFromTimestamps(currentFilteredTimestamps);
+            updateMinimapViewport();
         }
 
         /* ── Hide groups with no items in visible time window ── */
 
-        function hideEmptyGroupsForWindow() {
+        function hideEmptyGroupsForWindow(currentItems, winStart, winEnd) {
             if (!groupSet || !timeline) return;
-            var win = timeline.getWindow();
-            var winStart = win.start.getTime();
-            var winEnd = win.end.getTime();
+            var inWindowItems = currentItems || itemsDataSet.get();
+            if (typeof winStart !== 'number' || typeof winEnd !== 'number') {
+                var win = timeline.getWindow();
+                winStart = win.start.getTime();
+                winEnd = win.end.getTime();
+            }
 
-            // Get currently displayed items (after filters)
-            var currentItems = itemsDataSet.get();
             var populatedGroups = new Set();
-            currentItems.forEach(function(it) {
-                var ts = new Date(it.start).getTime();
+            inWindowItems.forEach(function(it) {
+                var ts = typeof it.timestamp === 'number' ? it.timestamp : new Date(it.start).getTime();
                 if (ts >= winStart && ts <= winEnd) {
                     populatedGroups.add(it.group);
                 }
             });
+
+            var groupNames = Array.from(populatedGroups).sort();
+            var visibilityKey = categoryRevision + '|' + groupNames.join('|');
+            if (visibilityKey === lastGroupVisibilityKey) return;
+            lastGroupVisibilityKey = visibilityKey;
 
             allGroups.forEach(function(g) {
                 var isActive = activeCategories.has(g.id);
@@ -652,9 +845,7 @@
         function showEventContextMenu(x, y, item) {
             var menu = document.getElementById('context-menu');
             // Extract plain text from content (may contain HTML)
-            var tmp = document.createElement('div');
-            tmp.innerHTML = item.content || '';
-            var plainName = tmp.textContent || tmp.innerText || '';
+            var plainName = item.label || item.content || item.id || '';
             var shortName = plainName.length > 30 ? plainName.substring(0, 27) + '...' : plainName;
             var groupLabel = item.group;
             allGroups.forEach(function(g) { if (g.id === item.group) groupLabel = g.content || g.id; });
@@ -693,6 +884,7 @@
             hideContextMenu();
             activeCategories.clear();
             activeCategories.add(groupId);
+            categoryRevision++;
             refreshCategoryChips();
             applyFilters();
         }
@@ -700,6 +892,7 @@
         function ctxExcludeCategory(groupId) {
             hideContextMenu();
             activeCategories.delete(groupId);
+            categoryRevision++;
             refreshCategoryChips();
             applyFilters();
         }
@@ -707,6 +900,7 @@
         function ctxIncludeCategory(groupId) {
             hideContextMenu();
             activeCategories.add(groupId);
+            categoryRevision++;
             refreshCategoryChips();
             applyFilters();
         }

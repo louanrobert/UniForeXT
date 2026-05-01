@@ -47,6 +47,15 @@ public class KGService {
      */
     private volatile List<TimelineItem> timelineItemsCache;
 
+    /** Cache: serialized timeline items JSON */
+    private volatile String timelineItemsJsonCache;
+
+    /** Cache: serialized timeline groups JSON */
+    private volatile String timelineGroupsJsonCache;
+
+    /** Cache: serialized undated individuals JSON */
+    private volatile String undatedIndividualsJsonCache;
+
     /** Cache: resource URI -> label */
     private final Map<String, String> labelCache = new ConcurrentHashMap<>();
 
@@ -128,7 +137,7 @@ public class KGService {
                     if (!DATE_PROPERTIES.contains(propUri) && !result.contains(stmt.getPredicate())
                             && !checkedNonDateProps.contains(propUri)) {
                         String val = stmt.getObject().asLiteral().getString();
-                        if (tryParseDate(val) != null) {
+                        if (parseDate(val) != null) {
                             result.add(stmt.getPredicate());
                         } else {
                             checkedNonDateProps.add(propUri);
@@ -152,39 +161,40 @@ public class KGService {
      */
     private static final Pattern DATE_LIKE_PATTERN = Pattern.compile("^\\d{2,4}[/\\-T]");
 
+    private record ParsedDate(String iso, long epochMillis) {
+    }
+
     /**
-     * Try to parse a string as a date/time. Returns ISO string or null.
+     * Try to parse a string as a date/time. Returns ISO string plus epoch millis,
+     * or null.
      * Uses a regex pre-check to skip obviously non-date strings early.
      */
-    private String tryParseDate(String value) {
+    private ParsedDate parseDate(String value) {
         if (value == null || value.isBlank())
             return null;
         value = value.trim();
-        // Quick reject: if it doesn't start with digits followed by a separator, skip
         if (!DATE_LIKE_PATTERN.matcher(value).find())
             return null;
-        // Try ISO 8601 with offset (e.g. 2025-01-02T14:42:40.031980+00:00)
         try {
             OffsetDateTime odt = OffsetDateTime.parse(value, ISO_OFFSET);
-            return odt.toLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            LocalDateTime ldt = odt.toLocalDateTime();
+            return new ParsedDate(ldt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), odt.toInstant().toEpochMilli());
         } catch (DateTimeParseException ignored) {
         }
-        // Try dd/MM/yyyy HH:mm
         try {
             LocalDateTime ldt = LocalDateTime.parse(value, DD_MM_YYYY_HH_MM);
-            return ldt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            return new ParsedDate(ldt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), ldt.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli());
         } catch (DateTimeParseException ignored) {
         }
-        // Try dd/MM/yyyy (date only)
         try {
             LocalDate ld = LocalDate.parse(value, DD_MM_YYYY);
-            return ld.atStartOfDay().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            LocalDateTime ldt = ld.atStartOfDay();
+            return new ParsedDate(ldt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), ldt.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli());
         } catch (DateTimeParseException ignored) {
         }
-        // Try ISO local date-time
         try {
             LocalDateTime ldt = LocalDateTime.parse(value);
-            return ldt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            return new ParsedDate(ldt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME), ldt.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli());
         } catch (DateTimeParseException ignored) {
         }
         return null;
@@ -194,7 +204,7 @@ public class KGService {
      * Data class for a timeline item.
      */
     public record TimelineItem(String id, String uri, String label, String type,
-            String start, String content) {
+            String start, long timestamp, String content) {
     }
 
     /**
@@ -230,17 +240,17 @@ public class KGService {
                         continue;
 
                     String dateStr = stmt.getObject().asLiteral().getString();
-                    String isoDate = tryParseDate(dateStr);
-                    if (isoDate == null)
+                    ParsedDate parsedDate = parseDate(dateStr);
+                    if (parsedDate == null)
                         continue;
                     seen.add(uri);
 
                     String label = getLabel(subject);
                     String type = getType(subject);
-                    String tooltip = buildTooltip(subject);
+                    String tooltip = buildTimelineTooltip(subject, label, type);
 
                     items.add(new TimelineItem(
-                            uri, uri, label, type, isoDate, tooltip));
+                            uri, uri, label, type, parsedDate.iso(), parsedDate.epochMillis(), tooltip));
                 }
             }
             // Sort by date
@@ -292,56 +302,89 @@ public class KGService {
      * Returns a JSON string of timeline items compatible with Vis.js Timeline.
      */
     public String getTimelineItemsJson() {
-        List<TimelineItem> items = getTimelineItems();
-        ArrayNode array = mapper.createArrayNode();
+        String cached = timelineItemsJsonCache;
+        if (cached != null)
+            return cached;
 
-        for (TimelineItem item : items) {
-            ObjectNode node = mapper.createObjectNode();
-            node.put("id", item.uri());
-            node.put("content", escapeHtml(item.label()));
-            node.put("start", item.start());
-            node.put("title", item.content()); // tooltip on hover
+        synchronized (this) {
+            if (timelineItemsJsonCache != null)
+                return timelineItemsJsonCache;
 
-            String group = item.type();
-            String color = colorService.getColorForType(group);
-            node.put("group", group);
-            node.put("style", "background-color: " + color + "; color: white; border-radius: 4px; padding: 2px 6px;");
-            array.add(node);
+            List<TimelineItem> items = getTimelineItems();
+            ArrayNode array = mapper.createArrayNode();
+
+            for (TimelineItem item : items) {
+                ObjectNode node = mapper.createObjectNode();
+                node.put("id", item.uri());
+                node.put("uri", item.uri());
+                node.put("label", item.label());
+                node.put("content", escapeHtml(item.label()));
+                node.put("start", item.start());
+                node.put("timestamp", item.timestamp());
+                node.put("title", item.content()); // compact tooltip on hover
+
+                String group = item.type();
+                String color = colorService.getColorForType(group);
+                node.put("group", group);
+                node.put("style", "background-color: " + color + "; color: white; border-radius: 4px; padding: 2px 6px;");
+                array.add(node);
+            }
+            timelineItemsJsonCache = array.toString();
+            return timelineItemsJsonCache;
         }
-        return array.toString();
     }
 
     /**
      * Returns a JSON string of timeline groups (one per type).
      */
     public String getTimelineGroupsJson() {
-        List<TimelineItem> items = getTimelineItems();
-        Set<String> types = items.stream().map(TimelineItem::type).collect(Collectors.toCollection(LinkedHashSet::new));
-        ArrayNode array = mapper.createArrayNode();
-        for (String type : types) {
-            ObjectNode group = mapper.createObjectNode();
-            group.put("id", type);
-            group.put("content", type);
-            group.put("color", colorService.getColorForType(type));
-            array.add(group);
+        String cached = timelineGroupsJsonCache;
+        if (cached != null)
+            return cached;
+
+        synchronized (this) {
+            if (timelineGroupsJsonCache != null)
+                return timelineGroupsJsonCache;
+
+            List<TimelineItem> items = getTimelineItems();
+            Set<String> types = items.stream().map(TimelineItem::type).collect(Collectors.toCollection(LinkedHashSet::new));
+            ArrayNode array = mapper.createArrayNode();
+            for (String type : types) {
+                ObjectNode group = mapper.createObjectNode();
+                group.put("id", type);
+                group.put("content", type);
+                group.put("color", colorService.getColorForType(type));
+                array.add(group);
+            }
+            timelineGroupsJsonCache = array.toString();
+            return timelineGroupsJsonCache;
         }
-        return array.toString();
     }
 
     /**
      * Returns a JSON string of undated individuals for the sidebar.
      */
     public String getUndatedIndividualsJson() {
-        List<UndatedIndividual> undated = getUndatedIndividuals();
-        ArrayNode array = mapper.createArrayNode();
-        for (UndatedIndividual ind : undated) {
-            ObjectNode node = mapper.createObjectNode();
-            node.put("uri", ind.uri());
-            node.put("label", ind.label());
-            node.put("type", ind.type());
-            array.add(node);
+        String cached = undatedIndividualsJsonCache;
+        if (cached != null)
+            return cached;
+
+        synchronized (this) {
+            if (undatedIndividualsJsonCache != null)
+                return undatedIndividualsJsonCache;
+
+            List<UndatedIndividual> undated = getUndatedIndividuals();
+            ArrayNode array = mapper.createArrayNode();
+            for (UndatedIndividual ind : undated) {
+                ObjectNode node = mapper.createObjectNode();
+                node.put("uri", ind.uri());
+                node.put("label", ind.label());
+                node.put("type", ind.type());
+                array.add(node);
+            }
+            undatedIndividualsJsonCache = array.toString();
+            return undatedIndividualsJsonCache;
         }
-        return array.toString();
     }
 
     /**
@@ -771,28 +814,11 @@ public class KGService {
         return type;
     }
 
-    private String buildTooltip(Resource resource) {
+    private String buildTimelineTooltip(Resource resource, String label, String type) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<b>").append(escapeHtml(getLabel(resource))).append("</b><br>");
-        sb.append("<i>Type: ").append(escapeHtml(getType(resource))).append("</i><br>");
-        sb.append("<small>").append(escapeHtml(resource.getURI())).append("</small><br><br>");
-
-        StmtIterator props = resource.listProperties();
-        while (props.hasNext()) {
-            Statement stmt = props.next();
-            String predName = localName(stmt.getPredicate().getURI());
-            if (predName.equals("type"))
-                continue;
-            if (stmt.getObject().isLiteral()) {
-                String val = stmt.getObject().asLiteral().getString();
-                String shortVal = val.length() > 100 ? val.substring(0, 97) + "..." : val;
-                sb.append("<b>").append(escapeHtml(predName)).append(":</b> ")
-                        .append(escapeHtml(shortVal)).append("<br>");
-            } else if (stmt.getObject().isURIResource()) {
-                sb.append("<b>").append(escapeHtml(predName)).append(":</b> ")
-                        .append(escapeHtml(localName(stmt.getObject().asResource().getURI()))).append("<br>");
-            }
-        }
+        sb.append("<b>").append(escapeHtml(label)).append("</b><br>");
+        sb.append("<i>Type: ").append(escapeHtml(type)).append("</i><br>");
+        sb.append("<small>").append(escapeHtml(resource.getURI())).append("</small>");
         return sb.toString();
     }
 

@@ -17,7 +17,6 @@ public class ViewSelectorView {
     private final WebEngine webEngine;
     private final App app;
 
-    @SuppressWarnings("unused")
     private ViewSelectorBridge bridgeRef;
 
     @SuppressWarnings("removal")
