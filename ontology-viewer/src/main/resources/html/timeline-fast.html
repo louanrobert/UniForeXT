@@ -271,6 +271,13 @@
             Reset
         </button>
 
+        <button class="btn" id="clear-filters-btn" onclick="clearAllFilters()" style="display: none;">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2 3h8M3 3v6.5a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V3M5 5v4M7 5v4M4 3V2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Clear Filters
+        </button>
+
         <div class="topbar-sep"></div>
         <span class="topbar-title">Historical Timeline</span>
 
@@ -342,6 +349,92 @@
     var timelineDpr = window.devicePixelRatio || 1;
     var minimapDpr  = window.devicePixelRatio || 1;
 
+    /* ── Filter State ──────────────────────────────────────────────── */
+    var filterState = {
+        visibleCategories: new Set(),  /* category IDs to show */
+        excludedNodeIds: new Set(),    /* individual event URIs to hide */
+        excludedLabels: new Set(),     /* event labels/names to hide all matching */
+        searchQuery: ''                /* substring to match in label/category/uri */
+    };
+
+    /* ── Filter helpers ────────────────────────────────────────────── */
+    function initFilterState() {
+        filterState.visibleCategories.clear();
+        filterState.excludedNodeIds.clear();
+        filterState.excludedLabels.clear();
+        filterState.searchQuery = '';
+        for (var i = 0; i < groupOrder.length; i++) {
+            filterState.visibleCategories.add(groupOrder[i]);
+        }
+    }
+
+    function matchesSearchQuery(text) {
+        if (!filterState.searchQuery) return true;
+        return text.toLowerCase().indexOf(filterState.searchQuery.toLowerCase()) !== -1;
+    }
+
+    function isEventVisible(event) {
+        /* Check if category is visible */
+        if (!filterState.visibleCategories.has(event.group)) return false;
+        /* Check if this specific event is excluded */
+        if (filterState.excludedNodeIds.has(event.uri)) return false;
+        /* Check if all events with this label are excluded */
+        if (filterState.excludedLabels.has(event.label)) return false;
+        /* Check search query */
+        var searchText = event.label + ' ' + event.group + ' ' + event.uri;
+        if (!matchesSearchQuery(searchText)) return false;
+        return true;
+    }
+
+    function toggleCategory(groupId) {
+        if (filterState.visibleCategories.has(groupId)) {
+            filterState.visibleCategories.delete(groupId);
+        } else {
+            filterState.visibleCategories.add(groupId);
+        }
+        queueRender();
+    }
+
+    function showOnlyCategory(groupId) {
+        filterState.visibleCategories.clear();
+        filterState.visibleCategories.add(groupId);
+        queueRender();
+    }
+
+    function showAllCategories() {
+        filterState.visibleCategories.clear();
+        for (var i = 0; i < groupOrder.length; i++) {
+            filterState.visibleCategories.add(groupOrder[i]);
+        }
+        queueRender();
+    }
+
+    function excludeNodeId(uri) {
+        filterState.excludedNodeIds.add(uri);
+        queueRender();
+    }
+
+    function excludeNodeLabel(label) {
+        filterState.excludedLabels.add(label);
+        queueRender();
+    }
+
+    function setSearchQuery(query) {
+        filterState.searchQuery = query;
+        updateSearchStatus();
+        updateFilterListPanel();
+        queueRender();
+    }
+
+    function clearAllFilters() {
+        initFilterState();
+        var searchBox = document.getElementById('search-box');
+        if (searchBox) searchBox.value = '';
+        updateSearchStatus();
+        updateFilterListPanel();
+        queueRender();
+    }
+
     /* ── Init ──────────────────────────────────────────────────────── */
     function initTimelineFast() {
         try {
@@ -396,6 +489,8 @@
             viewEnd   = rangeMin + Math.max(full * 0.16, 1000 * 60 * 60 * 24 * 30);
             if (viewEnd > rangeMax) viewEnd = rangeMax;
 
+            initFilterState();
+            createSearchUI();
             updateStats();
             resizeAll();
             drawMinimap();
@@ -527,6 +622,27 @@
             }
         });
 
+        canvas.addEventListener('mousedown', function(e) {
+            if (e.button !== 2) return;  /* Right mouse button = 2 */
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+                /* Check if right-clicking on a category label */
+                var categoryId = hitTestCategoryLabel(e.clientX, e.clientY);
+                if (categoryId) {
+                    showCategoryContextMenu(e, categoryId);
+                    return;
+                }
+                /* Otherwise check for event hit */
+                var hb = hitTest(e.clientX, e.clientY);
+                if (hb) {
+                    showEventContextMenu(e, hb);
+                }
+            } catch (err) {
+                javaBridge.log('Context menu error: ' + err.message);
+            }
+        }, true);
+
         minimap.addEventListener('mousedown', function(e) {
             isDraggingMinimap = true;
             navFromMinimap(e.clientX);
@@ -586,6 +702,8 @@
             renderQueued = false;
             renderTimeline();
             updateMinimapFocus();
+            updateFilterStatusBar();
+            updateFilterListPanel();
         });
     }
 
@@ -645,6 +763,19 @@
         ctx.lineTo(GROUP_LABEL_W + 0.5, h);
         ctx.stroke();
 
+        /* Show "No events" message if needed */
+        if (layout.rows.length === 0) {
+            ctx.fillStyle = 'rgba(220, 170, 60, 0.5)';
+            ctx.font = '13px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            var msg = 'No events match current filters';
+            ctx.fillText(msg, w / 2, AXIS_H + 60);
+            ctx.fillStyle = 'rgba(220, 170, 60, 0.3)';
+            ctx.font = '11px Inter, sans-serif';
+            ctx.fillText('Try adjusting your search or category filters', w / 2, AXIS_H + 80);
+        }
+
         updateViewMeta(layout.visibleStartIdx, layout.visibleEndIdx, layout.drawnCount);
     }
 
@@ -663,6 +794,8 @@
         for (var i = startIdx; i < endIdx; i++) {
             var ev = events[i];
             if (groupIndexMap[ev.group] == null) continue;
+            /* Apply filters */
+            if (!isEventVisible(ev)) continue;
             if (!byGroup[ev.group]) byGroup[ev.group] = [];
             byGroup[ev.group].push({
                 item: ev,
@@ -674,6 +807,10 @@
         for (var gi = 0; gi < groupOrder.length; gi++) {
             var gid     = groupOrder[gi];
             var visible = byGroup[gid] || [];
+            
+            /* Skip empty groups */
+            if (visible.length === 0) continue;
+            
             var row     = {
                 group: gid, groupIdx: gi,
                 top: top, height: ROW_H,
@@ -929,6 +1066,7 @@
 
     /* ── Draw: row bands + category labels ─────────────────────────── */
     function drawRows(width, height, rows) {
+        categoryLabels = [];  /* Reset category labels */
         for (var gi = 0; gi < rows.length; gi++) {
             var row = rows[gi];
 
@@ -949,6 +1087,9 @@
             var labelY = row.top + row.height / 2;
             var labelText = groupLabelMap[row.group] || row.group;
             var color     = groupColorMap[row.group] || '#6dafff';
+
+            /* Record label position for hit detection */
+            recordCategoryLabel(row.group, 0, row.top, GROUP_LABEL_W, row.height);
 
             /* Color swatch dot */
             ctx.fillStyle = color;
@@ -1029,6 +1170,8 @@
         var range = Math.max(1, rangeMax - rangeMin);
         for (var i = 0; i < events.length; i++) {
             var ev = events[i];
+            /* Only show filtered events in minimap */
+            if (!isEventVisible(ev)) continue;
             var x  = ((ev.ts - rangeMin) / range) * w;
             minimapCtx.fillStyle  = groupColorMap[ev.group] || '#5da8ff';
             minimapCtx.globalAlpha = 0.65;
@@ -1139,6 +1282,368 @@
         var t = text;
         while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
         return t + '…';
+    }
+
+    /* ── Filter UI Creation ────────────────────────────────────────── */
+    function createSearchUI() {
+        /* Create search box in topbar */
+        var stats = document.getElementById('stats');
+        var searchContainer = document.createElement('div');
+        searchContainer.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+            margin-right: 12px;
+        `;
+        
+        var searchBox = document.createElement('input');
+        searchBox.id = 'search-box';
+        searchBox.type = 'text';
+        searchBox.placeholder = 'Search…';
+        searchBox.style.cssText = `
+            padding: 4px 8px;
+            border: 1px solid var(--border-strong);
+            border-radius: 4px;
+            background: var(--panel);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 11px;
+            width: 120px;
+            outline: none;
+        `;
+        searchBox.oninput = function() {
+            setSearchQuery(this.value);
+        };
+        
+        var searchStatus = document.createElement('span');
+        searchStatus.id = 'search-status';
+        searchStatus.style.cssText = `
+            font-size: 10px;
+            color: var(--text-hint);
+            white-space: nowrap;
+        `;
+        
+        searchContainer.appendChild(searchBox);
+        searchContainer.appendChild(searchStatus);
+        
+        stats.parentNode.insertBefore(searchContainer, stats);
+        
+        /* Create filter list panel */
+        var filterListPanel = document.createElement('div');
+        filterListPanel.id = 'filter-list-panel';
+        filterListPanel.style.cssText = `
+            position: fixed;
+            top: 48px;
+            left: 0;
+            right: 0;
+            max-height: 120px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            padding: 6px 14px 8px 14px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 45;
+            font-size: 11px;
+            color: var(--text);
+            display: none;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-content: flex-start;
+        `;
+        document.body.appendChild(filterListPanel);
+    }
+
+    /* ── Category label tracking for context menu ───────────────────── */
+    var categoryLabels = [];  /* {groupId, x, y, w, h} for each category label */
+
+    function recordCategoryLabel(groupId, x, y, w, h) {
+        categoryLabels.push({groupId: groupId, x: x, y: y, w: w, h: h});
+    }
+
+    function hitTestCategoryLabel(clientX, clientY) {
+        var rect = canvas.getBoundingClientRect();
+        var x = clientX - rect.left;
+        var y = clientY - rect.top;
+        for (var i = 0; i < categoryLabels.length; i++) {
+            var label = categoryLabels[i];
+            if (x >= label.x && x <= label.x + label.w && 
+                y >= label.y && y <= label.y + label.h) {
+                return label.groupId;
+            }
+        }
+        return null;
+    }
+
+    function updateSearchStatus() {
+        var status = document.getElementById('search-status');
+        if (!status) return;
+        
+        if (!filterState.searchQuery) {
+            status.textContent = '';
+            return;
+        }
+        
+        var count = 0;
+        for (var i = 0; i < events.length; i++) {
+            if (isEventVisible(events[i])) count++;
+        }
+        status.textContent = count + ' match' + (count !== 1 ? 'es' : '');
+    }
+
+    function updateFilterListPanel() {
+        var panel = document.getElementById('filter-list-panel');
+        var canvasWrap = document.getElementById('canvas-wrap');
+        if (!panel || !canvasWrap) return;
+        
+        panel.innerHTML = '';
+        
+        var hiddenCats = [];
+        for (var i = 0; i < groupOrder.length; i++) {
+            if (!filterState.visibleCategories.has(groupOrder[i])) {
+                hiddenCats.push(groupOrder[i]);
+            }
+        }
+        
+        var hasFilters = hiddenCats.length > 0 || filterState.excludedNodeIds.size > 0 || 
+                        filterState.excludedLabels.size > 0 || filterState.searchQuery;
+        
+        if (!hasFilters) {
+            panel.style.display = 'none';
+            canvasWrap.style.paddingTop = '0';
+            return;
+        }
+        
+        panel.style.display = 'flex';
+        canvasWrap.style.paddingTop = '126px';  /* 48px topbar + ~120px filter panel + 8px gap */
+        
+        /* Add hidden categories */
+        for (var i = 0; i < hiddenCats.length; i++) {
+            var catId = hiddenCats[i];
+            var label = groupLabelMap[catId] || catId;
+            addFilterTag(panel, 'Category: ' + label, function(id) {
+                return function() { toggleCategory(id); };
+            }(catId));
+        }
+        
+        /* Add search filter */
+        if (filterState.searchQuery) {
+            addFilterTag(panel, 'Search: "' + filterState.searchQuery + '"', function() {
+                document.getElementById('search-box').value = '';
+                setSearchQuery('');
+            });
+        }
+        
+        /* Add excluded events */
+        filterState.excludedNodeIds.forEach(function(uri) {
+            var label = uri;
+            for (var i = 0; i < events.length; i++) {
+                if (events[i].uri === uri) {
+                    label = events[i].label;
+                    break;
+                }
+            }
+            addFilterTag(panel, 'Event: ' + fitText(label, 100), function(u) {
+                return function() { 
+                    filterState.excludedNodeIds.delete(u);
+                    queueRender();
+                };
+            }(uri));
+        });
+        
+        /* Add excluded labels */
+        filterState.excludedLabels.forEach(function(label) {
+            addFilterTag(panel, 'Excluded: ' + fitText(label, 100), function(l) {
+                return function() { 
+                    filterState.excludedLabels.delete(l);
+                    queueRender();
+                };
+            }(label));
+        });
+    }
+
+    function addFilterTag(container, text, onRemove) {
+        var tag = document.createElement('div');
+        tag.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: rgba(78, 161, 255, 0.12);
+            border: 1px solid rgba(78, 161, 255, 0.25);
+            border-radius: 4px;
+            font-size: 10px;
+            color: var(--text-dim);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+            flex-shrink: 0;
+        `;
+        
+        var textSpan = document.createElement('span');
+        textSpan.textContent = text;
+        textSpan.style.cssText = 'overflow: hidden; text-overflow: ellipsis; max-width: 170px;';
+        textSpan.title = text;
+        
+        var removeBtn = document.createElement('button');
+        removeBtn.innerHTML = '×';
+        removeBtn.style.cssText = `
+            background: none;
+            border: none;
+            color: var(--text-hint);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0;
+            line-height: 0.8;
+            flex-shrink: 0;
+            transition: color 0.1s;
+        `;
+        removeBtn.onmouseover = function() { this.style.color = 'var(--accent)'; };
+        removeBtn.onmouseout = function() { this.style.color = 'var(--text-hint)'; };
+        removeBtn.onclick = function(e) {
+            e.stopPropagation();
+            onRemove();
+        };
+        
+        tag.appendChild(textSpan);
+        tag.appendChild(removeBtn);
+        container.appendChild(tag);
+    }
+
+    function updateFilterStatusBar() {
+        var hiddenCats = groupOrder.length - filterState.visibleCategories.size;
+        var excluded = filterState.excludedNodeIds.size + filterState.excludedLabels.size;
+        var isFiltered = hiddenCats > 0 || excluded > 0 || filterState.searchQuery;
+        
+        /* Show/hide clear filters button */
+        var clearBtn = document.getElementById('clear-filters-btn');
+        if (clearBtn) clearBtn.style.display = isFiltered ? 'inline-flex' : 'none';
+        
+        var meta = document.getElementById('view-meta');
+        var filterInfo = '';
+        if (isFiltered) {
+            var parts = [];
+            if (hiddenCats > 0) parts.push(hiddenCats + ' cat' + (hiddenCats !== 1 ? 's' : '') + ' hidden');
+            if (excluded > 0) parts.push(excluded + ' event' + (excluded !== 1 ? 's' : '') + ' excluded');
+            if (filterState.searchQuery) parts.push('search active');
+            filterInfo = ' — ' + parts.join(', ');
+        }
+        
+        meta.innerHTML = meta.innerHTML.split(' —')[0] + filterInfo;
+    }
+
+    /* ── Context Menu System ───────────────────────────────────────── */
+    var currentContextMenu = null;
+
+    function showContextMenu(x, y, items) {
+        /* Close existing menu */
+        if (currentContextMenu) currentContextMenu.remove();
+        
+        var menu = document.createElement('div');
+        menu.style.cssText = `
+            position: fixed;
+            left: ${x}px;
+            top: ${y}px;
+            background: var(--panel);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow);
+            z-index: 100;
+            min-width: 160px;
+            overflow: hidden;
+        `;
+        
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var btn = document.createElement('div');
+            btn.textContent = item.label;
+            btn.style.cssText = `
+                padding: 6px 12px;
+                cursor: pointer;
+                border-bottom: 1px solid var(--border);
+                font-size: 11px;
+                transition: background 0.1s;
+                color: ${item.dangerous ? 'rgba(255,100,100,0.9)' : 'var(--text)'};
+            `;
+            btn.onmouseover = function() { this.style.background = 'rgba(255,255,255,0.08)'; };
+            btn.onmouseout = function() { this.style.background = 'transparent'; };
+            btn.onclick = function(cb) {
+                return function() {
+                    cb();
+                    menu.remove();
+                    currentContextMenu = null;
+                };
+            }(item.callback);
+            
+            if (i === items.length - 1) btn.style.borderBottom = 'none';
+            menu.appendChild(btn);
+        }
+        
+        document.body.appendChild(menu);
+        currentContextMenu = menu;
+        
+        /* Constrain to viewport */
+        var rect = menu.getBoundingClientRect();
+        if (rect.right > window.innerWidth) {
+            menu.style.left = (window.innerWidth - rect.width - 4) + 'px';
+        }
+        if (rect.bottom > window.innerHeight) {
+            menu.style.top = (window.innerHeight - rect.height - 4) + 'px';
+        }
+        
+        /* Close on outside click or escape */
+        function closeMenu(e) {
+            if (e && menu.contains(e.target)) return;
+            menu.remove();
+            currentContextMenu = null;
+            document.removeEventListener('click', closeMenu);
+            document.removeEventListener('keydown', closeOnEscape);
+        }
+        function closeOnEscape(e) {
+            if (e.key === 'Escape') closeMenu();
+        }
+        document.addEventListener('click', closeMenu);
+        document.addEventListener('keydown', closeOnEscape);
+    }
+
+    function showCategoryContextMenu(e, groupId) {
+        var label = groupLabelMap[groupId];
+        showContextMenu(e.clientX, e.clientY, [
+            { label: 'Hide This Category', callback: function() { toggleCategory(groupId); } },
+            { label: 'Show Only This', callback: function() { showOnlyCategory(groupId); } },
+            { label: 'Show All Categories', callback: function() { showAllCategories(); } }
+        ]);
+    }
+
+    function showEventContextMenu(e, hitBox) {
+        var items = [];
+        if (hitBox.kind === 'event') {
+            items.push({ 
+                label: 'Hide This Event', 
+                callback: function() { excludeNodeId(hitBox.item.uri); },
+                dangerous: true
+            });
+            items.push({ 
+                label: 'Hide All "' + fitText(hitBox.item.label, 80) + '"', 
+                callback: function() { excludeNodeLabel(hitBox.item.label); },
+                dangerous: true
+            });
+            items.push({ label: 'Open in Graph', callback: function() { javaBridge.openGraphForIndividual(hitBox.item.uri); } });
+        } else if (hitBox.kind === 'cluster') {
+            items.push({ 
+                label: 'Zoom to Cluster', 
+                callback: function() { 
+                    var span = Math.max(hitBox.maxTs - hitBox.minTs, MIN_VIEW_MS * 3);
+                    var pad  = span * 0.45;
+                    setViewWindow(hitBox.minTs - pad, hitBox.maxTs + pad);
+                }
+            });
+        }
+        items.push({ label: 'Clear All Filters', callback: function() { clearAllFilters(); } });
+        
+        showContextMenu(e.clientX, e.clientY, items);
     }
 </script>
 </body>

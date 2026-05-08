@@ -71,36 +71,51 @@ public class YamlSourceMapper implements SourceMapper {
 
     @Override
     public void map(SourceRecord r) {
-        // Build identifier by joining resolved fields with separator
-        String identifier = config.getIdentifier().getFields().stream()
+        String identifier = buildIdentifier(r);
+        Resource individual = knowledgeGraph.createIndividual(config.getOwlClass(), identifier);
+        
+        applyStaticProperties(individual);
+        applyGenerics(r, individual);
+        applyFieldMappings(r, individual);
+    }
+
+    private String buildIdentifier(SourceRecord r) {
+        return config.getIdentifier().getFields().stream()
                 .map(r::get)
                 .collect(Collectors.joining(config.getIdentifier().getSeparator()));
+    }
 
-        // Create the OWL individual
-        Resource individual = knowledgeGraph.createIndividual(config.getOwlClass(), identifier);
-
-        // Apply static properties unconditionally
-        if (config.getStaticProperties() != null) {
-            for (StaticPropertyConfig sp : config.getStaticProperties()) {
-                RDFDatatype dataType = resolveDatatype(sp.getDataType());
-                String normalizedValue = normalizeLiteralValue(sp.getValue(), dataType);
-                knowledgeGraph.addDataProperty(individual, sp.getOwlProperty(),
-                        knowledgeGraph.createLiteral(normalizedValue, dataType));
-            }
+    private void applyStaticProperties(Resource individual) {
+        if (config.getStaticProperties() == null) {
+            return;
         }
-
-        // Dispatch generics
-        if (config.getGenerics() != null) {
-            for (String generic : config.getGenerics()) {
-                dispatchGeneric(generic, r, individual);
-            }
+        for (StaticPropertyConfig sp : config.getStaticProperties()) {
+            applyStaticProperty(individual, sp);
         }
+    }
 
-        // Apply field mappings
-        if (config.getFieldMappings() != null) {
-            for (FieldMappingConfig fm : config.getFieldMappings()) {
-                applyFieldMapping(fm, r, individual);
-            }
+    private void applyStaticProperty(Resource individual, StaticPropertyConfig sp) {
+        RDFDatatype dataType = resolveDatatype(sp.getDataType());
+        String normalizedValue = normalizeLiteralValue(sp.getValue(), dataType);
+        knowledgeGraph.addDataProperty(individual, sp.getOwlProperty(),
+                knowledgeGraph.createLiteral(normalizedValue, dataType));
+    }
+
+    private void applyGenerics(SourceRecord r, Resource individual) {
+        if (config.getGenerics() == null) {
+            return;
+        }
+        for (String generic : config.getGenerics()) {
+            dispatchGeneric(generic, r, individual);
+        }
+    }
+
+    private void applyFieldMappings(SourceRecord r, Resource individual) {
+        if (config.getFieldMappings() == null) {
+            return;
+        }
+        for (FieldMappingConfig fm : config.getFieldMappings()) {
+            applyFieldMapping(fm, r, individual);
         }
     }
 
@@ -174,22 +189,49 @@ public class YamlSourceMapper implements SourceMapper {
             return value;
         }
 
-        // Already valid dateTimeStamp lexical form.
+        String result = tryParseOffsetDateTime(value);
+        if (result != null) return result;
+
+        result = tryParseZonedDateTime(value);
+        if (result != null) return result;
+
+        result = tryParseInstant(value);
+        if (result != null) return result;
+
+        result = tryParseLocalDateTime(value);
+        if (result != null) return result;
+
+        result = tryParseLocalDate(value);
+        if (result != null) return result;
+
+        throw new IllegalArgumentException("Could not normalize xsd:dateTimeStamp value: " + rawValue);
+    }
+
+    private String tryParseOffsetDateTime(String value) {
         try {
             return OffsetDateTime.parse(value).format(OUTPUT_DATE_TIME_STAMP_FORMATTER);
         } catch (DateTimeParseException ignored) {
+            return null;
         }
+    }
 
+    private String tryParseZonedDateTime(String value) {
         try {
             return ZonedDateTime.parse(value).toOffsetDateTime().format(OUTPUT_DATE_TIME_STAMP_FORMATTER);
         } catch (DateTimeParseException ignored) {
+            return null;
         }
+    }
 
+    private String tryParseInstant(String value) {
         try {
             return Instant.parse(value).atOffset(ZoneOffset.UTC).format(OUTPUT_DATE_TIME_STAMP_FORMATTER);
         } catch (DateTimeParseException ignored) {
+            return null;
         }
+    }
 
+    private String tryParseLocalDateTime(String value) {
         for (DateTimeFormatter formatter : LOCAL_DATE_TIME_INPUT_FORMATTERS) {
             try {
                 LocalDateTime dateTime = LocalDateTime.parse(value, formatter);
@@ -197,52 +239,72 @@ public class YamlSourceMapper implements SourceMapper {
             } catch (DateTimeParseException ignored) {
             }
         }
+        return null;
+    }
 
+    private String tryParseLocalDate(String value) {
         try {
             LocalDate localDate = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
             return localDate.atStartOfDay().atOffset(ZoneOffset.UTC).format(OUTPUT_DATE_TIME_STAMP_FORMATTER);
         } catch (DateTimeParseException ignored) {
+            return null;
         }
-
-        throw new IllegalArgumentException("Could not normalize xsd:dateTimeStamp value: " + rawValue);
     }
 
     private void applyLinkedIndividual(FieldMappingConfig fm, SourceRecord r, Resource parent) {
-        for (String field : fm.getIdentifier().getFields()) {
-            if (!r.has(field)) {
-                return; // Skip if any identifier field is missing
-            }
+        if (!hasAllIdentifierFields(fm, r)) {
+            return;
         }
-        String id = null;
-        if (fm.getIdentifier().isUseHash()) { // Can only use one field if hashing
-            id = r.getHashed(fm.getIdentifier().getFields().get(0));
-            if (fm.getIdentifier().getFields().size() > 1) {
-                throw new IllegalArgumentException("Hashing can only be used with a single identifier field");
-            }
-        } else if (fm.getIdentifier().getFields().size() == 1) {
-            id = r.get(fm.getIdentifier().getFields().get(0));
-        } else {
-            id = fm.getIdentifier().getFields().stream()
-                    .map(r::get)
-                    .collect(Collectors.joining(fm.getIdentifier().getSeparator()));
-        }
-
+        
+        String id = resolveLinkedIndividualIdentifier(fm, r);
         Resource linked = knowledgeGraph.createIndividual(fm.getOwlClass(), id);
+        
+        applyDataPropertiesToLinked(fm, r, linked);
+        applyNestedLinksToLinked(fm, r, linked);
+        
+        knowledgeGraph.addUniqueObjectProperty(parent, fm.getLinkProperty(), linked);
+    }
 
-        // Apply data properties on the linked individual
+    private boolean hasAllIdentifierFields(FieldMappingConfig fm, SourceRecord r) {
+        return fm.getIdentifier().getFields().stream().allMatch(r::has);
+    }
+
+    private String resolveLinkedIndividualIdentifier(FieldMappingConfig fm, SourceRecord r) {
+        if (fm.getIdentifier().isUseHash()) {
+            return resolveHashedIdentifier(fm, r);
+        }
+        if (fm.getIdentifier().getFields().size() == 1) {
+            return r.get(fm.getIdentifier().getFields().get(0));
+        }
+        return resolveCombinedIdentifier(fm, r);
+    }
+
+    private String resolveHashedIdentifier(FieldMappingConfig fm, SourceRecord r) {
+        if (fm.getIdentifier().getFields().size() > 1) {
+            throw new IllegalArgumentException("Hashing can only be used with a single identifier field");
+        }
+        return r.getHashed(fm.getIdentifier().getFields().get(0));
+    }
+
+    private String resolveCombinedIdentifier(FieldMappingConfig fm, SourceRecord r) {
+        return fm.getIdentifier().getFields().stream()
+                .map(r::get)
+                .collect(Collectors.joining(fm.getIdentifier().getSeparator()));
+    }
+
+    private void applyDataPropertiesToLinked(FieldMappingConfig fm, SourceRecord r, Resource linked) {
         if (fm.getDataProperties() != null) {
             for (FieldMappingConfig dp : fm.getDataProperties()) {
                 applyFieldMapping(dp, r, linked);
             }
         }
+    }
 
-        // Apply nested links recursively
+    private void applyNestedLinksToLinked(FieldMappingConfig fm, SourceRecord r, Resource linked) {
         if (fm.getNestedLinks() != null) {
             for (FieldMappingConfig nl : fm.getNestedLinks()) {
                 applyFieldMapping(nl, r, linked);
             }
         }
-
-        knowledgeGraph.addUniqueObjectProperty(parent, fm.getLinkProperty(), linked);
     }
 }
