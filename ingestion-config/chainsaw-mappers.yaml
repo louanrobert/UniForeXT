@@ -53,7 +53,7 @@ genericMappings:
 
 mappers:
   - name: AntivirusMapper
-    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\antivirus.csv
+    file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/antivirus.csv
     owlClass: Antivirus
     identifier:
       fields:
@@ -90,7 +90,7 @@ mappers:
         prefix: "Threat Type: "
 
   - name: SigmaMapper
-    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\sigma.csv
+    file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/sigma.csv
     owlClass: Sigma
     identifier:
       fields:
@@ -111,7 +111,7 @@ mappers:
         owlProperty: hasExtraInformation
 
   - name: AccountTamperingMapper
-    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\account_tampering.csv
+    file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/account_tampering.csv
     owlClass: AccountTampering
     identifier:
       fields:
@@ -139,7 +139,7 @@ mappers:
         prefix: "Member SID: "
 
   - name: RDPEventsMapper
-    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\rdp_events.csv
+    file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/rdp_events.csv
     owlClass: RDPEvent
     identifier:
       fields:
@@ -167,7 +167,7 @@ mappers:
         owlProperty: hasDescription
 
   - name: ServiceInstallationMapper
-    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\service_installation.csv
+    file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/service_installation.csv
     owlClass: ServiceInstallation
     identifier:
       fields:
@@ -203,7 +203,7 @@ mappers:
         owlProperty: hasDescription
 
   - name: IndicatorRemovalMapper
-    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\indicator_removal.csv
+    file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/indicator_removal.csv
     owlClass: IndicatorRemoval
     identifier:
       fields:
@@ -228,7 +228,7 @@ mappers:
         owlProperty: hasDescription
 
   - name: UserProfileDiskMapper
-    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\microsoft_rds_events_-_user_profile_disk.csv
+    file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/microsoft_rds_events_-_user_profile_disk.csv
     owlClass: RegistryLoad_configuration_event
     identifier:
       fields:
@@ -249,7 +249,7 @@ mappers:
         owlProperty: hasDescription
 
   - name: PersistenceMapper
-    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\persistence.csv
+    file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/persistence.csv
     owlClass: Persistence
     identifier:
       fields:
@@ -274,7 +274,7 @@ mappers:
         owlProperty: hasDescription
 
   - name: PowerShellEngineStateMapper
-    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\powershell_engine_state.csv
+    file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/powershell_engine_state.csv
     owlClass: RegistryLoad_configuration_event
     identifier:
       fields:
@@ -302,7 +302,7 @@ mappers:
         prefix: "Version: "
 
   - name: RDPAttacksMapper
-    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\rdp_attacks.csv
+    file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/rdp_attacks.csv
     delimiter: ','
     owlClass: RDPAttack
     identifier:
@@ -336,7 +336,7 @@ mappers:
         prefix: "Domain: "
 
   - name: LateralMovementMapper
-    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\lateral_movement.csv
+    file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/lateral_movement.csv
     owlClass: LateralMovement
     identifier:
       fields:
@@ -373,7 +373,7 @@ mappers:
         prefix: "Port: "
 
   - name: LogTamperingMapper
-    file: c:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\QuickWins\Chainsaw_results\log_tampering.csv
+    file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/log_tampering.csv
     owlClass: LogTampering
     identifier:
       fields:
