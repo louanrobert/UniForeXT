@@ -24,6 +24,7 @@ mappers:
     identifier:
       fields:
         - "RecordID"
+        - "Channel"
       separator: "_"
     staticProperties:
       - owlProperty: hasDescription
@@ -41,8 +42,8 @@ mappers:
         dataType: xsd:unsignedLong
       - sourceField: "RecordID"
         type: dataProperty
-        owlProperty: hasID
-        dataType: xsd:unsignedLong
+        owlProperty: hasExtraInformation
+        prefix: "RecordID: "
       - sourceField: "Level"
         type: dataProperty
         owlProperty: hasExtraInformation

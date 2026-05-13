@@ -68,7 +68,17 @@ public class ValidateShaclStage extends IngestionStage {
                 String message = item.message();
                 String focusNode = item.focusNode() != null ? item.focusNode().toString() : "unknown";
                 String severity = nodeToSeverityString(item);
-                this.log(String.format("[%s] %s (focusNode: %s)", severity, message, focusNode));
+
+                // Source shape (e.g. sh:NodeShape or sh:PropertyShape IRI)
+                String sourceShape = item.source() != null ? item.source().toString() : "unknown";
+
+                // The specific constraint that failed (e.g. sh:minCount, sh:datatype)
+                String constraint = item.sourceConstraintComponent() != null
+                        ? item.sourceConstraintComponent().toString()
+                        : "unknown";
+
+                this.log(String.format("[%s] %s (focusNode: %s, shape: %s, constraint: %s)",
+                        severity, message, focusNode, sourceShape, constraint));
             }
         }
     }
