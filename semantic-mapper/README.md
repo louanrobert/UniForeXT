@@ -104,5 +104,5 @@ semantic-mapper/
 ### Key Modules
 
 - **ingest**: Handles data loading and ingestion from various sources
-- **owl**: Manages OWL ontology operations and reasoning
+- **owl**: Manages OWL ontology operations
 - **validation**: Performs SHACL shape validation on RDF data
