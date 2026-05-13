@@ -58,6 +58,7 @@ public class KnowledgeGraphFacade {
 
    public void addObjectProperty(Resource resource, String propertyName, Resource value) {
       resource.addProperty(getObjectProperty(propertyName), value);
+      addInverseProperty(propertyName, resource, value);
    }
 
    public void addUniqueDataProperty(Resource resource, String propertyName, Literal value) {
@@ -69,8 +70,28 @@ public class KnowledgeGraphFacade {
 
    public void addUniqueObjectProperty(Resource resource, String propertyName, Resource value) {
       Property property = getObjectProperty(propertyName);
-      if (!resource.hasProperty(property)) {
+      if (!resource.hasProperty(property, value)) {
          resource.addProperty(property, value);
+         addInverseProperty(propertyName, resource, value);
+      }
+   }
+
+   /**
+    * Adds the inverse property to the object if an inverse is defined in the ontology.
+    * For example, if hasComputer is added, isComputerOf will be added in the reverse direction.
+    * @param propertyName the name of the forward property
+    * @param resource the subject resource
+    * @param value the object resource
+    */
+   private void addInverseProperty(String propertyName, Resource resource, Resource value) {
+      String inversePropertyName = ontologyFacade.getInversePropertyName(propertyName);
+      if (inversePropertyName != null) {
+         try {
+            Property inverseProperty = getObjectProperty(inversePropertyName);
+            value.addProperty(inverseProperty, resource);
+         } catch (IllegalArgumentException e) {
+            // Inverse property not found in ontology, skip
+         }
       }
    }
 

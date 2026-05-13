@@ -34,4 +34,13 @@ public class OntologyFacade {
    public Property getDataProperty(String propertyName) {
       return properties.getDataProperty(propertyName);
    }
+
+   /**
+    * Retrieves the inverse property name for a given object property.
+    * @param propertyName the local name of the property
+    * @return the local name of the inverse property, or null if no inverse is defined
+    */
+   public String getInversePropertyName(String propertyName) {
+      return properties.getInversePropertyName(propertyName);
+   }
 }

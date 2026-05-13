@@ -20,6 +20,7 @@ import be.ccb_uliege.incd.semantic_mapper.owl.Loader;
 public class Properties {
 
    private final Map<String, Property> properties = new HashMap<>();
+   private final Map<String, String> inverseProperties = new HashMap<>();
 
    private final Map<String, Property> dataProperties = new HashMap<>();
    private final Model ontology;
@@ -48,6 +49,19 @@ public class Properties {
                   dataProperties.put(localName, ontology.getProperty(r.getURI()));
                }
                });
+
+         Property inverseOfProperty = ontology.getProperty(OWL.inverseOf.getURI());
+         properties.forEach((propertyName, property) -> {
+            ontology.listStatements(property, inverseOfProperty, (org.apache.jena.rdf.model.RDFNode) null)
+                  .forEachRemaining(statement -> {
+                     if (statement.getObject().isResource()) {
+                        String inverseLocalName = statement.getObject().asResource().getLocalName();
+                        if (inverseLocalName != null && !inverseLocalName.isBlank()) {
+                           inverseProperties.put(propertyName, inverseLocalName);
+                        }
+                     }
+                  });
+         });
       } catch (Exception e) {
          e.printStackTrace();
          // If error occurs, likely to be a problem with the ontology file path or
@@ -84,6 +98,17 @@ public class Properties {
          throw new IllegalArgumentException("Data property not found: " + name);
       }
       return property;
+   }
+
+   /**
+    * Retrieves the inverse property name for a given object property.
+    * Queries the ontology for owl:inverseOf relationships.
+    * 
+    * @param propertyName the local name of the property (the part of the URI after the #)
+    * @return the local name of the inverse property, or null if no inverse is defined
+    */
+   public String getInversePropertyName(String propertyName) {
+      return inverseProperties.get(propertyName);
    }
 
 }
