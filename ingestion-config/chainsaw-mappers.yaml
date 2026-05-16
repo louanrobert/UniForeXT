@@ -304,7 +304,7 @@ mappers:
   - name: RDPAttacksMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/rdp_attacks.csv
     delimiter: ','
-    owlClass: RDPAttack
+    owlClass: RDPAttacks
     identifier:
       fields:
         - "detections"
