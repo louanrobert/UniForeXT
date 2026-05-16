@@ -200,4 +200,6 @@ README.html
 .idea
 debug.ttl
 ontology.rdf
+out
 .metals
+.venv
