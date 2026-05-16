@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import be.ccb_uliege.incd.semantic_mapper.ingest.implementations.csv.CsvIngester;
+import be.ccb_uliege.incd.semantic_mapper.ingest.implementations.MultiFormatIngester;
 import be.ccb_uliege.incd.semantic_mapper.ingest.pipeline.DefineIngestionTasksStage;
 import be.ccb_uliege.incd.semantic_mapper.ingest.pipeline.ExecuteIngestionTasksStage;
 import be.ccb_uliege.incd.semantic_mapper.ingest.pipeline.IngestionStage;
@@ -48,7 +48,7 @@ public class IngestionPipeline {
 
         PipelineContext context = new PipelineContext(
                 knowledgeGraph,
-                new CsvIngester(),
+            new MultiFormatIngester(),
                 "..\\ingestion-config");
 
         try {

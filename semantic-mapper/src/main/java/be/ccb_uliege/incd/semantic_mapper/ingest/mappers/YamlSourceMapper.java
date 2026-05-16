@@ -50,7 +50,8 @@ public class YamlSourceMapper implements SourceMapper {
             DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm"),
             DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss"),
             DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss.SSS"),
-            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"),
+            DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss.SSSSS"));
 
     private final MapperConfig config;
     private final Map<String, List<FieldMappingConfig>> genericMappings;
@@ -74,28 +75,10 @@ public class YamlSourceMapper implements SourceMapper {
      * Resolves the file path from the MapperConfig, supporting wildcard patterns to match files in a directory.
      * If the file path does not contain a wildcard, it is returned as-is.
      */
-    public Path getFilePath() throws IOException {
-        String raw = config.getFile(); // String, not Path
-        
-        // Normalize slashes
-        String normalized = raw.replace("\\", "/").replaceAll("/+", "/");
-        
-        int lastSlash = normalized.lastIndexOf('/');
-        String dirPart      = normalized.substring(0, lastSlash);
-        String filenamePart = normalized.substring(lastSlash + 1);
-
-        if (!filenamePart.contains("*")) {
-            return Path.of(normalized); // safe — no wildcard
-        }
-
-        Path dir = Path.of(dirPart); // safe — no wildcard in dir
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, filenamePart)) {
-            for (Path match : stream) {
-                return match; // first match
-            }
-        }
-
-        throw new IOException("No file matching '" + filenamePart + "' found in: " + dirPart);
+    public String getFilePath() {
+        String raw = config.getFile();
+        // Normalize to forward slashes; resolveTaskFiles handles the rest
+        return raw.replace("\\", "/").replaceAll("/+", "/");
     }
 
     /**

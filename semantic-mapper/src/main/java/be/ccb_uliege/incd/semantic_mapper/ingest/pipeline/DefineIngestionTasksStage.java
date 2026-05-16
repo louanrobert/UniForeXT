@@ -1,9 +1,11 @@
 package be.ccb_uliege.incd.semantic_mapper.ingest.pipeline;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -44,32 +46,73 @@ public class DefineIngestionTasksStage extends IngestionStage {
         }
     }
 
-    static List<Path> resolveTaskFiles(Path configuredPath) {
-        String fileName = configuredPath.getFileName() == null ? configuredPath.toString() : configuredPath.getFileName().toString();
-        if (!containsWildcard(fileName)) {
-            return List.of(configuredPath);
+    static List<Path> resolveTaskFiles(String rawPattern) {
+        if (!containsWildcard(rawPattern)) {
+            return List.of(Path.of(rawPattern)); // safe: no wildcard in string
         }
 
-        Path parentDirectory = configuredPath.getParent() == null ? Path.of(".") : configuredPath.getParent();
-        if (!Files.isDirectory(parentDirectory)) {
-            throw new IllegalStateException("Wildcard mapper path parent directory not found: " + parentDirectory);
+        // Split on / (we normalised slashes in getFilePath)
+        String[] segments = rawPattern.split("/", -1);
+
+        // Find first wildcard segment → everything before it is the search root
+        int firstWild = segments.length;
+        for (int i = 0; i < segments.length; i++) {
+            if (containsWildcard(segments[i])) {
+                firstWild = i;
+                break;
+            }
         }
 
-        PathMatcher fileNameMatcher = parentDirectory.getFileSystem().getPathMatcher("glob:" + fileName);
-        try (Stream<Path> files = Files.list(parentDirectory)) {
+        // Reconstruct the root string and turn it into a Path (safe: no wildcards)
+        String rootStr = String.join("/", Arrays.copyOfRange(segments, 0, firstWild));
+        Path searchRoot = rootStr.isEmpty() ? Path.of(".") : Path.of(rootStr);
+
+        if (!Files.isDirectory(searchRoot)) {
+            throw new IllegalStateException("Wildcard mapper path root directory not found: " + searchRoot);
+        }
+
+        // The glob is everything from the first wildcard segment onward
+        String relativeGlob = String.join("/", Arrays.copyOfRange(segments, firstWild, segments.length));
+        boolean recursive = relativeGlob.contains("**");
+        int maxDepth = segments.length - firstWild; // won't over-walk the tree
+
+        PathMatcher matcher = searchRoot.getFileSystem().getPathMatcher("glob:" + relativeGlob);
+
+        try (Stream<Path> files = recursive
+                ? Files.walk(searchRoot)
+                : Files.walk(searchRoot, maxDepth)) {
+
             List<Path> matches = files
                     .filter(Files::isRegularFile)
-                    .filter(file -> fileNameMatcher.matches(file.getFileName()))
+                    .filter(file -> matcher.matches(searchRoot.relativize(file)))
                     .sorted(Comparator.comparing(Path::toString))
                     .toList();
 
             if (matches.isEmpty()) {
-                throw new IllegalStateException("No files match mapper wildcard path: " + configuredPath);
+                throw new IllegalStateException("No files match mapper wildcard path: " + rawPattern);
             }
             return matches;
+
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to resolve mapper wildcard path: " + configuredPath, e);
+            throw new IllegalStateException("Failed to resolve mapper wildcard path: " + rawPattern, e);
         }
+    }
+
+    /**
+     * Walks the path components and returns the longest prefix path that contains
+     * no wildcard segment.
+     * E.g. for /data/2024-* /reports/*.csv → returns /data
+     */
+    private static Path findSearchRoot(Path path) {
+        Path current = path.isAbsolute() ? path.getRoot() : Path.of(".");
+        for (int i = 0; i < path.getNameCount(); i++) {
+            String segment = path.getName(i).toString();
+            if (containsWildcard(segment)) {
+                break;
+            }
+            current = current.resolve(segment);
+        }
+        return current;
     }
 
     private static boolean containsWildcard(String value) {
