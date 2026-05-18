@@ -78,6 +78,8 @@ Configure the pipeline behavior with the following environment variables:
 # Windows
 set CONFIG_DIR=..\ingestion-config
 set SHACL_SHAPES_PATH=..\shapes.ttl
+set ONTOLOGY_PATH=..\ontology.ttl
+$env:ANALYSIS_ROOT="C:/path/to/your/analysis/folder" #if needed; use \\ for Windows paths
 mvn package exec:java
 
 # Linux/macOS

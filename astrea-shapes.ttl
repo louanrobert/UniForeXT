@@ -1958,11 +1958,11 @@
 
 <https://astrea.linkeddata.es/shapes#d2624e2b971e2d477775cbd2c5cf9f76>
         a               sh:NodeShape ;
-        rdfs:label      "RDPEvents"@en ;
+        rdfs:label      "RDPEvent"@en ;
         sh:description  "Detection related to Remote Desktop Protocol events."@en ;
-        sh:name         "RDPEvents"@en ;
+        sh:name         "RDPEvent"@en ;
         sh:nodeKind     sh:IRI ;
-        sh:targetClass  <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#RDPEvents> .
+        sh:targetClass  <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#RDPEvent> .
 
 <https://astrea.linkeddata.es/shapes#dc24c4066862bdc7332888fa7a79e16f>
         a               sh:PropertyShape ;

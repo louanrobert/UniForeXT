@@ -1,0 +1,117 @@
+genericMappings:
+  addTimestamp:
+    - sourceField: "EventTime"
+      type: dataProperty
+      owlProperty: hasTimestamp
+      dataType: xsd:dateTimeStamp
+
+  addComputer:
+    - type: linkedIndividual
+      owlClass: Computer
+      linkProperty: hasComputer
+      identifier:
+        fields: "Computer"
+      dataProperties:
+        - sourceField: "Computer"
+          type: dataProperty
+          owlProperty: hasHostname
+
+  addUser:
+    - type: linkedIndividual
+      owlClass: User
+      linkProperty: hasUser
+      identifier:
+        fields: "TargetUserName"
+      dataProperties:
+        - sourceField: "TargetUserName"
+          type: dataProperty
+          owlProperty: hasName
+        - sourceField: "TargetDomainName"
+          type: dataProperty
+          owlProperty: hasDomain
+
+mappers:
+  - name: EvtxhussarLogonsMapper
+    file: "${ANALYSIS_ROOT}/Evtxhussar_results/*/logons/logons.xlsx"
+    owlClass: LogonEvent
+    identifier:
+      fields:
+        - "Computer"
+        - "EventTime"
+        - "TargetUserName"
+        - "EID"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addUser
+    fieldMappings:
+      - sourceField: "EID"
+        type: dataProperty
+        owlProperty: hasEventID
+        dataType: xsd:unsignedLong
+
+      - sourceField: "Description"
+        type: dataProperty
+        owlProperty: hasDescription
+
+      - type: linkedIndividual
+        owlClass: LogonType
+        linkProperty: hasLogonType
+        identifier:
+          fields: "LogonType"
+        dataProperties:
+          - sourceField: "LogonType"
+            type: dataProperty
+            owlProperty: hasName
+
+      - sourceField: "LogonType (Use cases)"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Logon type use case: "
+
+      - sourceField: "Status"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Status: "
+
+      - sourceField: "SubStatus"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Sub-status: "
+
+      - sourceField: "LogonProcessName"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Logon process: "
+
+      - sourceField: "AuthenticationPackageName"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Authentication package: "
+
+      - type: linkedIndividual
+        owlClass: Process
+        linkProperty: hasProcess
+        identifier:
+          fields: "LogonProcessName"
+        dataProperties:
+          - sourceField: "LogonProcessName"
+            type: dataProperty
+            owlProperty: hasName
+        nestedLinks:
+            - type:  linkedIndividual
+              owlClass: Path
+              linkProperty: hasPath
+              identifier:
+                fields: "ProcessName"
+              nestedLinks:
+                - sourceField: "ProcessName"
+                  type: dataProperty
+                  owlProperty: hasContent
+            

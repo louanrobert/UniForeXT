@@ -325,7 +325,7 @@ ufr:HasLogFileDomainShape
 ufr:HasLogFileRangeShape
   a sh:NodeShape ;
   sh:targetObjectsOf ufr:hasLogFile ;
-  sh:class ufr:LogFile .
+  sh:class ufr:Independent_entity .
 
 ufr:HasProcessDomainShape
   a sh:NodeShape ;
@@ -340,7 +340,7 @@ ufr:HasProcessRangeShape
 ufr:HasPathDomainShape
   a sh:NodeShape ;
   sh:targetSubjectsOf ufr:hasPath ;
-  sh:class ufr:LogFile .
+  sh:class ufr:Independent_entity .
 
 ufr:HasPathRangeShape
   a sh:NodeShape ;

@@ -18,7 +18,7 @@ public class Loader {
    /** The model for ingested triples. References the ontology via owl:imports and prefix. */
    private Model knowledgeGraph;
 
-   private static final String ONTOLOGY_PATH_ENV = "ONTOLOGY_FILE_PATH";
+   private static final String ONTOLOGY_PATH_ENV = "ONTOLOGY_PATH";
    private static final String DEFAULT_ONTOLOGY_PATH = "c:\\Users\\Robert_Louan\\OneDrive - FED BE\\Documents\\TFE\\ontology.rdf";
    private static final String path = System.getenv(ONTOLOGY_PATH_ENV) != null
          ? System.getenv(ONTOLOGY_PATH_ENV)
