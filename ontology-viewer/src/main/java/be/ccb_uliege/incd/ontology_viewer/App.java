@@ -1,11 +1,21 @@
 package be.ccb_uliege.incd.ontology_viewer;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Main JavaFX application entry point.
@@ -13,8 +23,17 @@ import java.io.File;
  * then shows a view selector. From there the user can open
  * the Timeline view, Event Explorer, or Query view. Double-clicking
  * items opens Graph views in separate windows.
+ *
+ * Features:
+ * - Validates file existence and readability before loading
+ * - Shows progress indicator during ontology loading
+ * - Provides user-friendly error dialogs for malformed files or I/O errors
  */
 public class App extends Application {
+
+    private static final Logger LOG = Logger.getLogger(App.class.getName());
+    private static final int DEFAULT_WIDTH = 1400;
+    private static final int DEFAULT_HEIGHT = 800;
 
     private KGService kgService;
     private JavaBridge bridge;
@@ -25,43 +44,175 @@ public class App extends Application {
         this.primaryStage = primaryStage;
 
         // Try command line argument first, then file chooser
-        String ttlPath = null;
+        String ttlPath = selectTurtleFile();
+        
+        if (ttlPath == null) {
+            // User cancelled without selecting a file
+            Platform.exit();
+            return;
+        }
+
+        // Load the ontology with progress indicator
+        loadOntologyAsync(ttlPath);
+        
+        primaryStage.show();
+    }
+
+    /**
+     * Prompts user to select a Turtle file via file chooser.
+     * Returns the file path, or null if user cancels.
+     */
+    private String selectTurtleFile() {
+        // Try command line argument first
         var params = getParameters().getRaw();
         if (!params.isEmpty()) {
-            ttlPath = params.get(0);
+            String cmdLineArg = params.get(0);
+            if (validateFileReadable(cmdLineArg)) {
+                return cmdLineArg;
+            }
         }
 
-        if (ttlPath == null || !new File(ttlPath).exists()) {
-            FileChooser chooser = new FileChooser();
-            chooser.setTitle("Open Turtle (.ttl) Ontology File");
-            chooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Turtle Files", "*.ttl"),
-                new FileChooser.ExtensionFilter("All Files", "*.*")
-            );
-            // Default to workspace directory
-            File defaultDir = new File(System.getProperty("user.dir"));
-            if (defaultDir.exists()) {
-                chooser.setInitialDirectory(defaultDir);
-            }
-            File chosen = chooser.showOpenDialog(primaryStage);
-            if (chosen == null) {
-                System.out.println("No file selected. Exiting.");
-                System.exit(0);
-                return;
-            }
-            ttlPath = chosen.getAbsolutePath();
+        // Fall back to file chooser
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Open Turtle (.ttl) Ontology File");
+        chooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Turtle Files", "*.ttl"),
+            new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+        
+        File defaultDir = new File(System.getProperty("user.dir"));
+        if (defaultDir.exists()) {
+            chooser.setInitialDirectory(defaultDir);
         }
+        
+        File chosen = chooser.showOpenDialog(primaryStage);
+        return chosen != null ? chosen.getAbsolutePath() : null;
+    }
 
-        System.out.println("Loading ontology from: " + ttlPath);
+    /**
+     * Validates that a file exists and is readable.
+     * Shows error dialog if validation fails.
+     */
+    private boolean validateFileReadable(String ttlPath) {
+        try {
+            File f = new File(ttlPath);
+            if (!f.exists()) {
+                ErrorDialogUtil.showError("File Not Found", 
+                    "The file does not exist: " + ttlPath);
+                return false;
+            }
+            if (!f.isFile()) {
+                ErrorDialogUtil.showError("Invalid File", 
+                    "The path is not a file: " + ttlPath);
+                return false;
+            }
+            if (!Files.isReadable(Paths.get(ttlPath))) {
+                ErrorDialogUtil.showError("Permission Denied", 
+                    "The file is not readable: " + ttlPath);
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            ErrorDialogUtil.showError("File Validation Error", 
+                "Could not validate file: " + e.getMessage(), e.toString());
+            return false;
+        }
+    }
 
-        kgService = new KGService(ttlPath);
-        bridge = new JavaBridge(kgService, this);
+    /**
+     * Loads the Turtle ontology file asynchronously with a progress indicator.
+     * Shows appropriate error dialogs if loading fails.
+     */
+    private void loadOntologyAsync(String ttlPath) {
+        // Create progress screen
+        ProgressIndicator progress = new ProgressIndicator();
+        progress.setPrefSize(100, 100);
+        
+        Label statusLabel = new Label("Loading ontology...");
+        statusLabel.setStyle("-fx-font-size: 14;");
+        
+        VBox progressPane = new VBox(20);
+        progressPane.setAlignment(Pos.CENTER);
+        progressPane.setStyle("-fx-padding: 40;");
+        progressPane.getChildren().addAll(progress, statusLabel);
+        
+        Scene progressScene = new Scene(progressPane, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        primaryStage.setTitle("Ontology Viewer — Loading...");
+        primaryStage.setScene(progressScene);
 
-        primaryStage.setTitle("Ontology Viewer \u2014 " + new File(ttlPath).getName());
+        // Load in background task
+        Task<KGService> loadTask = new Task<KGService>() {
+            @Override
+            protected KGService call() throws Exception {
+                LOG.info("Loading ontology from: " + ttlPath);
+                return new KGService(ttlPath);
+            }
+        };
 
-        // Show the view selector as the startup screen
-        showViewSelector();
-        primaryStage.show();
+        loadTask.setOnSucceeded(event -> {
+            try {
+                kgService = loadTask.getValue();
+                bridge = new JavaBridge(kgService, this);
+                primaryStage.setTitle("Ontology Viewer — " + new File(ttlPath).getName());
+                showViewSelector();
+                LOG.info("Ontology loaded successfully");
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "Error initializing after load", e);
+                ErrorDialogUtil.showError("Initialization Error", 
+                    "Failed to initialize application: " + e.getMessage());
+                Platform.exit();
+            }
+        });
+
+        loadTask.setOnFailed(event -> {
+            Throwable ex = loadTask.getException();
+            LOG.log(Level.SEVERE, "Failed to load ontology", ex);
+            
+            String title = "Failed to Load Ontology";
+            String message = "The Turtle file could not be parsed.";
+            String details = null;
+            
+            if (ex != null) {
+                if (ex instanceof IllegalArgumentException) {
+                    message = ex.getMessage();
+                    details = getDetailedErrorInfo(ex);
+                } else {
+                    message += "\n\n" + ex.getClass().getSimpleName() + ": " + ex.getMessage();
+                    details = getStackTraceAsString(ex);
+                }
+            }
+            
+            ErrorDialogUtil.showError(title, message, details);
+            Platform.exit();
+        });
+
+        Thread loaderThread = new Thread(loadTask, "OntologyLoader");
+        loaderThread.setDaemon(true);
+        loaderThread.start();
+    }
+
+    /**
+     * Extracts detailed error information from an exception.
+     */
+    private String getDetailedErrorInfo(Throwable e) {
+        if (e.getCause() != null) {
+            return e.getCause().getClass().getSimpleName() + ": " + 
+                   e.getCause().getMessage() + "\n\n" + 
+                   getStackTraceAsString(e.getCause());
+        }
+        return getStackTraceAsString(e);
+    }
+
+    /**
+     * Converts exception stack trace to string for display.
+     */
+    private String getStackTraceAsString(Throwable e) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(e.getClass().getName()).append(": ").append(e.getMessage()).append("\n");
+        for (StackTraceElement element : e.getStackTrace()) {
+            sb.append("  at ").append(element.toString()).append("\n");
+        }
+        return sb.toString();
     }
 
     /**
@@ -69,7 +220,7 @@ public class App extends Application {
      */
     public void showViewSelector() {
         ViewSelectorView selectorView = new ViewSelectorView(this);
-        primaryStage.setScene(new Scene(selectorView.getRoot(), 1400, 800));
+        primaryStage.setScene(new Scene(selectorView.getRoot(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
     }
 
     /**
@@ -77,24 +228,30 @@ public class App extends Application {
      * Called from the ViewSelectorView when a user picks a view.
      */
     public void navigateToView(String viewName) {
-        switch (viewName) {
-            case "timeline" -> {
-                TimelineView timelineView = new TimelineView(bridge);
-                primaryStage.setScene(new Scene(timelineView.getRoot(), 1400, 800));
+        try {
+            switch (viewName) {
+                case "timeline" -> {
+                    TimelineView timelineView = new TimelineView(bridge);
+                    primaryStage.setScene(new Scene(timelineView.getRoot(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
+                }
+                case "timeline-fast" -> {
+                    FastTimelineView timelineFastView = new FastTimelineView(bridge);
+                    primaryStage.setScene(new Scene(timelineFastView.getRoot(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
+                }
+                case "explorer" -> {
+                    EventExplorerView explorerView = new EventExplorerView(bridge);
+                    primaryStage.setScene(new Scene(explorerView.getRoot(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
+                }
+                case "query" -> {
+                    QueryView queryView = new QueryView(bridge);
+                    primaryStage.setScene(new Scene(queryView.getRoot(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
+                }
+                default -> LOG.warning("Unknown view: " + viewName);
             }
-            case "timeline-fast" -> {
-                FastTimelineView timelineFastView = new FastTimelineView(bridge);
-                primaryStage.setScene(new Scene(timelineFastView.getRoot(), 1400, 800));
-            }
-            case "explorer" -> {
-                EventExplorerView explorerView = new EventExplorerView(bridge);
-                primaryStage.setScene(new Scene(explorerView.getRoot(), 1400, 800));
-            }
-            case "query" -> {
-                QueryView queryView = new QueryView(bridge);
-                primaryStage.setScene(new Scene(queryView.getRoot(), 1400, 800));
-            }
-            default -> System.out.println("Unknown view: " + viewName);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Failed to open view: " + viewName, e);
+            ErrorDialogUtil.showError("View Error", 
+                "Failed to open view: " + viewName, e.getMessage());
         }
     }
 
@@ -103,7 +260,13 @@ public class App extends Application {
      * Called from JavaBridge (via JS bridge) on the FX Application Thread.
      */
     public void openGraphView(String individualUri) {
-        new GraphView(bridge, individualUri);
+        try {
+            new GraphView(bridge, individualUri);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Failed to open graph view", e);
+            ErrorDialogUtil.showError("Graph View Error", 
+                "Failed to open graph view: " + e.getMessage());
+        }
     }
 
     public static void main(String[] args) {

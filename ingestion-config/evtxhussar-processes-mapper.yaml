@@ -16,34 +16,13 @@ genericMappings:
           type: dataProperty
           owlProperty: hasHostname
 
-  addProcessInfo:
-    - type: linkedIndividual
-      owlClass: Process
-      linkProperty: hasProcess
-      identifier:
-        fields:
-          - "Computer"
-          - "ProcessId"
-          - "ProcessName"
-      dataProperties:
-        - sourceField: "ProcessId"
-          type: dataProperty
-          owlProperty: hasID
-        - sourceField: "ProcessName"
-          type: dataProperty
-          owlProperty: hasName
-        - sourceField: "CommandLine"
-          type: dataProperty
-          owlProperty: hasContent
-
   addParentProcessInfo:
     - type: linkedIndividual
       owlClass: Process
       linkProperty: hasParentProcess
       identifier:
         fields:
-          - "Computer"
-          - "ParentProcessId"
+          - "ParentProcessName"
       dataProperties:
         - sourceField: "ParentProcessId"
           type: dataProperty
@@ -58,14 +37,10 @@ mappers:
     owlClass: Process
     identifier:
       fields:
-        - "Computer"
-        - "EventTime"
-        - "ProcessId"
-      separator: "_"
+        - "ProcessName"
     generics:
       - addTimestamp
       - addComputer
-      - addProcessInfo
       - addParentProcessInfo
     fieldMappings:
       - sourceField: "EID"
