@@ -135,7 +135,7 @@ public class App extends Application {
         ProgressIndicator progress = new ProgressIndicator();
         progress.setPrefSize(100, 100);
         
-        Label statusLabel = new Label("Loading ontology...");
+        Label statusLabel = new Label("Loading knowledge graph...");
         statusLabel.setStyle("-fx-font-size: 14;");
         
         VBox progressPane = new VBox(20);
@@ -151,7 +151,7 @@ public class App extends Application {
         Task<KGService> loadTask = new Task<KGService>() {
             @Override
             protected KGService call() throws Exception {
-                LOG.info("Loading ontology from: " + ttlPath);
+                LOG.info("Loading knowledge graph from: " + ttlPath);
                 return new KGService(ttlPath);
             }
         };
@@ -173,9 +173,9 @@ public class App extends Application {
 
         loadTask.setOnFailed(event -> {
             Throwable ex = loadTask.getException();
-            LOG.log(Level.SEVERE, "Failed to load ontology", ex);
+            LOG.log(Level.SEVERE, "Failed to load knowledge graph", ex);
             
-            String title = "Failed to Load Ontology";
+            String title = "Failed to Load Knowledge Graph";
             String message = "The Turtle file could not be parsed.";
             String details = null;
             

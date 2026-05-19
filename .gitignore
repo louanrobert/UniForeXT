@@ -198,7 +198,7 @@ dependency-reduced-pom.xml
 README.html
 *.iml
 .idea
-debug.ttl
+out.ttl
 ontology.rdf
 out
 .metals
