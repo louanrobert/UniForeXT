@@ -20,6 +20,6 @@ public final class App {
         Loader loader = new Loader();
         KnowledgeGraphFacade knowledgeGraph = loader.asKnowledgeGraphFacade();
         IngestionPipeline.run(knowledgeGraph);
-        RDFDataMgr.write(new FileOutputStream("debug.ttl"), knowledgeGraph.getDataModel(), RDFFormat.TURTLE_PRETTY);
+        RDFDataMgr.write(new FileOutputStream("out.ttl"), knowledgeGraph.getDataModel(), RDFFormat.TURTLE_PRETTY);
     }
 }

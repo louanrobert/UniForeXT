@@ -5,6 +5,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * High-performance timeline view optimized for very large event sets.
@@ -12,12 +14,12 @@ import netscape.javascript.JSObject;
  */
 public class FastTimelineView {
 
+    private static final Logger LOG = Logger.getLogger(FastTimelineView.class.getName());
     private final StackPane root;
     private final WebView webView;
     private final WebEngine webEngine;
 
     public FastTimelineView(JavaBridge bridge) {
-
         webView = new WebView();
         webView.setContextMenuEnabled(false);
 
@@ -36,15 +38,40 @@ public class FastTimelineView {
 
         webEngine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
             if (newState == Worker.State.SUCCEEDED) {
-                // Suppressed because JSObject is available in JavaFX runtime.
-                @SuppressWarnings("removal")
-                JSObject window = (JSObject) webEngine.executeScript("window");
-                window.setMember("javaBridge", bridge);
-                webEngine.executeScript("initTimelineFast()");
+                try {
+                    onPageLoaded(bridge);
+                } catch (Exception e) {
+                    LOG.log(Level.SEVERE, "Error initializing fast timeline view", e);
+                }
+            } else if (newState == Worker.State.FAILED) {
+                LOG.log(Level.SEVERE, "Failed to load timeline-fast.html");
             }
         });
 
-        webEngine.loadContent(HtmlLoader.load("timeline-fast.html"));
+        try {
+            String htmlContent = HtmlLoader.load("timeline-fast.html");
+            webEngine.loadContent(htmlContent);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Failed to load fast timeline HTML", e);
+            webEngine.loadContent("<html><body><h1>Error loading view</h1><p>" + 
+                                e.getMessage() + "</p></body></html>");
+        }
+    }
+
+    /**
+     * Attaches the JavaScript bridge and initializes the fast timeline.
+     */
+    @SuppressWarnings("removal")
+    private void onPageLoaded(JavaBridge bridge) {
+        try {
+            JSObject window = (JSObject) webEngine.executeScript("window");
+            if (window != null) {
+                window.setMember("javaBridge", bridge);
+                webEngine.executeScript("initTimelineFast()");
+            }
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error attaching bridge to fast timeline view", e);
+        }
     }
 
     public StackPane getRoot() {

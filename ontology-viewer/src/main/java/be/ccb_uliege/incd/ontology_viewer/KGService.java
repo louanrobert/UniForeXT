@@ -83,9 +83,23 @@ public class KGService {
     private static final DateTimeFormatter DD_MM_YYYY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter ISO_OFFSET = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
+    /**
+     * Initializes the knowledge graph service with a Turtle file.
+     * Validates file syntax and provides meaningful error messages for malformed files.
+     *
+     * @param ttlFilePath the path to the Turtle (.ttl) file
+     * @throws IllegalArgumentException if the file cannot be read or parsed
+     */
     public KGService(String ttlFilePath) {
         model = ModelFactory.createDefaultModel();
-        model.read(ttlFilePath);
+        try {
+            model.read(ttlFilePath);
+            LOG.info("Successfully loaded ontology from: " + ttlFilePath);
+        } catch (Exception e) {
+            String msg = "Failed to parse Turtle file: " + ttlFilePath;
+            LOG.log(Level.SEVERE, msg, e);
+            throw new IllegalArgumentException(msg + "\n\nDetails: " + e.getMessage(), e);
+        }
         // Pre-resolve frequently-used property references
         propHasName = model.getProperty(
                 "http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasName");
