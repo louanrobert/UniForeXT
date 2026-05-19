@@ -735,12 +735,6 @@
         /* Row bands + category labels */
         drawRows(w, h, layout.rows, vpTop, vpBottom);
 
-        /* Clip event nodes to data area (right of the label column) */
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(GROUP_LABEL_W, AXIS_H, w - GROUP_LABEL_W - RIGHT_PAD, h - AXIS_H);
-        ctx.clip();
-
         hitBoxes = [];
 
         for (var r = 0; r < layout.rows.length; r++) {
@@ -752,8 +746,6 @@
                 for (var c = 0; c < row.clusters.length; c++) drawClusterNode(row.clusters[c]);
             }
         }
-
-        ctx.restore();
 
         /* Vertical separator between label column and data area */
         ctx.strokeStyle = 'rgba(255,255,255,0.07)';
@@ -1099,17 +1091,10 @@
             ctx.fill();
             ctx.globalAlpha = 1;
 
-            /* Label text — clip to label column width */
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(0, row.top, GROUP_LABEL_W - 6, row.height);
-            ctx.clip();
-
             ctx.fillStyle    = '#9ab8d0';
             ctx.font         = '11px Inter, sans-serif';
             ctx.textBaseline = 'middle';
-            ctx.fillText(labelText, labelX + 12, labelY);
-            ctx.restore();
+            ctx.fillText(fitText(labelText, GROUP_LABEL_W - 22), labelX + 12, labelY);
         }
     }
 
