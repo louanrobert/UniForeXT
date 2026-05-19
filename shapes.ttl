@@ -157,7 +157,6 @@ ufr:ThreatShape
   ] ;
   sh:property [
     sh:path ufr:hasProcess ;
-    sh:maxCount 1 ;
     sh:class ufr:Process ;
   ] ;
   sh:property [

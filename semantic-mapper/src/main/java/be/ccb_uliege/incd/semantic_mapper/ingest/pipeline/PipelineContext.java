@@ -17,7 +17,11 @@ public class PipelineContext {
     private final KnowledgeGraphFacade knowledgeGraph;
     private final SourceIngester sourceIngester;
     private final String mapperConfigPath;
-    private final String SHACL_SHAPES_PATH = "../shapes.ttl"; // TODO externalize to config
+    private static final String SHACL_SHAPES_PATH_ENV = "SHACL_SHAPES_PATH";
+    private static final String DEFAULT_SHACL_SHAPES_PATH = "../shapes.ttl";
+    private static final String SHACL_SHAPES_PATH = System.getenv(SHACL_SHAPES_PATH_ENV) != null
+            ? System.getenv(SHACL_SHAPES_PATH_ENV)
+            : DEFAULT_SHACL_SHAPES_PATH;
 
     private YamlMapperRegistry mapperRegistry;
     private final List<IngestionTask> ingestionTasks = new ArrayList<>();
