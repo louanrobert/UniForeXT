@@ -1,4 +1,6 @@
-package be.ccb_uliege.incd.ontology_viewer;
+package be.ccb_uliege.incd.ontology_viewer.views;
+
+import be.ccb_uliege.incd.ontology_viewer.JavaBridge;
 
 /**
  * Manages the WebView that renders the Vis.js Timeline.

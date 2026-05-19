@@ -1,4 +1,4 @@
-package be.ccb_uliege.incd.ontology_viewer;
+package be.ccb_uliege.incd.ontology_viewer.views;
 
 import javafx.concurrent.Worker;
 import javafx.scene.layout.StackPane;
@@ -7,6 +7,9 @@ import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import be.ccb_uliege.incd.ontology_viewer.HtmlLoader;
+import be.ccb_uliege.incd.ontology_viewer.JavaBridge;
 
 /**
  * High-performance timeline view optimized for very large event sets.

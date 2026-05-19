@@ -1,4 +1,4 @@
-package be.ccb_uliege.incd.ontology_viewer;
+package be.ccb_uliege.incd.ontology_viewer.views;
 
 import javafx.concurrent.Worker;
 import javafx.scene.layout.BorderPane;
@@ -6,6 +6,9 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 import java.util.logging.Logger;
+
+import be.ccb_uliege.incd.ontology_viewer.HtmlLoader;
+
 import java.util.logging.Level;
 
 /**

@@ -29,6 +29,9 @@ public class IngestionPipeline {
         this.stages = List.copyOf(stages);
     }
 
+    /**
+     * Executes the ingestion pipeline by iterating through each stage and executing it with the provided PipelineContext. If any stage throws an exception, it is caught and logged as a warning, but the pipeline continues to execute the remaining stages. This allows for a more resilient ingestion process where one failing stage does not necessarily halt the entire pipeline. However, it is important to note that if a critical stage fails (e.g., loading mappers), subsequent stages may not function correctly, so careful consideration should be given to which stages are allowed to fail without stopping the pipeline.
+     */
     public void run(PipelineContext context) throws Exception {
         for (IngestionStage stage : stages) {
             try {
@@ -39,6 +42,9 @@ public class IngestionPipeline {
         }
     }
 
+    /**
+     * Static method to run the entire ingestion pipeline. This method initializes the pipeline with the necessary stages, creates a PipelineContext with the provided KnowledgeGraphFacade and a MultiFormatIngester, and then executes the pipeline. If any stage throws an exception, it is logged and re-thrown to indicate that the ingestion process failed.
+     */
     public static void run(KnowledgeGraphFacade knowledgeGraph) throws Exception {
         IngestionPipeline pipeline = new IngestionPipeline(List.of(
                 new LoadMappersStage(),

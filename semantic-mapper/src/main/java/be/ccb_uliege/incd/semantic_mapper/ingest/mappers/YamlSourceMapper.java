@@ -1,9 +1,5 @@
 package be.ccb_uliege.incd.semantic_mapper.ingest.mappers;
 
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -105,12 +101,18 @@ public class YamlSourceMapper implements SourceMapper {
         }
     }
 
+    /**
+     * Builds the identifier for the individual based on the fields specified in the configuration. The identifier is constructed by concatenating the values of the specified fields, separated by the configured separator. If any of the required fields are missing from the SourceRecord, an exception will be thrown.
+     */
     private String buildIdentifier(SourceRecord r) {
         return config.getIdentifier().getFields().stream()
                 .map(r::get)
                 .collect(Collectors.joining(config.getIdentifier().getSeparator()));
     }
 
+    /**
+     * Applies static properties to the individual as defined in the YAML configuration. Static properties are those that have a fixed value specified in the configuration, rather than being derived from the input data. This method iterates over the list of static properties and adds them to the individual in the knowledge graph using the appropriate data type and normalization.
+     */
     private void applyStaticProperties(Resource individual) {
         if (config.getStaticProperties() == null) {
             return;
@@ -120,6 +122,9 @@ public class YamlSourceMapper implements SourceMapper {
         }
     }
 
+    /**
+     * Applies a single static property to the individual. This involves resolving the data type, normalizing the value if necessary (e.g., for date/time values), and adding the property to the knowledge graph model.
+     */
     private void applyStaticProperty(Resource individual, StaticPropertyConfig sp) {
         RDFDatatype dataType = resolveDatatype(sp.getDataType());
         String normalizedValue = normalizeLiteralValue(sp.getValue(), dataType);
@@ -127,6 +132,9 @@ public class YamlSourceMapper implements SourceMapper {
                 knowledgeGraph.createLiteral(normalizedValue, dataType));
     }
 
+    /**
+     * Applies generic mappings to the individual based on the configuration. This method iterates over the list of generic mappings and dispatches each one to the appropriate handler.
+     */
     private void applyGenerics(SourceRecord r, Resource individual) {
         if (config.getGenerics() == null) {
             return;
@@ -136,6 +144,9 @@ public class YamlSourceMapper implements SourceMapper {
         }
     }
 
+    /**
+     * Applies field mappings to the individual based on the configuration. This method iterates over the list of field mappings and applies each one, which may involve setting data properties or creating linked individuals depending on the mapping type.
+     */
     private void applyFieldMappings(SourceRecord r, Resource individual) {
         if (config.getFieldMappings() == null) {
             return;
@@ -145,6 +156,9 @@ public class YamlSourceMapper implements SourceMapper {
         }
     }
 
+    /**
+     * Dispatches a generic mapping by name. This method looks up the list of field mappings associated with the given generic name and applies each of those field mappings to the individual. If the generic name is not found in the configuration, an exception is thrown.
+     */
     private void dispatchGeneric(String name, SourceRecord r, Resource individual) {
         List<FieldMappingConfig> mappings = genericMappings.get(name);
         if (mappings == null) {
@@ -155,6 +169,9 @@ public class YamlSourceMapper implements SourceMapper {
         }
     }
 
+    /**
+     * Applies a field mapping to the individual. The behavior depends on the type of the mapping, which can be either "dataProperty" for setting a data property or "linkedIndividual" for creating a linked individual. This method dispatches to the appropriate handler based on the mapping type.
+     */
     private void applyFieldMapping(FieldMappingConfig fm, SourceRecord r, Resource parent) {
         switch (fm.getType()) {
             case "dataProperty" -> applyDataProperty(fm, r, parent);
@@ -163,6 +180,9 @@ public class YamlSourceMapper implements SourceMapper {
         }
     }
 
+    /**
+     * Applies a data property mapping to the individual.
+     */
     private void applyDataProperty(FieldMappingConfig fm, SourceRecord r, Resource parent) {
         if (!r.has(fm.getSourceField())) {
             return;
@@ -182,6 +202,9 @@ public class YamlSourceMapper implements SourceMapper {
         }
     }
 
+    /**
+     * Resolves the RDF datatype based on the configured type.
+     */
     private RDFDatatype resolveDatatype(String configuredType) {
         if (configuredType == null || configuredType.isBlank()) {
             return XSDDatatype.XSDstring;
@@ -199,6 +222,9 @@ public class YamlSourceMapper implements SourceMapper {
         return datatype;
     }
 
+    /**
+     * Normalizes a literal value based on its datatype. For certain datatypes, such as xsd:dateTimeStamp, this involves parsing the value and reformatting it to a standard representation. For other datatypes, the value is returned as-is.
+     */
     private String normalizeLiteralValue(String value, RDFDatatype datatype) {
         if (value == null || datatype == null) {
             return value;
@@ -209,6 +235,9 @@ public class YamlSourceMapper implements SourceMapper {
         return value;
     }
 
+    /**
+     * Normalizes a date/time value to the xsd:dateTimeStamp format. This method attempts to parse the input value using several common date/time formats and converts it to the standard ISO_OFFSET_DATE_TIME format. If the value cannot be parsed as a valid date/time, an exception is thrown.
+     */
     private String normalizeDateTimeStamp(String rawValue) {
         String value = rawValue.trim();
         if (value.isEmpty()) {
@@ -277,6 +306,9 @@ public class YamlSourceMapper implements SourceMapper {
         }
     }
 
+    /**
+     * Applies a linked individual mapping to the parent individual. This involves creating a new individual based on the linked individual's class and identifier configuration, applying any data properties and nested links to the linked individual, and then connecting it to the parent individual using the specified object property.
+     */
     private void applyLinkedIndividual(FieldMappingConfig fm, SourceRecord r, Resource parent) {
         if (!hasAllIdentifierFields(fm, r)) {
             return;
@@ -291,10 +323,16 @@ public class YamlSourceMapper implements SourceMapper {
         knowledgeGraph.addUniqueObjectProperty(parent, fm.getLinkProperty(), linked);
     }
 
+    /**
+     * Checks if the SourceRecord has all the fields required to construct the identifier for a linked individual. This is used to determine whether the linked individual can be created based on the available data in the SourceRecord.
+     */
     private boolean hasAllIdentifierFields(FieldMappingConfig fm, SourceRecord r) {
         return fm.getIdentifier().getFields().stream().allMatch(r::has);
     }
 
+    /**
+     * Resolves the identifier for a linked individual based on the configuration. This method supports both hashed identifiers (where the value of a single field is hashed to create the identifier) and combined identifiers (where the values of multiple fields are concatenated with a separator). The appropriate method is called based on the configuration of the identifier in the YAML file.
+     */
     private String resolveLinkedIndividualIdentifier(FieldMappingConfig fm, SourceRecord r) {
         if (fm.getIdentifier().isUseHash()) {
             return resolveHashedIdentifier(fm, r);
@@ -305,6 +343,9 @@ public class YamlSourceMapper implements SourceMapper {
         return resolveCombinedIdentifier(fm, r);
     }
 
+    /**
+     * Resolves a hashed identifier for a linked individual. This method assumes that hashing can only be used with a single identifier field, and it retrieves the hashed value of that field from the SourceRecord. If the configuration is invalid (e.g., if multiple fields are specified for hashing), an exception is thrown.
+     */
     private String resolveHashedIdentifier(FieldMappingConfig fm, SourceRecord r) {
         if (fm.getIdentifier().getFields().size() > 1) {
             throw new IllegalArgumentException("Hashing can only be used with a single identifier field");
@@ -312,12 +353,18 @@ public class YamlSourceMapper implements SourceMapper {
         return r.getHashed(fm.getIdentifier().getFields().get(0));
     }
 
+    /**
+     * Resolves a combined identifier for a linked individual. This method concatenates the values of multiple fields with a specified separator.
+     */
     private String resolveCombinedIdentifier(FieldMappingConfig fm, SourceRecord r) {
         return fm.getIdentifier().getFields().stream()
                 .map(r::get)
                 .collect(Collectors.joining(fm.getIdentifier().getSeparator()));
     }
 
+    /**
+     * Applies data properties to a linked individual based on the field mappings defined in the configuration. This method iterates over the list of data property mappings for the linked individual and applies each one using the same logic as for top-level individuals.
+     */
     private void applyDataPropertiesToLinked(FieldMappingConfig fm, SourceRecord r, Resource linked) {
         if (fm.getDataProperties() != null) {
             for (FieldMappingConfig dp : fm.getDataProperties()) {
@@ -326,6 +373,9 @@ public class YamlSourceMapper implements SourceMapper {
         }
     }
 
+    /**
+     * Applies nested links to a linked individual based on the field mappings defined in the configuration. This method iterates over the list of nested link mappings for the linked individual and applies each one, which may involve creating additional linked individuals and connecting them to the current linked individual.
+     */
     private void applyNestedLinksToLinked(FieldMappingConfig fm, SourceRecord r, Resource linked) {
         if (fm.getNestedLinks() != null) {
             for (FieldMappingConfig nl : fm.getNestedLinks()) {

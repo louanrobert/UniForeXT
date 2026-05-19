@@ -1,4 +1,4 @@
-package be.ccb_uliege.incd.ontology_viewer;
+package be.ccb_uliege.incd.ontology_viewer.views;
 
 import javafx.concurrent.Worker;
 import javafx.scene.Scene;
@@ -8,6 +8,10 @@ import javafx.stage.Stage;
 import netscape.javascript.JSObject;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import be.ccb_uliege.incd.ontology_viewer.HtmlLoader;
+import be.ccb_uliege.incd.ontology_viewer.JavaBridge;
+import be.ccb_uliege.incd.ontology_viewer.KGService;
 
 /**
  * Manages a new Stage with a WebView that renders a Vis.js Network graph.

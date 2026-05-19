@@ -17,6 +17,13 @@ import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import be.ccb_uliege.incd.ontology_viewer.views.EventExplorerView;
+import be.ccb_uliege.incd.ontology_viewer.views.FastTimelineView;
+import be.ccb_uliege.incd.ontology_viewer.views.GraphView;
+import be.ccb_uliege.incd.ontology_viewer.views.QueryView;
+import be.ccb_uliege.incd.ontology_viewer.views.TimelineView;
+import be.ccb_uliege.incd.ontology_viewer.views.ViewSelectorView;
+
 /**
  * Main JavaFX application entry point.
  * Opens a file chooser to select a Turtle (.ttl) file,
