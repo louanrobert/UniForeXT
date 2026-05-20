@@ -22,6 +22,7 @@ import be.ccb_uliege.incd.ontology_viewer.views.FastTimelineView;
 import be.ccb_uliege.incd.ontology_viewer.views.GraphView;
 import be.ccb_uliege.incd.ontology_viewer.views.QueryView;
 import be.ccb_uliege.incd.ontology_viewer.views.TimelineView;
+import be.ccb_uliege.incd.ontology_viewer.views.UndatedEventsView;
 import be.ccb_uliege.incd.ontology_viewer.views.ViewSelectorView;
 
 /**
@@ -248,6 +249,10 @@ public class App extends Application {
                 case "explorer" -> {
                     EventExplorerView explorerView = new EventExplorerView(bridge);
                     primaryStage.setScene(new Scene(explorerView.getRoot(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
+                }
+                case "undated" -> {
+                    UndatedEventsView undatedView = new UndatedEventsView(bridge);
+                    primaryStage.setScene(new Scene(undatedView.getRoot(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
                 }
                 case "query" -> {
                     QueryView queryView = new QueryView(bridge);

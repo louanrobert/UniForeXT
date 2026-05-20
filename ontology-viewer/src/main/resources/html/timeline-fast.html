@@ -6,246 +6,24 @@
     <title>Historical Timeline</title>
     <link rel="preconnect" href="https://rsms.me/" />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
-    <style>
-        :root {
-            color-scheme: dark;
-
-            --bg:               #0b0f14;
-            --panel:            #111820;
-            --panel-elevated:   #162030;
-            --panel-glass:      rgba(17, 24, 32, 0.88);
-
-            --text:             #dce8f4;
-            --text-dim:         #7a96b2;
-            --text-hint:        #4a6278;
-
-            --border:           rgba(255,255,255,0.07);
-            --border-strong:    rgba(255,255,255,0.13);
-
-            --accent:           #4ea1ff;
-            --accent-soft:      rgba(78,161,255,0.15);
-            --accent-glow:      rgba(78,161,255,0.08);
-
-            --row-even:         rgba(255,255,255,0.025);
-            --row-odd:          rgba(255,255,255,0.012);
-
-            --now-line:         rgba(72,210,130,0.85);
-
-            --shadow-sm:        0 2px 8px rgba(0,0,0,0.28);
-            --shadow:           0 4px 18px rgba(0,0,0,0.38);
-
-            --radius:           10px;
-            --radius-sm:        6px;
-        }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        html, body {
-            height: 100%;
-            font-family: 'Inter', system-ui, sans-serif;
-            font-size: 13px;
-            background: var(--bg);
-            color: var(--text);
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* ── App shell ──────────────────────────────── */
-        .app {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        /* ── Topbar ─────────────────────────────────── */
-        .topbar {
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            background: var(--panel-glass);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-            user-select: none;
-        }
-
-        .topbar-title {
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.03em;
-            color: var(--text);
-            margin-left: 6px;
-            flex-shrink: 0;
-        }
-
-        .topbar-sep {
-            width: 1px;
-            height: 16px;
-            background: var(--border-strong);
-            margin: 0 4px;
-            flex-shrink: 0;
-        }
-
-        .topbar-meta {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            font-size: 11px;
-            color: var(--text-hint);
-            flex-shrink: 0;
-        }
-
-        .topbar-meta span { white-space: nowrap; }
-
-        /* ── Buttons ────────────────────────────────── */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 10px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-strong);
-            background: var(--panel-elevated);
-            color: var(--text);
-            font-family: inherit;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: background 0.12s, border-color 0.12s, transform 0.1s;
-            flex-shrink: 0;
-        }
-
-        .btn:hover {
-            background: #1d2d41;
-            border-color: rgba(255,255,255,0.2);
-        }
-
-        .btn:active {
-            transform: scale(0.97);
-            background: #111820;
-        }
-
-        .btn svg { flex-shrink: 0; }
-
-        /* ── Canvas area ────────────────────────────── */
-        .canvas-wrap {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            position: relative;
-            background: var(--bg);
-        }
-
-        .canvas-wrap::-webkit-scrollbar            { width: 6px; }
-        .canvas-wrap::-webkit-scrollbar-track      { background: transparent; }
-        .canvas-wrap::-webkit-scrollbar-thumb      { background: rgba(255,255,255,0.1); border-radius: 3px; }
-        .canvas-wrap::-webkit-scrollbar-thumb:hover{ background: rgba(255,255,255,0.2); }
-
-        #timeline-canvas {
-            display: block;
-            width: 100%;
-            cursor: grab;
-        }
-
-        #timeline-canvas.dragging { cursor: grabbing; }
-
-        /* ── Minimap ────────────────────────────────── */
-        .minimap-shell {
-            flex-shrink: 0;
-            position: relative;
-            height: 44px;
-            background: var(--panel);
-            border-top: 1px solid var(--border);
-            user-select: none;
-        }
-
-        .minimap-label {
-            position: absolute;
-            left: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: var(--text-hint);
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        #minimap-canvas {
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-
-        #minimap-focus {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            border: 1.5px solid var(--accent);
-            background: var(--accent-soft);
-            pointer-events: none;
-            transition: left 0.06s, width 0.06s;
-        }
-
-        /* ── Tooltip ────────────────────────────────── */
-        #tooltip {
-            position: fixed;
-            pointer-events: none;
-            z-index: 100;
-            display: none;
-
-            background: rgba(10, 16, 24, 0.96);
-            border: 1px solid var(--border-strong);
-            border-radius: var(--radius-sm);
-            padding: 8px 11px;
-            max-width: 300px;
-
-            font-size: 12px;
-            line-height: 1.55;
-            color: var(--text);
-            box-shadow: var(--shadow);
-        }
-
-        #tooltip strong {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 3px;
-        }
-
-        #tooltip .tt-row {
-            color: var(--text-dim);
-            font-size: 11px;
-        }
-
-        #tooltip .tt-row b {
-            color: var(--text);
-            font-weight: 500;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' };</script>
 </head>
-<body>
-<div class="app">
+<body class="antialiased bg-slate-950 text-slate-100 font-inter h-screen flex flex-col overflow-hidden">
+<div class="app flex-1 flex flex-col min-h-0">
 
     <!-- Topbar -->
-    <div class="topbar">
-        <button class="btn" onclick="javaBridge.navigateBack()">
+    <div class="topbar flex items-center gap-2.5 px-3 py-2 bg-slate-900/70 backdrop-blur border-b border-white/10">
+        <button class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-slate-800 border border-white/10 text-sm font-medium text-slate-100" onclick="javaBridge.navigateBack()">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M7.5 2L3.5 6L7.5 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             Back
         </button>
 
-        <div class="topbar-sep"></div>
+        <div class="topbar-sep w-px h-4 bg-white/10 mx-1"></div>
 
-        <button class="btn" onclick="zoomBy(0.75)" title="Zoom in (scroll wheel also works)">
+        <button class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-slate-800 border border-white/10 text-sm font-medium text-slate-100" onclick="zoomBy(0.75)" title="Zoom in (scroll wheel also works)">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <circle cx="5" cy="5" r="3.5" stroke="currentColor" stroke-width="1.3"/>
                 <path d="M5 3.5V6.5M3.5 5H6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
@@ -254,7 +32,7 @@
             Zoom in
         </button>
 
-        <button class="btn" onclick="zoomBy(1.35)" title="Zoom out">
+        <button class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-slate-800 border border-white/10 text-sm font-medium text-slate-100" onclick="zoomBy(1.35)" title="Zoom out">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <circle cx="5" cy="5" r="3.5" stroke="currentColor" stroke-width="1.3"/>
                 <path d="M3.5 5H6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
@@ -263,7 +41,7 @@
             Zoom out
         </button>
 
-        <button class="btn" onclick="resetView()">
+        <button class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-slate-800 border border-white/10 text-sm font-medium text-slate-100" onclick="resetView()">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M2 6a4 4 0 1 1 1 2.7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
                 <path d="M2 4v2h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
@@ -271,37 +49,37 @@
             Reset
         </button>
 
-        <button class="btn" id="clear-filters-btn" onclick="clearAllFilters()" style="display: none;">
+        <button class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-slate-800 border border-white/10 text-sm font-medium text-slate-100" id="clear-filters-btn" onclick="clearAllFilters()" style="display: none;">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M2 3h8M3 3v6.5a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V3M5 5v4M7 5v4M4 3V2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             Clear Filters
         </button>
 
-        <div class="topbar-sep"></div>
-        <span class="topbar-title">Historical Timeline</span>
+        <div class="topbar-sep w-px h-4 bg-white/10 mx-1"></div>
+        <span class="topbar-title text-sm font-semibold ml-1">Historical Timeline</span>
 
-        <div class="topbar-meta">
+        <div class="topbar-meta ml-auto flex items-center gap-3 text-xs text-slate-400">
             <span id="stats">Loading…</span>
             <span id="view-meta"></span>
         </div>
     </div>
 
     <!-- Main canvas -->
-    <div class="canvas-wrap" id="canvas-wrap">
+    <div class="canvas-wrap flex-1 overflow-y-auto overflow-x-hidden relative bg-slate-950 pb-12" id="canvas-wrap">
         <canvas id="timeline-canvas"></canvas>
     </div>
 
     <!-- Minimap -->
-    <div class="minimap-shell" id="minimap-shell">
-        <span class="minimap-label">Overview</span>
-        <canvas id="minimap-canvas"></canvas>
-        <div id="minimap-focus"></div>
+    <div class="minimap-shell fixed left-0 right-0 bottom-0 h-11 bg-slate-900/80 border-t border-white/10 z-50 pointer-events-auto" id="minimap-shell">
+        <span class="minimap-label absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold uppercase text-slate-400 pointer-events-none z-10">Overview</span>
+        <canvas id="minimap-canvas" class="w-full h-full"></canvas>
+        <div id="minimap-focus" class="absolute top-0 bottom-0 pointer-events-none" style="border:1.5px solid rgba(78,161,255,1); background: rgba(78,161,255,0.15);"></div>
     </div>
 
 </div>
 
-<div id="tooltip"></div>
+<div id="tooltip" class="fixed z-50 hidden pointer-events-none rounded-md p-2 max-w-xs text-sm text-slate-100 bg-slate-900/80 border border-white/10 shadow-lg"></div>
 
 <script>
     /* ── State ─────────────────────────────────────────────────────── */
@@ -1274,40 +1052,20 @@
         /* Create search box in topbar */
         var stats = document.getElementById('stats');
         var searchContainer = document.createElement('div');
-        searchContainer.style.cssText = `
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-left: auto;
-            margin-right: 12px;
-        `;
+        searchContainer.className = 'flex items-center gap-2 ml-auto mr-3';
         
         var searchBox = document.createElement('input');
         searchBox.id = 'search-box';
         searchBox.type = 'text';
         searchBox.placeholder = 'Search…';
-        searchBox.style.cssText = `
-            padding: 4px 8px;
-            border: 1px solid var(--border-strong);
-            border-radius: 4px;
-            background: var(--panel);
-            color: var(--text);
-            font-family: inherit;
-            font-size: 11px;
-            width: 120px;
-            outline: none;
-        `;
+        searchBox.className = 'px-2 py-1 text-sm bg-slate-900/70 border border-white/10 rounded text-slate-100 w-32 outline-none';
         searchBox.oninput = function() {
             setSearchQuery(this.value);
         };
         
         var searchStatus = document.createElement('span');
         searchStatus.id = 'search-status';
-        searchStatus.style.cssText = `
-            font-size: 10px;
-            color: var(--text-hint);
-            white-space: nowrap;
-        `;
+        searchStatus.className = 'text-xs text-slate-400 whitespace-nowrap';
         
         searchContainer.appendChild(searchBox);
         searchContainer.appendChild(searchStatus);
@@ -1317,26 +1075,7 @@
         /* Create filter list panel */
         var filterListPanel = document.createElement('div');
         filterListPanel.id = 'filter-list-panel';
-        filterListPanel.style.cssText = `
-            position: fixed;
-            top: 48px;
-            left: 0;
-            right: 0;
-            max-height: 120px;
-            background: var(--panel);
-            border-bottom: 1px solid var(--border);
-            padding: 6px 14px 8px 14px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            z-index: 45;
-            font-size: 11px;
-            color: var(--text);
-            display: none;
-            flex-direction: row;
-            flex-wrap: wrap;
-            gap: 6px;
-            align-content: flex-start;
-        `;
+        filterListPanel.className = 'fixed top-12 left-0 right-0 max-h-32 bg-slate-900/80 border-b border-white/10 p-2 overflow-y-auto z-40 text-sm text-slate-100 hidden flex-row flex-wrap gap-2';
         document.body.appendChild(filterListPanel);
     }
 
@@ -1450,43 +1189,18 @@
 
     function addFilterTag(container, text, onRemove) {
         var tag = document.createElement('div');
-        tag.style.cssText = `
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 8px;
-            background: rgba(78, 161, 255, 0.12);
-            border: 1px solid rgba(78, 161, 255, 0.25);
-            border-radius: 4px;
-            font-size: 10px;
-            color: var(--text-dim);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 200px;
-            flex-shrink: 0;
-        `;
+        tag.className = 'flex items-center gap-2 px-2 py-1 rounded border text-sm text-slate-300 bg-sky-500/10 border-sky-300/10 max-w-xs';
         
         var textSpan = document.createElement('span');
         textSpan.textContent = text;
-        textSpan.style.cssText = 'overflow: hidden; text-overflow: ellipsis; max-width: 170px;';
+        textSpan.className = 'overflow-hidden truncate max-w-[170px]';
         textSpan.title = text;
         
         var removeBtn = document.createElement('button');
         removeBtn.innerHTML = '×';
-        removeBtn.style.cssText = `
-            background: none;
-            border: none;
-            color: var(--text-hint);
-            cursor: pointer;
-            font-size: 16px;
-            padding: 0;
-            line-height: 0.8;
-            flex-shrink: 0;
-            transition: color 0.1s;
-        `;
-        removeBtn.onmouseover = function() { this.style.color = 'var(--accent)'; };
-        removeBtn.onmouseout = function() { this.style.color = 'var(--text-hint)'; };
+        removeBtn.className = 'bg-none border-0 text-slate-400 cursor-pointer text-lg leading-none p-0';
+        removeBtn.onmouseover = function() { this.style.color = '#4ea1ff'; };
+        removeBtn.onmouseout = function() { this.style.color = '#4a6278'; };
         removeBtn.onclick = function(e) {
             e.stopPropagation();
             onRemove();
@@ -1527,32 +1241,16 @@
         if (currentContextMenu) currentContextMenu.remove();
         
         var menu = document.createElement('div');
-        menu.style.cssText = `
-            position: fixed;
-            left: ${x}px;
-            top: ${y}px;
-            background: var(--panel);
-            border: 1px solid var(--border-strong);
-            border-radius: var(--radius-sm);
-            box-shadow: var(--shadow);
-            z-index: 100;
-            min-width: 160px;
-            overflow: hidden;
-        `;
+        menu.style.cssText = `position: fixed; left: ${x}px; top: ${y}px; z-index: 100; min-width: 160px; overflow: hidden; border-radius: 6px;`;
+        menu.className = 'bg-slate-900/90 border border-white/10 shadow-lg';
         
         for (var i = 0; i < items.length; i++) {
             var item = items[i];
             var btn = document.createElement('div');
             btn.textContent = item.label;
-            btn.style.cssText = `
-                padding: 6px 12px;
-                cursor: pointer;
-                border-bottom: 1px solid var(--border);
-                font-size: 11px;
-                transition: background 0.1s;
-                color: ${item.dangerous ? 'rgba(255,100,100,0.9)' : 'var(--text)'};
-            `;
-            btn.onmouseover = function() { this.style.background = 'rgba(255,255,255,0.08)'; };
+            btn.className = 'px-3 py-2 text-sm text-left w-full';
+            btn.style.color = item.dangerous ? 'rgba(255,100,100,0.9)' : '#dce8f4';
+            btn.onmouseover = function() { this.style.background = 'rgba(255,255,255,0.04)'; };
             btn.onmouseout = function() { this.style.background = 'transparent'; };
             btn.onclick = function(cb) {
                 return function() {

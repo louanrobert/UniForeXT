@@ -20,4 +20,5 @@ public class IdentifierConfig {
     private List<String> fields;
     private String separator = "_";
     private boolean useHash = false;
+    private String prefix = "";
 }

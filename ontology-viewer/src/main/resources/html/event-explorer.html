@@ -5,34 +5,7 @@
     <link rel="preconnect" href="https://rsms.me/" />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        border: 'hsl(var(--border))',
-                        input: 'hsl(var(--input))',
-                        ring: 'hsl(var(--ring))',
-                        background: 'hsl(var(--background))',
-                        foreground: 'hsl(var(--foreground))',
-                        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
-                        secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
-                        destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
-                        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
-                        accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
-                        popover: { DEFAULT: 'hsl(var(--popover))', foreground: 'hsl(var(--popover-foreground))' },
-                        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
-                    },
-                    borderRadius: {
-                        lg: 'var(--radius)',
-                        md: 'calc(var(--radius) - 2px)',
-                        sm: 'calc(var(--radius) - 4px)',
-                    },
-                },
-            },
-        }
-    </script>
+    <script>tailwind.config = { darkMode: 'class' };</script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://unpkg.com/@sgratzl/chartjs-chart-boxplot@4"></script>
@@ -40,689 +13,111 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <style>
-        :root {
-            font-family: Inter, sans-serif;
-            font-feature-settings: 'liga' 1, 'calt' 1;
-            --background: 240 10% 3.9%;
-            --foreground: 0 0% 98%;
-            --card: 240 10% 3.9%;
-            --card-foreground: 0 0% 98%;
-            --popover: 240 10% 3.9%;
-            --popover-foreground: 0 0% 98%;
-            --primary: 0 0% 98%;
-            --primary-foreground: 240 5.9% 10%;
-            --secondary: 240 3.7% 15.9%;
-            --secondary-foreground: 0 0% 98%;
-            --muted: 240 3.7% 15.9%;
-            --muted-foreground: 240 5% 64.9%;
-            --accent: 240 3.7% 15.9%;
-            --accent-foreground: 0 0% 98%;
-            --destructive: 0 62.8% 30.6%;
-            --destructive-foreground: 0 0% 98%;
-            --border: 240 3.7% 15.9%;
-            --input: 240 3.7% 15.9%;
-            --ring: 240 4.9% 83.9%;
-            --radius: 0.5rem;
-        }
-        @supports (font-variation-settings: normal) { :root { font-family: InterVariable, sans-serif; } }
-    </style>
-    <style>
-        * { user-select: none; -webkit-user-select: none; box-sizing: border-box; margin: 0; padding: 0; }
-        input, textarea, #detail-panel { user-select: text; -webkit-user-select: text; }
-        body {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            background: hsl(var(--background));
-            color: hsl(var(--foreground));
-        }
-
-        /* Header */
-        #header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 12px 20px;
-            border-bottom: 1px solid hsl(var(--border) / 0.15);
-            background: hsl(var(--card));
-            flex-shrink: 0;
-        }
-        #header h1 { font-size: 16px; font-weight: 600; flex-grow: 1; }
-        #stats { font-size: 11px; color: hsl(var(--muted-foreground)); }
-        #back-btn {
-            background: none;
-            border: 1px solid hsl(var(--border) / 0.3);
-            color: hsl(var(--foreground));
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-        #back-btn:hover { background: hsl(var(--accent)); }
-
-        /* Histogram area */
-        #histogram-area {
-            height: 240px;
-            min-height: 180px;
-            flex-shrink: 0;
-            padding: 10px 20px 8px 20px;
-            border-bottom: 1px solid hsl(var(--border) / 0.15);
-            background: hsl(var(--card));
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-        #histogram-chart-wrap { flex: 1; min-height: 0; position: relative; }
-        #histogram-canvas { width: 100% !important; height: 100% !important; }
-
-        /* Histogram controls */
-        #histogram-controls {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding-bottom: 6px;
-            flex-shrink: 0;
-            flex-wrap: wrap;
-        }
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
-        .control-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: hsl(var(--muted-foreground));
-            margin-right: 4px;
-        }
-        .ctrl-btn {
-            background: hsl(var(--background));
-            border: 1px solid hsl(var(--border) / 0.2);
-            color: hsl(var(--muted-foreground));
-            padding: 3px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.15s;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .ctrl-btn:hover {
-            background: hsl(var(--accent));
-            color: hsl(var(--foreground));
-        }
-        .ctrl-btn.active {
-            background: hsl(var(--primary));
-            color: hsl(var(--primary-foreground));
-            border-color: hsl(var(--primary));
-        }
-        .ctrl-btn svg { width: 14px; height: 14px; }
-
-        /* Main content: table + detail */
-        #content {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-        }
-
-        /* Table area */
-        #table-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            min-width: 0;
-        }
-
-        /* Filter bar */
-        #filter-bar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 20px;
-            border-bottom: 1px solid hsl(var(--border) / 0.15);
-            background: hsl(var(--card));
-            flex-shrink: 0;
-            flex-wrap: wrap;
-        }
-        #search-input {
-            width: 220px;
-            background: hsl(var(--background));
-            border: 1px solid hsl(var(--border) / 0.3);
-            border-radius: 6px;
-            padding: 5px 10px;
-            font-size: 12px;
-            color: hsl(var(--foreground));
-            outline: none;
-        }
-        #search-input:focus { border-color: hsl(var(--ring)); }
-        #search-input::placeholder { color: hsl(var(--muted-foreground)); }
-        .date-input-group {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .date-input-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: hsl(var(--muted-foreground));
-            white-space: nowrap;
-        }
-        .date-input {
-            background: hsl(var(--background));
-            border: 1px solid hsl(var(--border) / 0.3);
-            border-radius: 6px;
-            padding: 5px 10px;
-            font-size: 12px;
-            color: hsl(var(--foreground));
-            outline: none;
-        }
-        .date-input:focus { border-color: hsl(var(--ring)); }
-        .date-input::placeholder { color: hsl(var(--muted-foreground)); }
-        .date-range-separator {
-            font-size: 11px;
-            color: hsl(var(--muted-foreground));
-            white-space: nowrap;
-        }
-        #clear-dates-btn {
-            background: hsl(var(--background));
-            border: 1px solid hsl(var(--border) / 0.2);
-            color: hsl(var(--muted-foreground));
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-size: 10px;
-            cursor: pointer;
-            transition: all 0.15s;
-            white-space: nowrap;
-        }
-        #clear-dates-btn:hover {
-            background: hsl(var(--accent));
-            color: hsl(var(--foreground));
-        }
-        #clear-dates-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .type-filter-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 3px 10px;
-            border-radius: 999px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.15s;
-            border: 1px solid transparent;
-        }
-        .type-filter-chip.active { color: #fff; }
-        .type-filter-chip.inactive {
-            color: hsl(var(--muted-foreground));
-            background: hsl(var(--muted)) !important;
-            border-color: hsl(var(--border) / 0.15);
-            opacity: 0.5;
-        }
-        .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        #match-count { font-size: 11px; color: hsl(var(--muted-foreground)); margin-left: auto; }
-
-        /* Scrollable table */
-        #table-scroll {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-        thead {
-            position: sticky;
-            top: 0;
-            z-index: 2;
-        }
-        thead th {
-            background: hsl(var(--secondary));
-            color: hsl(var(--secondary-foreground));
-            text-align: left;
-            padding: 8px 12px;
-            font-weight: 600;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            white-space: nowrap;
-            cursor: pointer;
-            border-bottom: 2px solid hsl(var(--border) / 0.3);
-        }
-        thead th:hover { background: hsl(var(--accent)); }
-        thead th .sort-arrow { font-size: 10px; margin-left: 4px; opacity: 0.5; }
-        thead th.sorted .sort-arrow { opacity: 1; }
-        tbody tr {
-            border-bottom: 1px solid hsl(var(--border) / 0.08);
-            cursor: pointer;
-            transition: background 0.1s;
-        }
-        tbody tr:hover { background: hsl(var(--accent)); }
-        tbody tr.selected { background: hsl(var(--ring) / 0.15); }
-        tbody td {
-            padding: 7px 12px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 300px;
-        }
-        .type-badge {
-            display: inline-block;
-            padding: 1px 8px;
-            border-radius: 999px;
-            font-size: 10px;
-            font-weight: 600;
-            color: #fff;
-        }
-
-        /* Detail panel */
-        #detail-panel {
-            width: 360px;
-            min-width: 300px;
-            border-left: 1px solid hsl(var(--border) / 0.15);
-            background: hsl(var(--card));
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transition: width 0.2s;
-        }
-        #detail-panel.empty {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #detail-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid hsl(var(--border) / 0.15);
-            flex-shrink: 0;
-        }
-        #detail-header h2 {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            word-break: break-word;
-        }
-        #detail-type {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 999px;
-            font-size: 10px;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 8px;
-        }
-        #detail-uri {
-            font-size: 10px;
-            color: hsl(var(--muted-foreground));
-            word-break: break-all;
-            line-height: 1.4;
-        }
-        #detail-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px 20px;
-        }
-        .detail-section {
-            margin-bottom: 16px;
-        }
-        .detail-section-title {
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: hsl(var(--muted-foreground));
-            margin-bottom: 8px;
-        }
-        .prop-row {
-            display: flex;
-            gap: 8px;
-            padding: 5px 0;
-            border-bottom: 1px solid hsl(var(--border) / 0.06);
-            font-size: 12px;
-            line-height: 1.4;
-        }
-        .prop-key {
-            flex-shrink: 0;
-            width: 120px;
-            font-weight: 500;
-            color: hsl(var(--muted-foreground));
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .prop-value {
-            flex: 1;
-            word-break: break-word;
-            color: hsl(var(--foreground));
-        }
-        .prop-value a {
-            color: hsl(var(--ring));
-            text-decoration: none;
-        }
-        .prop-value a:hover { text-decoration: underline; }
-
-        #detail-actions {
-            padding: 12px 20px;
-            border-top: 1px solid hsl(var(--border) / 0.15);
-            flex-shrink: 0;
-            display: flex;
-            gap: 8px;
-        }
-        #detail-actions button {
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            border: 1px solid hsl(var(--border) / 0.3);
-            background: hsl(var(--background));
-            color: hsl(var(--foreground));
-            transition: background 0.15s;
-        }
-        #detail-actions button:hover { background: hsl(var(--accent)); }
-
-        .empty-state {
-            text-align: center;
-            color: hsl(var(--muted-foreground));
-            font-size: 13px;
-            padding: 40px 20px;
-        }
-        .empty-state .icon { font-size: 32px; margin-bottom: 8px; display: block; }
-
-        /* Context menu */
-        #context-menu {
-            position: fixed;
-            display: none;
-            min-width: 210px;
-            z-index: 500;
-            background: hsl(var(--popover));
-            color: hsl(var(--popover-foreground));
-            border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            border: 1px solid hsl(var(--border) / 0.15);
-            padding: 4px 0;
-            font-size: 12px;
-        }
-        .ctx-header {
-            padding: 4px 16px;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: hsl(var(--muted-foreground));
-            font-weight: 600;
-        }
-        .ctx-item {
-            padding: 6px 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: background 0.1s;
-        }
-        .ctx-item:hover { background: hsl(var(--accent)); }
-        .ctx-separator { height: 1px; background: hsl(var(--border) / 0.15); margin: 4px 0; }
-
-        /* Filter tags */
-        .filter-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 2px 8px;
-            border-radius: 999px;
-            font-size: 10px;
-            font-weight: 600;
-            white-space: nowrap;
-            cursor: default;
-        }
-        .filter-tag.include {
-            background: hsl(142 71% 45% / 0.15);
-            color: hsl(142 71% 45%);
-            border: 1px solid hsl(142 71% 45% / 0.25);
-        }
-        .filter-tag.exclude {
-            background: hsl(var(--destructive) / 0.15);
-            color: hsl(var(--destructive));
-            border: 1px solid hsl(var(--destructive) / 0.25);
-        }
-        .filter-tag .tag-remove { cursor: pointer; opacity: 0.7; font-size: 12px; margin-left: 2px; }
-        .filter-tag .tag-remove:hover { opacity: 1; }
-
-        /* Filter action buttons */
-        .filter-action-btn {
-            background: hsl(var(--background));
-            border: 1px solid hsl(var(--border) / 0.2);
-            color: hsl(var(--muted-foreground));
-            padding: 3px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .filter-action-btn:hover {
-            background: hsl(var(--accent));
-            color: hsl(var(--foreground));
-        }
-
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: hsl(var(--background)); }
-        ::-webkit-scrollbar-thumb { background: hsl(var(--muted)); border-radius: 9999px; }
-        ::-webkit-scrollbar-thumb:hover { background: hsl(var(--accent)); }
-    </style>
-    <style>
-        /* Flatpickr customization */
-        .flatpickr-calendar {
-            background: hsl(240 10% 10%);
-            border: 1px solid hsl(240 3.7% 25%);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            border-radius: 8px;
-        }
-        .flatpickr-months {
-            background: hsl(240 5.9% 20%);
-            color: hsl(0 0% 98%);
-        }
-        .flatpickr-month {
-            background: hsl(240 5.9% 20%);
-            color: hsl(0 0% 98%);
-        }
-        .flatpickr-prev-month, .flatpickr-next-month {
-            color: hsl(0 0% 98%);
-            fill: hsl(0 0% 98%);
-        }
-        .flatpickr-prev-month:hover, .flatpickr-next-month:hover {
-            background: hsl(240 3.7% 35%);
-        }
-        .flatpickr-weekdays {
-            background: hsl(240 5.9% 20%);
-            color: hsl(240 5% 64.9%);
-        }
-        .flatpickr-weekday {
-            color: hsl(240 5% 64.9%);
-            background: hsl(240 5.9% 20%);
-            font-weight: 600;
-        }
-        .flatpickr-days {
-            background: hsl(240 10% 10%);
-        }
-        .flatpickr-day {
-            color: hsl(0 0% 98%);
-            border-color: hsl(240 3.7% 25%);
-            background: hsl(240 10% 10%);
-        }
-        .flatpickr-day:hover {
-            background: hsl(240 3.7% 35%);
-            border-color: hsl(240 3.7% 35%);
-            color: hsl(0 0% 98%);
-        }
-        .flatpickr-day.selected {
-            background: hsl(0 0% 98%);
-            border-color: hsl(0 0% 98%);
-            color: hsl(240 5.9% 10%);
-        }
-        .flatpickr-day.selected:hover {
-            background: hsl(0 0% 85%);
-            border-color: hsl(0 0% 85%);
-        }
-        .flatpickr-day.today {
-            border-color: hsl(240 4.9% 83.9%);
-            color: hsl(240 4.9% 83.9%);
-            font-weight: 700;
-        }
-        .flatpickr-day.disabled, .flatpickr-day.prevMonthDay.disabled, .flatpickr-day.nextMonthDay.disabled, .flatpickr-day.notAllowed, .flatpickr-day.notAllowed.prevMonthDay, .flatpickr-day.notAllowed.nextMonthDay {
-            color: hsl(240 3.7% 30%);
-            background: hsl(240 10% 10%) !important;
-            cursor: not-allowed;
-            opacity: 0.4;
-            border-color: transparent;
-        }
-        .flatpickr-day.hasEvents {
-            background: hsl(240 3.7% 25%);
-            font-weight: 700;
-            color: hsl(0 0% 98%);
-            border: 1px solid hsl(240 4.9% 83.9%);
-        }
-        .flatpickr-day.hasEvents:hover {
-            background: hsl(240 3.7% 35%);
-            border-color: hsl(240 4.9% 83.9%);
-        }
-        .flatpickr-day.hasEvents.selected {
-            background: hsl(0 0% 98%);
-            color: hsl(240 5.9% 10%);
-            border-color: hsl(0 0% 98%);
-        }
-        .flatpickr-time {
-            background: hsl(240 10% 12%);
-            border-top: 1px solid hsl(240 3.7% 25%);
-        }
-        .flatpickr-time input {
-            background: hsl(240 10% 10%);
-            color: hsl(0 0% 98%);
-            border: 1px solid hsl(240 3.7% 25%);
-        }
-        .flatpickr-time input:focus {
-            border-color: hsl(240 4.9% 83.9%);
-            box-shadow: 0 0 0 2px hsl(240 4.9% 83.9% / 0.1);
-        }
-        .flatpickr-time.hasSeconds .flatpickr-time-separator, .flatpickr-time .flatpickr-am-pm {
-            color: hsl(240 5% 64.9%);
-        }
-        .flatpickr-am-pm {
-            color: hsl(240 5% 64.9%);
-            background: hsl(240 10% 12%);
-        }
-        .flatpickr-am-pm:hover {
-            background: hsl(240 3.7% 30%);
-        }
-    </style>
-</head>
-<body>
+    
+    
+    </head>
+<body class="antialiased bg-slate-950 text-slate-100 font-inter h-screen flex flex-col overflow-hidden">
     <!-- Header -->
-    <div id="header">
-        <button id="back-btn" onclick="javaBridge.navigateBack()" style="display:flex;align-items:center;gap:6px"><i data-lucide="arrow-left" style="width:14px;height:14px"></i> Back</button>
-        <h1 style="display:flex;align-items:center;gap:8px"><i data-lucide="bar-chart-3" style="width:18px;height:18px"></i> Event Explorer</h1>
-        <span id="stats"></span>
+    <div id="header" class="flex items-center gap-4 px-5 py-3 border-b border-white/10 bg-slate-800">
+        <button id="back-btn" onclick="javaBridge.navigateBack()" class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-slate-700 border border-white/10 text-sm text-slate-100"><i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back</button>
+        <h1 class="flex items-center gap-2 text-lg font-semibold ml-2"><i data-lucide="bar-chart-3" class="w-4.5 h-4.5"></i> Event Explorer</h1>
+        <span id="stats" class="text-sm text-slate-300 ml-2"></span>
     </div>
 
     <!-- Histogram -->
-    <div id="histogram-area">
-        <div id="histogram-controls">
-            <div class="control-group">
-                <span class="control-label">Period:</span>
-                <button class="ctrl-btn period-btn active" data-unit="auto" onclick="setPeriod('auto')">Auto</button>
-                <button class="ctrl-btn period-btn" data-unit="day" onclick="setPeriod('day')">Day</button>
-                <button class="ctrl-btn period-btn" data-unit="week" onclick="setPeriod('week')">Week</button>
-                <button class="ctrl-btn period-btn" data-unit="month" onclick="setPeriod('month')">Month</button>
-                <button class="ctrl-btn period-btn" data-unit="quarter" onclick="setPeriod('quarter')">Quarter</button>
-                <button class="ctrl-btn period-btn" data-unit="year" onclick="setPeriod('year')">Year</button>
+    <div id="histogram-area" class="h-60 min-h-[180px] flex flex-col flex-shrink-0 p-2 border-b border-white/10 bg-slate-800 overflow-hidden">
+        <div id="histogram-controls" class="flex items-center gap-4 pb-2 flex-wrap shrink-0">
+            <div class="control-group flex items-center gap-2 flex-wrap">
+                <span class="control-label text-xs uppercase tracking-wide text-slate-300 mr-1">Period:</span>
+                <button class="ctrl-btn period-btn active px-3 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-unit="auto" onclick="setPeriod('auto')">Auto</button>
+                <button class="ctrl-btn period-btn px-3 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-unit="day" onclick="setPeriod('day')">Day</button>
+                <button class="ctrl-btn period-btn px-3 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-unit="week" onclick="setPeriod('week')">Week</button>
+                <button class="ctrl-btn period-btn px-3 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-unit="month" onclick="setPeriod('month')">Month</button>
+                <button class="ctrl-btn period-btn px-3 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-unit="quarter" onclick="setPeriod('quarter')">Quarter</button>
+                <button class="ctrl-btn period-btn px-3 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-unit="year" onclick="setPeriod('year')">Year</button>
             </div>
-            <div class="control-group" style="margin-left:auto">
-                <span class="control-label">View:</span>
-                <button class="ctrl-btn chart-btn active" data-chart="bar" onclick="setChartType('bar')" title="Stacked bars"><i data-lucide="bar-chart-3" style="width:14px;height:14px"></i> Bars</button>
-                <button class="ctrl-btn chart-btn" data-chart="line" onclick="setChartType('line')" title="Line chart"><i data-lucide="trending-up" style="width:14px;height:14px"></i> Lines</button>
-                <button class="ctrl-btn chart-btn" data-chart="area" onclick="setChartType('area')" title="Stacked area"><i data-lucide="layers" style="width:14px;height:14px"></i> Area</button>
-                <button class="ctrl-btn chart-btn" data-chart="cumulative" onclick="setChartType('cumulative')" title="Cumulative line"><i data-lucide="arrow-up-right" style="width:14px;height:14px"></i> Cumul.</button>
-                <button class="ctrl-btn chart-btn" data-chart="boxplot" onclick="setChartType('boxplot')" title="Box plot"><i data-lucide="box-select" style="width:14px;height:14px"></i> Box</button>
-                <button class="ctrl-btn chart-btn" data-chart="violin" onclick="setChartType('violin')" title="Violin plot"><i data-lucide="activity" style="width:14px;height:14px"></i> Violin</button>
-                <button class="ctrl-btn chart-btn" data-chart="pie" onclick="setChartType('pie')" title="Type distribution"><i data-lucide="pie-chart" style="width:14px;height:14px"></i> Donut</button>
-                <button class="ctrl-btn chart-btn" data-chart="scatter" onclick="setChartType('scatter')" title="Timeline scatter"><i data-lucide="circle-dot" style="width:14px;height:14px"></i> Scatter</button>
-                <button class="ctrl-btn chart-btn" data-chart="heatmap" onclick="setChartType('heatmap')" title="Day × Hour heatmap"><i data-lucide="grid-3x3" style="width:14px;height:14px"></i> Heat</button>
-                <button class="ctrl-btn chart-btn" data-chart="radar" onclick="setChartType('radar')" title="Day-of-week radar"><i data-lucide="radar" style="width:14px;height:14px"></i> Radar</button>
+            <div class="control-group ml-auto flex items-center gap-2">
+                <span class="control-label text-xs uppercase tracking-wide text-slate-300 mr-1">View:</span>
+                <button class="ctrl-btn chart-btn active px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="bar" onclick="setChartType('bar')" title="Stacked bars"><i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i> Bars</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="line" onclick="setChartType('line')" title="Line chart"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Lines</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="area" onclick="setChartType('area')" title="Stacked area"><i data-lucide="layers" class="w-3.5 h-3.5"></i> Area</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="cumulative" onclick="setChartType('cumulative')" title="Cumulative line"><i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> Cumul.</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="boxplot" onclick="setChartType('boxplot')" title="Box plot"><i data-lucide="box-select" class="w-3.5 h-3.5"></i> Box</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="violin" onclick="setChartType('violin')" title="Violin plot"><i data-lucide="activity" class="w-3.5 h-3.5"></i> Violin</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="pie" onclick="setChartType('pie')" title="Type distribution"><i data-lucide="pie-chart" class="w-3.5 h-3.5"></i> Donut</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="scatter" onclick="setChartType('scatter')" title="Timeline scatter"><i data-lucide="circle-dot" class="w-3.5 h-3.5"></i> Scatter</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="heatmap" onclick="setChartType('heatmap')" title="Day × Hour heatmap"><i data-lucide="grid-3x3" class="w-3.5 h-3.5"></i> Heat</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="radar" onclick="setChartType('radar')" title="Day-of-week radar"><i data-lucide="radar" class="w-3.5 h-3.5"></i> Radar</button>
             </div>
         </div>
-        <div id="histogram-chart-wrap">
-            <canvas id="histogram-canvas"></canvas>
+        <div id="histogram-chart-wrap" class="flex-1 min-h-0 relative">
+            <canvas id="histogram-canvas" class="w-full h-full"></canvas>
         </div>
     </div>
 
     <!-- Context menu -->
-    <div id="context-menu"></div>
+    <div id="context-menu" class="hidden"></div>
 
     <!-- Content: table + detail -->
-    <div id="content">
-        <div id="table-area">
-            <div id="filter-bar">
-                <span style="font-size:10px; text-transform:uppercase; color:hsl(var(--muted-foreground)); flex-shrink:0;">Filter:</span>
-                <input type="text" id="search-input" placeholder="Search events..." oninput="applyFilters()">
-                <div class="date-input-group">
-                    <span class="date-input-label">Timeframe:</span>
-                    <input type="text" id="date-start" class="date-input" placeholder="Start date..." title="Start date and time">
-                    <span class="date-range-separator">→</span>
-                    <input type="text" id="date-end" class="date-input" placeholder="End date..." title="End date and time">
-                    <button id="clear-dates-btn" onclick="clearDateRange()" disabled>Clear</button>
-                    <span style="font-size:10px; color:hsl(var(--muted-foreground)); white-space:nowrap;">Ctrl + wheel zooms</span>
+    <div id="content" class="flex-1 flex min-h-0 overflow-hidden">
+        <div id="table-area" class="flex-1 flex flex-col overflow-hidden min-w-0 bg-slate-800">
+            <div id="filter-bar" class="flex items-center gap-3 p-3 border-b border-white/10 bg-slate-800 flex-wrap">
+                <span class="text-xs uppercase tracking-wide text-slate-300 flex-shrink-0">Filter:</span>
+                <input type="text" id="search-input" placeholder="Search events..." oninput="applyFilters()" class="w-56 bg-slate-700 border border-white/10 rounded-md px-3 py-1 text-sm text-slate-100 outline-none">
+                <div class="date-input-group flex items-center gap-2">
+                    <span class="date-input-label text-xs uppercase tracking-wide text-slate-300">Timeframe:</span>
+                    <input type="text" id="date-start" class="date-input bg-slate-700 border border-white/10 rounded-md px-2 py-1 text-sm text-slate-100" placeholder="Start date..." title="Start date and time">
+                    <span class="date-range-separator text-sm text-slate-300">→</span>
+                    <input type="text" id="date-end" class="date-input bg-slate-700 border border-white/10 rounded-md px-2 py-1 text-sm text-slate-100" placeholder="End date..." title="End date and time">
+                    <button id="clear-dates-btn" onclick="clearDateRange()" disabled class="px-2 py-1 bg-slate-700 border border-white/10 rounded-md text-xs text-slate-200">Clear</button>
+                    <span class="text-xs text-slate-400 whitespace-nowrap">Ctrl + wheel zooms</span>
                 </div>
-                <div id="type-chips" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
-                <span id="match-count"></span>
-                <div id="filter-tags" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
-                <div style="margin-left:auto; display:flex; gap:4px; flex-shrink:0;">
-                    <button class="filter-action-btn" onclick="selectAllTypes()">All</button>
-                    <button class="filter-action-btn" onclick="selectNoTypes()">None</button>
-                    <button class="filter-action-btn" onclick="clearAllFilters()">Clear</button>
+                <div id="type-chips" class="flex gap-1 flex-wrap"></div>
+                <span id="match-count" class="text-xs text-slate-300"></span>
+                <div id="filter-tags" class="flex gap-2 flex-wrap"></div>
+                <div class="ml-auto flex gap-2 flex-shrink-0">
+                    <button class="filter-action-btn px-2 py-1 bg-slate-700 border border-white/10 rounded-md text-xs text-slate-200" onclick="selectAllTypes()">All</button>
+                    <button class="filter-action-btn px-2 py-1 bg-slate-700 border border-white/10 rounded-md text-xs text-slate-200" onclick="selectNoTypes()">None</button>
+                    <button class="filter-action-btn px-2 py-1 bg-slate-700 border border-white/10 rounded-md text-xs text-slate-200" onclick="clearAllFilters()">Clear</button>
                 </div>
             </div>
-            <div id="table-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th onclick="sortBy('label')" id="th-label">Name <span class="sort-arrow"><i data-lucide="chevron-up" style="width:12px;height:12px"></i></span></th>
-                            <th onclick="sortBy('type')" id="th-type">Type <span class="sort-arrow"><i data-lucide="chevron-up" style="width:12px;height:12px"></i></span></th>
-                            <th onclick="sortBy('start')" id="th-start">Timestamp <span class="sort-arrow"><i data-lucide="chevron-up" style="width:12px;height:12px"></i></span></th>
+            <div id="table-scroll" class="flex-1 overflow-auto bg-slate-800">
+                <table class="w-full border-separate border-spacing-y-1 text-sm">
+                    <thead class="sticky top-0 bg-slate-800 z-10">
+                        <tr class="bg-slate-800 text-slate-200 text-xs uppercase">
+                            <th onclick="sortBy('label')" id="th-label" class="text-left p-3 font-semibold">Name <span class="sort-arrow"><i data-lucide="chevron-up" class="w-3 h-3"></i></span></th>
+                            <th onclick="sortBy('type')" id="th-type" class="text-left p-3 font-semibold">Type <span class="sort-arrow"><i data-lucide="chevron-up" class="w-3 h-3"></i></span></th>
+                            <th onclick="sortBy('start')" id="th-start" class="text-left p-3 font-semibold">Timestamp <span class="sort-arrow"><i data-lucide="chevron-up" class="w-3 h-3"></i></span></th>
                         </tr>
                     </thead>
                     <tbody id="event-tbody"></tbody>
                 </table>
             </div>
-            <div class="flex items-center gap-2 px-4 py-2 border-t border-border/15 bg-card shrink-0 text-xs text-muted-foreground" id="table-pagination">
-                <button class="uk-btn uk-btn-default uk-btn-xs" onclick="prevPage()" id="page-prev">Prev</button>
-                <button class="uk-btn uk-btn-default uk-btn-xs" onclick="nextPage()" id="page-next">Next</button>
+            <div id="table-pagination" class="flex items-center gap-2 px-4 py-2 border-t border-white/10 bg-slate-800 shrink-0 text-xs text-slate-300">
+                <button class="px-2 py-1 bg-slate-700 border border-white/10 rounded-md text-xs" onclick="prevPage()" id="page-prev">Prev</button>
+                <button class="px-2 py-1 bg-slate-700 border border-white/10 rounded-md text-xs" onclick="nextPage()" id="page-next">Next</button>
                 <span id="page-info"></span>
             </div>
         </div>
 
+        <!-- Resizer between table and detail -->
+        <div id="detail-resizer" class="h-full w-1 cursor-col-resize bg-transparent hover:bg-white/5" title="Drag to resize" style="touch-action:none;"></div>
+
         <!-- Detail panel -->
-        <div id="detail-panel" class="empty">
-            <div class="empty-state" id="detail-empty">
-                <span class="icon"><i data-lucide="mouse-pointer-click" style="width:32px;height:32px;margin:0 auto"></i></span>
+        <div id="detail-panel" class="w-72 min-w-[20rem] border-l border-white/10 bg-slate-800 flex flex-col overflow-hidden">
+            <div class="empty-state p-6 text-slate-400" id="detail-empty">
+                <span class="icon block mb-2"><i data-lucide="mouse-pointer-click" class="w-8 h-8 mx-auto"></i></span>
                 Select an event to view its details
             </div>
             <div id="detail-filled" style="display:none; flex-direction:column; height:100%;">
-                <div id="detail-header">
-                    <span id="detail-type"></span>
-                    <h2 id="detail-title"></h2>
-                    <div id="detail-uri"></div>
+                <div id="detail-header" class="px-4 py-3 border-b border-white/10">
+                    <span id="detail-type" class="inline-block px-2 py-1 rounded-full text-xs font-semibold bg-slate-700 text-slate-100"></span>
+                    <h2 id="detail-title" class="text-lg font-semibold mt-2"></h2>
+                    <div id="detail-uri" class="text-xs text-slate-400 break-all mt-1"></div>
                 </div>
-                <div id="detail-content"></div>
-                <div id="detail-actions">
-                    <button onclick="openGraph()" style="display:flex;align-items:center;gap:6px"><i data-lucide="share-2" style="width:14px;height:14px"></i> Open Graph</button>
+                <div id="detail-content" class="flex-1 overflow-auto p-4"></div>
+                <div id="detail-actions" class="px-4 py-3 border-t border-white/10 flex gap-2">
+                    <button onclick="openGraph()" class="inline-flex items-center gap-2 px-3 py-1 bg-slate-700 border border-white/10 rounded-md text-sm"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Open Graph</button>
                 </div>
             </div>
         </div>
@@ -951,11 +346,14 @@
 
                 window.addEventListener('wheel', handleWheelShortcut, { passive: false });
 
+                // Initialize resizer for detail panel (allows horizontal resizing)
+                initResizer();
+
                 javaBridge.log('Event Explorer initialized with ' + allEvents.length + ' events');
             } catch (e) {
                 javaBridge.log('Error initializing explorer: ' + e.message);
                 document.getElementById('table-scroll').innerHTML =
-                    '<div class="empty-state" style="padding:60px"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>Error: ' + e.message + '</div>';
+                    '<div class="empty-state p-8 text-slate-400"><span class="icon block mb-2"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>Error: ' + e.message + '</div>';
             }
         }
 
@@ -1981,13 +1379,18 @@
                 activeTypes.add(g.id);
                 var color = typeColorMap[g.id] || '#a6cee3';
                 var chip = document.createElement('span');
-                chip.className = 'type-filter-chip active';
+                chip.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] cursor-pointer text-slate-100 whitespace-nowrap';
                 chip.style.background = color + '33';
                 chip.dataset.type = g.id;
                 chip.dataset.color = color;
-                chip.innerHTML = '<span class="chip-dot" style="background:' + color + '"></span>' +
-                                 escapeHtml(g.content || g.id) +
-                                 ' <span style="opacity:0.6; font-size:10px">(' + (counts[g.id] || 0) + ')</span>';
+                var dot = document.createElement('span');
+                dot.className = 'w-1.5 h-1.5 rounded-full flex-shrink-0';
+                dot.style.background = color;
+                chip.appendChild(dot);
+                var label = document.createElement('span');
+                label.textContent = (g.content || g.id) + ' (' + (counts[g.id] || 0) + ')';
+                label.className = 'text-[10px]';
+                chip.appendChild(label);
                 chip.onclick = function() { toggleType(g.id); };
                 container.appendChild(chip);
             });
@@ -2001,16 +1404,18 @@
         }
 
         function refreshTypeChips() {
-            document.querySelectorAll('.type-filter-chip').forEach(function(c) {
-                var type = c.dataset.type;
-                var color = c.dataset.color;
-                if (activeTypes.has(type)) {
-                    c.className = 'type-filter-chip active';
-                    c.style.background = color + '33';
-                } else {
-                    c.className = 'type-filter-chip inactive';
-                    c.style.background = '';
-                }
+            document.querySelectorAll('#type-chips > span').forEach(function(c) {
+                    var type = c.dataset.type;
+                    var color = c.dataset.color;
+                    if (activeTypes.has(type)) {
+                    c.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] cursor-pointer text-slate-100 whitespace-nowrap';
+                        c.style.background = color + '33';
+                        if (c.firstChild) c.firstChild.style.display = '';
+                    } else {
+                    c.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] cursor-pointer text-slate-400 whitespace-nowrap';
+                        c.style.background = '';
+                        if (c.firstChild) c.firstChild.style.display = 'none';
+                    }
             });
         }
 
@@ -2153,13 +1558,13 @@
                 var color = typeColorMap[e.type] || '#a6cee3';
                 var isSelected = e.uri === selectedUri;
                 var dateStr = formatDate(e.start);
-                html += '<tr data-uri="' + escAttr(e.uri) + '" class="' + (isSelected ? 'selected' : '') + '" ' +
+                html += '<tr data-uri="' + escAttr(e.uri) + '" class="' + (isSelected ? 'selected' : '') + ' bg-slate-900/40 hover:bg-slate-700/60 transition-colors" ' +
                         'onclick="selectEvent(' + escJs(e.uri) + ')" ' +
                         'ondblclick="openGraphFor(' + escJs(e.uri) + ')" ' +
                         'oncontextmenu="showRowContextMenu(event, ' + escJs(e.uri) + ', ' + escJs(e.label) + ', ' + escJs(e.type) + ')">';
-                html += '<td title="' + escAttr(e.label) + '">' + escapeHtml(e.label) + '</td>';
-                html += '<td><span class="type-badge" style="background:' + color + '">' + escapeHtml(e.type) + '</span></td>';
-                html += '<td>' + escapeHtml(dateStr) + '</td>';
+                html += '<td class="px-3 py-2" title="' + escAttr(e.label) + '">' + escapeHtml(e.label) + '</td>';
+                html += '<td class="px-3 py-2"><span class="type-badge inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold text-slate-950 whitespace-nowrap" style="background:' + color + '">' + escapeHtml(e.type) + '</span></td>';
+                html += '<td class="px-3 py-2 whitespace-nowrap">' + escapeHtml(dateStr) + '</td>';
                 html += '</tr>';
             });
             if (filteredEvents.length === 0) {
@@ -2178,7 +1583,7 @@
             } catch (e) { return isoStr; }
         }
 
-        /* ── Event selection & detail panel ── */
+        /* Event selection & detail panel */
 
         function selectEvent(uri) {
             selectedUri = uri;
@@ -2206,52 +1611,60 @@
                 typeEl.textContent = detail.type || 'Unknown';
                 typeEl.style.background = typeColorMap[detail.type] || '#a6cee3';
                 document.getElementById('detail-uri').textContent = uri;
+                document.getElementById('detail-content').className = 'flex-1 overflow-auto p-2 space-y-4';
 
                 // Properties
                 var contentEl = document.getElementById('detail-content');
                 var html = '';
 
+                function startSection(title) {
+                    html += '<section class="rounded-xl border border-white/10 bg-slate-900/40 overflow-hidden shadow-sm">';
+                    html += '<div class="px-2 py-2 border-b border-white/10 bg-slate-900/60 text-[10px] font-semibold tracking-[0.18em] text-slate-400">' + escapeHtml(title) + '</div>';
+                    html += '<div class="divide-y divide-white/5">';
+                }
+
+                function endSection() {
+                    html += '</div></section>';
+                }
+
                 // Literal properties
                 if (detail.literals && detail.literals.length > 0) {
-                    html += '<div class="detail-section">';
-                    html += '<div class="detail-section-title">Properties</div>';
+                    startSection('Properties');
                     detail.literals.forEach(function(prop) {
-                        html += '<div class="prop-row">';
-                        html += '<div class="prop-key" title="' + escAttr(prop.predicate) + '">' + escapeHtml(prop.predicate) + '</div>';
-                        html += '<div class="prop-value">' + escapeHtml(prop.value) + '</div>';
+                        html += '<div class="grid gap-1 px-2 py-3 sm:grid-cols-[minmax(10rem,14rem)_1fr] sm:gap-4 sm:items-start">';
+                        html += '<div class="text-[11px] font-medium tracking-wide text-slate-400 break-words" title="' + escAttr(prop.predicate) + '">' + escapeHtml(prop.predicate) + '</div>';
+                        html += '<div class="text-sm leading-6 text-slate-100 break-words">' + escapeHtml(prop.value) + '</div>';
                         html += '</div>';
                     });
-                    html += '</div>';
+                    endSection();
                 }
 
                 // Outgoing relations
                 if (detail.outgoing && detail.outgoing.length > 0) {
-                    html += '<div class="detail-section">';
-                    html += '<div class="detail-section-title">Outgoing Relations</div>';
+                    startSection('Outgoing Relations');
                     detail.outgoing.forEach(function(rel) {
-                        html += '<div class="prop-row">';
-                        html += '<div class="prop-key" title="' + escAttr(rel.predicate) + '">' + escapeHtml(rel.predicate) + '</div>';
-                        html += '<div class="prop-value"><a href="#" onclick="selectEvent(' + escJs(rel.targetUri) + '); return false;">' + escapeHtml(rel.targetLabel) + '</a></div>';
+                        html += '<div class="grid gap-1 px-2 py-3 sm:grid-cols-[minmax(10rem,14rem)_1fr] sm:gap-4 sm:items-start">';
+                        html += '<div class="text-[11px] font-medium tracking-wide text-slate-400 break-words" title="' + escAttr(rel.predicate) + '">' + escapeHtml(rel.predicate) + '</div>';
+                        html += '<div class="text-sm leading-6 break-words"><a class="text-indigo-300 hover:text-indigo-200 hover:underline" href="#" onclick="selectEvent(' + escJs(rel.targetUri) + '); return false;">' + escapeHtml(rel.targetLabel) + '</a></div>';
                         html += '</div>';
                     });
-                    html += '</div>';
+                    endSection();
                 }
 
                 // Incoming relations
                 if (detail.incoming && detail.incoming.length > 0) {
-                    html += '<div class="detail-section">';
-                    html += '<div class="detail-section-title">Incoming Relations</div>';
+                    startSection('Incoming Relations');
                     detail.incoming.forEach(function(rel) {
-                        html += '<div class="prop-row">';
-                        html += '<div class="prop-key" title="' + escAttr(rel.predicate) + '">' + escapeHtml(rel.predicate) + '</div>';
-                        html += '<div class="prop-value"><a href="#" onclick="selectEvent(' + escJs(rel.sourceUri) + '); return false;">' + escapeHtml(rel.sourceLabel) + '</a></div>';
+                        html += '<div class="grid gap-1 px-2 py-3 sm:grid-cols-[minmax(10rem,14rem)_1fr] sm:gap-4 sm:items-start">';
+                        html += '<div class="text-[11px] font-medium tracking-wide text-slate-400 break-words" title="' + escAttr(rel.predicate) + '">' + escapeHtml(rel.predicate) + '</div>';
+                        html += '<div class="text-sm leading-6 break-words"><a class="text-indigo-300 hover:text-indigo-200 hover:underline" href="#" onclick="selectEvent(' + escJs(rel.sourceUri) + '); return false;">' + escapeHtml(rel.sourceLabel) + '</a></div>';
                         html += '</div>';
                     });
-                    html += '</div>';
+                    endSection();
                 }
 
                 if (!html) {
-                    html = '<div class="empty-state"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg></span>No properties found</div>';
+                    html = '<div class="rounded-xl border border-dashed border-white/10 bg-slate-900/30 px-6 py-10 text-center text-sm text-slate-400"><span class="icon block mb-3"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg></span>No properties found</div>';
                 }
 
                 contentEl.innerHTML = html;
@@ -2427,6 +1840,92 @@
             dateStartIso = null;
             dateEndIso = null;
             applyFilters();
+        }
+
+        /* ── Detail panel resizer ── */
+        function initResizer() {
+            var resizer = document.getElementById('detail-resizer');
+            var panel = document.getElementById('detail-panel');
+            if (!resizer || !panel) return;
+
+            // Restore stored width if any
+            try {
+                var stored = localStorage.getItem('eventExplorer.detailWidth');
+                if (stored) panel.style.width = stored;
+            } catch (e) {}
+
+            var dragging = false;
+            var startX = 0;
+            var startW = 0;
+
+            resizer.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                dragging = true;
+                startX = e.clientX;
+                startW = panel.getBoundingClientRect().width;
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+                window.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('mouseup', onMouseUp);
+            });
+
+            function onMouseMove(e) {
+                if (!dragging) return;
+                var dx = startX - e.clientX;
+                var newW = Math.round(startW + dx);
+                var minW = 160; // px
+                var maxW = window.innerWidth;
+                newW = Math.max(minW, Math.min(maxW, newW));
+                panel.style.width = newW + 'px';
+            }
+
+            function onMouseUp() {
+                if (!dragging) return;
+                dragging = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                window.removeEventListener('mousemove', onMouseMove);
+                window.removeEventListener('mouseup', onMouseUp);
+                try { localStorage.setItem('eventExplorer.detailWidth', panel.style.width); } catch (e) {}
+            }
+
+            // Touch support
+            resizer.addEventListener('touchstart', function (e) {
+                if (e.touches.length !== 1) return;
+                dragging = true;
+                startX = e.touches[0].clientX;
+                startW = panel.getBoundingClientRect().width;
+                document.body.style.userSelect = 'none';
+                window.addEventListener('touchmove', onTouchMove, { passive: false });
+                window.addEventListener('touchend', onTouchEnd);
+            });
+
+            function onTouchMove(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                var clientX = e.touches[0].clientX;
+                var dx = startX - clientX;
+                var newW = Math.round(startW + dx);
+                var minW = 160;
+                var maxW = window.innerWidth;
+                newW = Math.max(minW, Math.min(maxW, newW));
+                panel.style.width = newW + 'px';
+            }
+
+            function onTouchEnd() {
+                if (!dragging) return;
+                dragging = false;
+                document.body.style.userSelect = '';
+                window.removeEventListener('touchmove', onTouchMove);
+                window.removeEventListener('touchend', onTouchEnd);
+                try { localStorage.setItem('eventExplorer.detailWidth', panel.style.width); } catch (e) {}
+            }
+
+            // Double click resets
+            resizer.addEventListener('dblclick', function () {
+                panel.style.width = '';
+                try { localStorage.removeItem('eventExplorer.detailWidth'); } catch (e) {}
+            });
         }
     </script>
     <script>lucide.createIcons();</script>

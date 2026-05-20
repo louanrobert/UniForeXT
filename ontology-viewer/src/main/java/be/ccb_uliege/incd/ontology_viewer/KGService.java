@@ -290,6 +290,18 @@ public class KGService {
             }
         }
 
+        // URIs of ontology/schema items to skip (not instances)
+        Set<String> ontologyTypes = Set.of(
+            "http://www.w3.org/2002/07/owl#Ontology",
+            "http://www.w3.org/2002/07/owl#Class",
+            "http://www.w3.org/2002/07/owl#ObjectProperty",
+            "http://www.w3.org/2002/07/owl#DatatypeProperty",
+            "http://www.w3.org/2002/07/owl#AnnotationProperty",
+            "http://www.w3.org/2002/07/owl#FunctionalProperty",
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+            "http://www.w3.org/2000/01/rdf-schema#Class"
+        );
+
         List<UndatedIndividual> undated = new ArrayList<>();
         // Find all typed resources
         StmtIterator typeIter = model.listStatements(null, RDF.type, (RDFNode) null);
@@ -302,9 +314,9 @@ public class KGService {
             String uri = subject.getURI();
             if (seen.contains(uri) || datedUris.contains(uri))
                 continue;
-            // Skip owl:Ontology
+            // Skip ontology/schema items
             String typeUri = stmt.getObject().isURIResource() ? stmt.getObject().asResource().getURI() : "";
-            if (typeUri.equals("http://www.w3.org/2002/07/owl#Ontology"))
+            if (ontologyTypes.contains(typeUri))
                 continue;
             seen.add(uri);
             undated.add(new UndatedIndividual(uri, getLabel(subject), localName(typeUri)));
@@ -394,6 +406,9 @@ public class KGService {
                 node.put("uri", ind.uri());
                 node.put("label", ind.label());
                 node.put("type", ind.type());
+                String color = colorService.getColorForType(ind.type());
+                node.put("color", color);
+                node.put("lighterColor", ColorService.lightenColor(color));
                 array.add(node);
             }
             undatedIndividualsJsonCache = array.toString();

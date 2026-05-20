@@ -5,24 +5,11 @@
     <meta charset="UTF-8">
     <link rel="preconnect" href="https://rsms.me/" />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <link rel="stylesheet" href="common.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/franken-ui@latest/dist/css/core.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/franken-ui@2.1.2/dist/css/utilities.min.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        :root {
-            font-family: Inter, sans-serif;
-            font-feature-settings: 'liga' 1, 'calt' 1;
-        }
-
-        @supports (font-variation-settings: normal) {
-            :root {
-                font-family: InterVariable, sans-serif;
-            }
-        }
-
-        * {
-            box-sizing: border-box;
-        }
 
         textarea,
         pre,
@@ -83,24 +70,6 @@
             overflow: auto;
             white-space: pre;
             border: 1px solid hsl(var(--border) / 0.2);
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: hsl(var(--background));
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: hsl(var(--muted));
-            border-radius: 9999px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: hsl(var(--accent));
         }
     </style>
 </head>

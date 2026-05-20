@@ -105,7 +105,7 @@ public class YamlSourceMapper implements SourceMapper {
      * Builds the identifier for the individual based on the fields specified in the configuration. The identifier is constructed by concatenating the values of the specified fields, separated by the configured separator. If any of the required fields are missing from the SourceRecord, an exception will be thrown.
      */
     private String buildIdentifier(SourceRecord r) {
-        return config.getIdentifier().getFields().stream()
+        return config.getIdentifier().getPrefix() + config.getIdentifier().getFields().stream()
                 .map(r::get)
                 .collect(Collectors.joining(config.getIdentifier().getSeparator()));
     }

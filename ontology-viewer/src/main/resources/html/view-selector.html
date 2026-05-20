@@ -4,84 +4,83 @@
     <meta charset="UTF-8">
     <link rel="preconnect" href="https://rsms.me/" />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' };</script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style type="text/tailwindcss">
-        @theme {
-            --font-sans: Inter, sans-serif;
-            --color-card: oklch(0.21 0.006 285);
-            --color-card-hover: oklch(0.27 0.006 285);
-            --color-surface: oklch(0.145 0.005 285);
-            --color-muted: oklch(0.55 0.01 285);
-            --color-accent: oklch(0.65 0.18 250);
-            --color-accent-soft: oklch(0.65 0.18 250 / 0.1);
-            --color-green: oklch(0.65 0.2 155);
-            --color-green-soft: oklch(0.65 0.2 155 / 0.1);
-        }
-        @supports (font-variation-settings: normal) {
-            :root { --font-sans: InterVariable, sans-serif; }
-        }
-    </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen bg-surface text-gray-100 select-none font-sans">
+<body class="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-slate-100 select-none font-sans">
     <div class="text-center max-w-4xl w-full px-6 py-10">
         <h1 class="flex items-center justify-center gap-2.5 text-2xl font-bold mb-2 tracking-tight text-white">
-            <i data-lucide="scan-search" class="size-7"></i> Knowledge Graph Viewer
+            <i data-lucide="scan-search" class="h-7 w-7"></i> Knowledge Graph Viewer
         </h1>
-        <p class="text-muted text-sm mb-12">Select a view to explore the loaded knowledge graph</p>
+        <p class="text-slate-400 text-sm mb-12">Select a view to explore the loaded knowledge graph</p>
         <div class="flex gap-6 justify-center flex-wrap">
-            <div class="group bg-card hover:bg-card-hover border border-white/[0.06] hover:border-white/[0.12] rounded-xl py-8 px-7 w-80 cursor-pointer text-left relative transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 active:translate-y-0"
+            <div class="group bg-slate-900/80 hover:bg-slate-800/80 border border-white/[0.06] hover:border-white/[0.12] rounded-xl py-8 px-7 w-80 cursor-pointer text-left relative transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 active:translate-y-0"
                  onclick="viewSelector.openView('timeline-fast')">
-                <span class="absolute top-8 right-6 text-muted transition-all duration-300 group-hover:translate-x-1 group-hover:text-white">
-                    <i data-lucide="arrow-right" class="size-5"></i>
+                <span class="absolute top-8 right-6 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white">
+                    <i data-lucide="arrow-right" class="h-5 w-5"></i>
                 </span>
-                <div class="size-12 rounded-xl flex items-center justify-center mb-4 bg-cyan-500/15 transition-transform duration-300 group-hover:scale-110">
-                    <i data-lucide="gauge-circle" class="size-6 text-cyan-300"></i>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center mb-4 bg-cyan-500/15 transition-transform duration-300 group-hover:scale-110">
+                    <i data-lucide="gauge-circle" class="h-6 w-6 text-cyan-300"></i>
                 </div>
                 <div class="text-lg font-semibold mb-2 text-white">Historical timeline (fast)</div>
-                <div class="text-xs text-muted leading-relaxed">
+                <div class="text-xs text-slate-400 leading-relaxed">
                     Canvas-based timeline optimized for very large datasets.
                     Supports smooth pan/zoom, clustering, and a colored minimap scrollbar.
                 </div>
             </div>
-            <div class="group bg-card hover:bg-card-hover border border-white/[0.06] hover:border-white/[0.12] rounded-xl py-8 px-7 w-80 cursor-pointer text-left relative transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 active:translate-y-0"
+            <div class="group bg-slate-900/80 hover:bg-slate-800/80 border border-white/[0.06] hover:border-white/[0.12] rounded-xl py-8 px-7 w-80 cursor-pointer text-left relative transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 active:translate-y-0"
                  onclick="viewSelector.openView('timeline')">
-                <span class="absolute top-8 right-6 text-muted transition-all duration-300 group-hover:translate-x-1 group-hover:text-white">
-                    <i data-lucide="arrow-right" class="size-5"></i>
+                <span class="absolute top-8 right-6 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white">
+                    <i data-lucide="arrow-right" class="h-5 w-5"></i>
                 </span>
-                <div class="size-12 rounded-xl flex items-center justify-center mb-4 bg-accent-soft transition-transform duration-300 group-hover:scale-110">
-                    <i data-lucide="calendar-clock" class="size-6 text-accent"></i>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center mb-4 bg-sky-500/10 transition-transform duration-300 group-hover:scale-110">
+                    <i data-lucide="calendar-clock" class="h-6 w-6 text-sky-300"></i>
                 </div>
                 <div class="text-lg font-semibold mb-2 text-white">Historical timeline</div>
-                <div class="text-xs text-muted leading-relaxed">
+                <div class="text-xs text-slate-400 leading-relaxed">
                     Interactiv timeline showing dated events grouped by type.
                     Filter, search, and double-click to explore entity graphs.
                 </div>
             </div>
-            <div class="group bg-card hover:bg-card-hover border border-white/[0.06] hover:border-white/[0.12] rounded-xl py-8 px-7 w-80 cursor-pointer text-left relative transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 active:translate-y-0"
+            <div class="group bg-slate-900/80 hover:bg-slate-800/80 border border-white/[0.06] hover:border-white/[0.12] rounded-xl py-8 px-7 w-80 cursor-pointer text-left relative transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 active:translate-y-0"
                  onclick="viewSelector.openView('explorer')">
-                <span class="absolute top-8 right-6 text-muted transition-all duration-300 group-hover:translate-x-1 group-hover:text-white">
-                    <i data-lucide="arrow-right" class="size-5"></i>
+                <span class="absolute top-8 right-6 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white">
+                    <i data-lucide="arrow-right" class="h-5 w-5"></i>
                 </span>
-                <div class="size-12 rounded-xl flex items-center justify-center mb-4 bg-green-soft transition-transform duration-300 group-hover:scale-110">
-                    <i data-lucide="bar-chart-3" class="size-6 text-green"></i>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center mb-4 bg-emerald-500/10 transition-transform duration-300 group-hover:scale-110">
+                    <i data-lucide="bar-chart-3" class="h-6 w-6 text-emerald-300"></i>
                 </div>
                 <div class="text-lg font-semibold mb-2 text-white">Event explorer</div>
-                <div class="text-xs text-muted leading-relaxed">
+                <div class="text-xs text-slate-400 leading-relaxed">
                     Overview of event distribution over time, with a
                     searchable event table and detailed property inspector.
                 </div>
             </div>
-            <div class="group bg-card hover:bg-card-hover border border-white/[0.06] hover:border-white/[0.12] rounded-xl py-8 px-7 w-80 cursor-pointer text-left relative transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 active:translate-y-0"
-                 onclick="viewSelector.openView('query')">
-                <span class="absolute top-8 right-6 text-muted transition-all duration-300 group-hover:translate-x-1 group-hover:text-white">
-                    <i data-lucide="arrow-right" class="size-5"></i>
+            <div class="group bg-slate-900/80 hover:bg-slate-800/80 border border-white/[0.06] hover:border-white/[0.12] rounded-xl py-8 px-7 w-80 cursor-pointer text-left relative transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 active:translate-y-0"
+                 onclick="viewSelector.openView('undated')">
+                <span class="absolute top-8 right-6 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white">
+                    <i data-lucide="arrow-right" class="h-5 w-5"></i>
                 </span>
-                <div class="size-12 rounded-xl flex items-center justify-center mb-4 bg-orange-500/15 transition-transform duration-300 group-hover:scale-110">
-                    <i data-lucide="terminal-square" class="size-6 text-orange-400"></i>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center mb-4 bg-purple-500/15 transition-transform duration-300 group-hover:scale-110">
+                    <i data-lucide="circle-slash" class="h-6 w-6 text-purple-400"></i>
+                </div>
+                <div class="text-lg font-semibold mb-2 text-white">Undated items</div>
+                <div class="text-xs text-slate-400 leading-relaxed">
+                    View all items without a timestamp or date,
+                    organized and searchable by type and label.
+                </div>
+            </div>
+            <div class="group bg-slate-900/80 hover:bg-slate-800/80 border border-white/[0.06] hover:border-white/[0.12] rounded-xl py-8 px-7 w-80 cursor-pointer text-left relative transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 active:translate-y-0"
+                 onclick="viewSelector.openView('query')">
+                <span class="absolute top-8 right-6 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white">
+                    <i data-lucide="arrow-right" class="h-5 w-5"></i>
+                </span>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center mb-4 bg-orange-500/15 transition-transform duration-300 group-hover:scale-110">
+                    <i data-lucide="terminal-square" class="h-6 w-6 text-orange-400"></i>
                 </div>
                 <div class="text-lg font-semibold mb-2 text-white">Query</div>
-                <div class="text-xs text-muted leading-relaxed">
+                <div class="text-xs text-slate-400 leading-relaxed">
                     Run read-only SPARQL queries against the loaded knowledge graph.
                     Supports SELECT, ASK, CONSTRUCT, and DESCRIBE results.
                 </div>
