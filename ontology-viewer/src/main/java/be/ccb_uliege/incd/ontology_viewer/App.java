@@ -81,9 +81,9 @@ public class App extends Application {
 
         // Fall back to file chooser
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Open Turtle (.ttl) Ontology File");
+        chooser.setTitle("Open a knowledge graph");
         chooser.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("Turtle Files", "*.ttl"),
+            new FileChooser.ExtensionFilter("Knowledge Graph Files", "*.ttl", "*.rdf", "*.owl"),
             new FileChooser.ExtensionFilter("All Files", "*.*")
         );
         
