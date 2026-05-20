@@ -2,6 +2,7 @@ package be.ccb_uliege.incd.ontology_viewer.views;
 
 import javafx.concurrent.Worker;
 import javafx.scene.Scene;
+import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
@@ -22,6 +23,7 @@ import be.ccb_uliege.incd.ontology_viewer.KGService;
 public class GraphView {
 
     private static final Logger LOG = Logger.getLogger(GraphView.class.getName());
+    private static final String DARK_BG = "#020617";
     private final Stage stage;
     private final WebView webView;
     private final WebEngine webEngine;
@@ -33,6 +35,7 @@ public class GraphView {
         stage.setHeight(700);
 
         webView = new WebView();
+        webView.setStyle("-fx-background-color: " + DARK_BG + ";");
         webEngine = webView.getEngine();
         webEngine.setJavaScriptEnabled(true);
 
@@ -63,6 +66,7 @@ public class GraphView {
         }
 
         Scene scene = new Scene(webView);
+        scene.setFill(Color.web(DARK_BG));
         stage.setScene(scene);
         stage.show();
     }

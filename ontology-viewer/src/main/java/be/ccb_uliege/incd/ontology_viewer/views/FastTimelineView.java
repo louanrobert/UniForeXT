@@ -18,6 +18,7 @@ import be.ccb_uliege.incd.ontology_viewer.JavaBridge;
 public class FastTimelineView {
 
     private static final Logger LOG = Logger.getLogger(FastTimelineView.class.getName());
+    private static final String DARK_BG_STYLE = "-fx-background-color: #020617;";
     private final StackPane root;
     private final WebView webView;
     private final WebEngine webEngine;
@@ -25,13 +26,15 @@ public class FastTimelineView {
     public FastTimelineView(JavaBridge bridge) {
         webView = new WebView();
         webView.setContextMenuEnabled(false);
+        webView.setStyle(DARK_BG_STYLE);
+        webView.setOpacity(0.0);
 
         // Let the WebView fill whatever space is given to it
         webView.prefWidthProperty().bind(webView.widthProperty());
         webView.prefHeightProperty().bind(webView.heightProperty());
 
         root = new StackPane(webView);
-        root.setStyle("-fx-background-color: #0b0f14;");
+        root.setStyle(DARK_BG_STYLE);
 
         webEngine = webView.getEngine();
         webEngine.setJavaScriptEnabled(true);
@@ -43,6 +46,7 @@ public class FastTimelineView {
             if (newState == Worker.State.SUCCEEDED) {
                 try {
                     onPageLoaded(bridge);
+                    webView.setOpacity(1.0);
                 } catch (Exception e) {
                     LOG.log(Level.SEVERE, "Error initializing fast timeline view", e);
                 }

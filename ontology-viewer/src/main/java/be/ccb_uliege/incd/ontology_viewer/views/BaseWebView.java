@@ -24,6 +24,7 @@ import java.util.logging.Level;
 public abstract class BaseWebView {
 
     private static final Logger LOG = Logger.getLogger(BaseWebView.class.getName());
+    private static final String DARK_BG_STYLE = "-fx-background-color: #020617;";
 
     protected final BorderPane root;
     protected final WebView webView;
@@ -39,7 +40,10 @@ public abstract class BaseWebView {
      */
     protected BaseWebView(Object bridge, String bridgeName, String htmlFileName) {
         root = new BorderPane();
+        root.setStyle(DARK_BG_STYLE);
         webView = new WebView();
+        webView.setStyle(DARK_BG_STYLE);
+        webView.setOpacity(0.0);
         webEngine = webView.getEngine();
         webEngine.setJavaScriptEnabled(true);
 
@@ -47,6 +51,7 @@ public abstract class BaseWebView {
             if (newState == Worker.State.SUCCEEDED) {
                 onPageLoaded(bridge, bridgeName);
                 onLoadSuccess();
+                webView.setOpacity(1.0);
             } else if (newState == Worker.State.FAILED) {
                 LOG.log(Level.SEVERE, "Failed to load HTML view: " + htmlFileName);
                 onLoadFailure(webEngine.getLoadWorker().getException());

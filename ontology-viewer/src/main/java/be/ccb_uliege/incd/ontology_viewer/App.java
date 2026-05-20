@@ -4,10 +4,12 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -41,6 +43,7 @@ public class App extends Application {
     private static final Logger LOG = Logger.getLogger(App.class.getName());
     private static final int DEFAULT_WIDTH = 1400;
     private static final int DEFAULT_HEIGHT = 800;
+    private static final Color DARK_SCENE_FILL = Color.web("#020617");
 
     private KGService kgService;
     private JavaBridge bridge;
@@ -144,6 +147,7 @@ public class App extends Application {
         progressPane.getChildren().addAll(progress, statusLabel);
         
         Scene progressScene = new Scene(progressPane, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        progressScene.setFill(DARK_SCENE_FILL);
         primaryStage.setTitle("Ontology Viewer — Loading...");
         primaryStage.setScene(progressScene);
 
@@ -227,7 +231,7 @@ public class App extends Application {
      */
     public void showViewSelector() {
         ViewSelectorView selectorView = new ViewSelectorView(this);
-        primaryStage.setScene(new Scene(selectorView.getRoot(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
+        primaryStage.setScene(createDarkScene(selectorView.getRoot()));
     }
 
     /**
@@ -239,19 +243,19 @@ public class App extends Application {
             switch (viewName) {
                 case "timeline-fast" -> {
                     FastTimelineView timelineFastView = new FastTimelineView(bridge);
-                    primaryStage.setScene(new Scene(timelineFastView.getRoot(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
+                    primaryStage.setScene(createDarkScene(timelineFastView.getRoot()));
                 }
                 case "explorer" -> {
                     EventExplorerView explorerView = new EventExplorerView(bridge);
-                    primaryStage.setScene(new Scene(explorerView.getRoot(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
+                    primaryStage.setScene(createDarkScene(explorerView.getRoot()));
                 }
                 case "undated" -> {
                     UndatedEventsView undatedView = new UndatedEventsView(bridge);
-                    primaryStage.setScene(new Scene(undatedView.getRoot(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
+                    primaryStage.setScene(createDarkScene(undatedView.getRoot()));
                 }
                 case "query" -> {
                     QueryView queryView = new QueryView(bridge);
-                    primaryStage.setScene(new Scene(queryView.getRoot(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
+                    primaryStage.setScene(createDarkScene(queryView.getRoot()));
                 }
                 default -> LOG.warning("Unknown view: " + viewName);
             }
@@ -274,6 +278,12 @@ public class App extends Application {
             ErrorDialogUtil.showError("Graph View Error", 
                 "Failed to open graph view: " + e.getMessage());
         }
+    }
+
+    private Scene createDarkScene(Parent root) {
+        Scene scene = new Scene(root, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        scene.setFill(DARK_SCENE_FILL);
+        return scene;
     }
 
     public static void main(String[] args) {
