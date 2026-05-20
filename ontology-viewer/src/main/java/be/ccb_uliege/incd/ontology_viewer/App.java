@@ -21,7 +21,6 @@ import be.ccb_uliege.incd.ontology_viewer.views.EventExplorerView;
 import be.ccb_uliege.incd.ontology_viewer.views.FastTimelineView;
 import be.ccb_uliege.incd.ontology_viewer.views.GraphView;
 import be.ccb_uliege.incd.ontology_viewer.views.QueryView;
-import be.ccb_uliege.incd.ontology_viewer.views.TimelineView;
 import be.ccb_uliege.incd.ontology_viewer.views.UndatedEventsView;
 import be.ccb_uliege.incd.ontology_viewer.views.ViewSelectorView;
 
@@ -238,10 +237,6 @@ public class App extends Application {
     public void navigateToView(String viewName) {
         try {
             switch (viewName) {
-                case "timeline" -> {
-                    TimelineView timelineView = new TimelineView(bridge);
-                    primaryStage.setScene(new Scene(timelineView.getRoot(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
-                }
                 case "timeline-fast" -> {
                     FastTimelineView timelineFastView = new FastTimelineView(bridge);
                     primaryStage.setScene(new Scene(timelineFastView.getRoot(), DEFAULT_WIDTH, DEFAULT_HEIGHT));
