@@ -13,6 +13,51 @@
     <script src="assets/lucide.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <style>
+        #context-menu {
+            position: fixed;
+            z-index: 60;
+            min-width: 15rem;
+            padding: 0.4rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            background: rgba(15, 23, 42, 0.98);
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(18px);
+            color: #e2e8f0;
+        }
+
+        #context-menu .ctx-header {
+            padding: 0.45rem 0.6rem 0.35rem;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #94a3b8;
+        }
+
+        #context-menu .ctx-item {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.5rem 0.6rem;
+            border-radius: 0.55rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: #e2e8f0;
+        }
+
+        #context-menu .ctx-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        #context-menu .ctx-separator {
+            height: 1px;
+            margin: 0.35rem 0.2rem;
+            background: rgba(255, 255, 255, 0.08);
+        }
+    </style>
     
     
     </head>
@@ -20,9 +65,7 @@
     <!-- Header -->
     <div id="header" class="flex items-center gap-4 border-b border-white/10 bg-slate-900/80 px-5 py-4 backdrop-blur">
         <button id="back-btn" type="button" onclick="javaBridge.navigateBack()" class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-100 transition hover:border-white/20 hover:bg-white/10">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M7.5 2L3.5 6L7.5 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <i data-lucide="chevron-left" class="h-4 w-4"></i>
             <span>Back</span>
         </button>
         <h1 class="ml-2 flex items-center gap-2 text-base font-semibold tracking-tight text-slate-50"><i data-lucide="bar-chart-3" class="w-4.5 h-4.5"></i> Event Explorer</h1>
@@ -87,12 +130,12 @@
                 </div>
             </div>
             <div id="table-scroll" class="flex-1 overflow-auto bg-slate-800">
-                <table class="w-full border-separate border-spacing-y-1 text-sm">
-                    <thead class="sticky top-0 bg-slate-800 z-10">
+                <table class="w-full border-separate border-spacing-y-1 text-sm" style="table-layout: fixed;">
+                    <thead class="sticky top-0 z-10 bg-slate-800">
                         <tr class="bg-slate-800 text-slate-200 text-xs uppercase">
-                            <th onclick="sortBy('label')" id="th-label" class="text-left p-3 font-semibold">Name <span class="sort-arrow"><i data-lucide="chevron-up" class="w-3 h-3"></i></span></th>
-                            <th onclick="sortBy('type')" id="th-type" class="text-left p-3 font-semibold">Type <span class="sort-arrow"><i data-lucide="chevron-up" class="w-3 h-3"></i></span></th>
-                            <th onclick="sortBy('start')" id="th-start" class="text-left p-3 font-semibold">Timestamp <span class="sort-arrow"><i data-lucide="chevron-up" class="w-3 h-3"></i></span></th>
+                            <th onclick="sortBy('label')" id="th-label" class="text-left p-3 font-semibold w-1/3">Name <span class="sort-arrow"><i data-lucide="chevron-up" class="w-3 h-3"></i></span></th>
+                            <th onclick="sortBy('type')" id="th-type" class="text-left p-3 font-semibold w-1/4">Type <span class="sort-arrow"><i data-lucide="chevron-up" class="w-3 h-3"></i></span></th>
+                            <th onclick="sortBy('start')" id="th-start" class="text-left p-3 font-semibold w-1/3">Timestamp <span class="sort-arrow"><i data-lucide="chevron-up" class="w-3 h-3"></i></span></th>
                         </tr>
                     </thead>
                     <tbody id="event-tbody"></tbody>
@@ -358,11 +401,11 @@
             } catch (e) {
                 javaBridge.log('Error initializing explorer: ' + e.message);
                 document.getElementById('table-scroll').innerHTML =
-                    '<div class="empty-state p-8 text-slate-400"><span class="icon block mb-2"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>Error: ' + e.message + '</div>';
+                    '<div class="empty-state p-8 text-slate-400"><i data-lucide="circle-alert" class="h-4 w-4"></i>Error: ' + e.message + '</div>';
             }
         }
 
-        /* ── Histogram ── */
+        /*  Histogram  */
 
         function buildHistogram() {
             if (allEvents.length === 0) return;
@@ -418,7 +461,7 @@
             }
         }
 
-        /* ── Aggregation helpers ── */
+        /*  Aggregation helpers  */
 
         function getBucketStart(dateStr, unit) {
             var d = new Date(dateStr);
@@ -479,7 +522,7 @@
             return Math.ceil((((dt - yearStart) / 86400000) + 1) / 7);
         }
 
-        /* ── Bar chart (stacked) ── */
+        /*  Bar chart (stacked)  */
 
         function buildBarChart(unit) {
             var agg = aggregateIntoBuckets(unit);
@@ -558,7 +601,7 @@
             });
         }
 
-        /* ── Line chart ── */
+        /*  Line chart  */
 
         function buildLineChart(unit) {
             var agg = aggregateIntoBuckets(unit);
@@ -638,7 +681,7 @@
             });
         }
 
-        /* ── Box plot chart ── */
+        /*  Box plot chart  */
 
         function buildBoxPlotChart(unit) {
             var subUnit = getSubUnit(unit);
@@ -730,7 +773,7 @@
             });
         }
 
-        /* ── Area chart (stacked) ── */
+        /*  Area chart (stacked)  */
 
         function buildAreaChart(unit) {
             var agg = aggregateIntoBuckets(unit);
@@ -800,7 +843,7 @@
             });
         }
 
-        /* ── Cumulative line chart ── */
+        /*  Cumulative line chart  */
 
         function buildCumulativeChart(unit) {
             var agg = aggregateIntoBuckets(unit);
@@ -872,7 +915,7 @@
             });
         }
 
-        /* ── Violin chart ── */
+        /*  Violin chart  */
 
         function buildViolinChart(unit) {
             var subUnit = getSubUnit(unit);
@@ -946,7 +989,7 @@
             });
         }
 
-        /* ── Donut chart (type distribution) ── */
+        /*  Donut chart (type distribution)  */
 
         function buildPieChart() {
             var counts = {};
@@ -994,7 +1037,7 @@
             });
         }
 
-        /* ── Scatter chart (timeline strip) ── */
+        /*  Scatter chart (timeline strip)  */
 
         function buildScatterChart(unit) {
             var types = [];
@@ -1090,7 +1133,7 @@
             });
         }
 
-        /* ── Heatmap ── */
+        /*  Heatmap  */
 
         function getHeatmapConfig(unit) {
             switch (unit) {
@@ -1258,7 +1301,7 @@
             });
         }
 
-        /* ── Radar chart (cyclical profile) ── */
+        /*  Radar chart (cyclical profile)  */
 
         function getRadarConfig(unit) {
             switch (unit) {
@@ -1373,7 +1416,7 @@
             }
         }
 
-        /* ── Type chips ── */
+        /*  Type chips  */
 
         function buildTypeChips(groups) {
             var container = document.getElementById('type-chips');
@@ -1424,7 +1467,7 @@
             });
         }
 
-        /* ── Filter & Sort ── */
+        /*  Filter & Sort  */
 
         function parseFlatpickrDate(dateStr) {
             // Convert "Y-m-d H:i" to ISO format
@@ -1551,7 +1594,7 @@
             updatePagination();
         }
 
-        /* ── Table rendering ── */
+        /*  Table rendering  */
 
         function renderTable() {
             var tbody = document.getElementById('event-tbody');
@@ -1573,7 +1616,7 @@
                 html += '</tr>';
             });
             if (filteredEvents.length === 0) {
-                html = '<tr><td colspan="3"><div class="empty-state"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>No events match filters</div></td></tr>';
+                html = '<tr><td colspan="3"><div class="empty-state"><span class="icon"><i data-lucide="circle-alert" class="h-4 w-4"></i></span>No events match filters</div></td></tr>';
             }
             tbody.innerHTML = html;
         }
@@ -1669,7 +1712,7 @@
                 }
 
                 if (!html) {
-                    html = '<div class="rounded-xl border border-dashed border-white/10 bg-slate-900/30 px-6 py-10 text-center text-sm text-slate-400"><span class="icon block mb-3"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg></span>No properties found</div>';
+                    html = '<div class="rounded-xl border border-dashed border-white/10 bg-slate-900/30 px-6 py-10 text-center text-sm text-slate-400"><span class="icon block mb-3"><i data-lucide="circle-alert" class="h-4 w-4"></i></span>No properties found</div>';
                 }
 
                 contentEl.innerHTML = html;
@@ -1686,7 +1729,7 @@
             javaBridge.openGraphForIndividual(uri);
         }
 
-        /* ── Utilities ── */
+        /*  Utilities  */
 
         var _escDiv = document.createElement('div');
         function escapeHtml(text) {
@@ -1703,7 +1746,7 @@
             return "'" + s.split(bs).join(bs + bs).split("'").join(bs + "'") + "'";
         }
 
-        /* ── Context menu ── */
+        /*  Context menu  */
 
         function showRowContextMenu(evt, uri, label, type) {
             evt.preventDefault();
@@ -1713,26 +1756,29 @@
 
             var html = '<div class="ctx-header">Event: ' + escapeHtml(shortName) + '</div>';
             html += '<div class="ctx-item" onclick="ctxIncludeName(' + escJs(label) + ')">';
-            html += '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Include \"' + escapeHtml(shortName) + '\"</div>';
+            html += '<i data-lucide="check" class="h-4 w-4"></i> Include \"' + escapeHtml(shortName) + '\"</div>';
             html += '<div class="ctx-item" onclick="ctxExcludeName(' + escJs(label) + ')">';
-            html += '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> Exclude \"' + escapeHtml(shortName) + '\"</div>';
+            html += '<i data-lucide="x" class="h-4 w-4"></i> Exclude \"' + escapeHtml(shortName) + '\"</div>';
             html += '<div class="ctx-separator"></div>';
 
             var groupLabel = type;
             html += '<div class="ctx-header">Type: ' + escapeHtml(groupLabel) + '</div>';
             html += '<div class="ctx-item" onclick="ctxShowOnly(' + escJs(type) + ')">';
-            html += '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Show only ' + escapeHtml(groupLabel) + '</div>';
+            html += '<i data-lucide="list" class="h-4 w-4"></i> Show only ' + escapeHtml(groupLabel) + '</div>';
             html += '<div class="ctx-item" onclick="ctxExcludeType(' + escJs(type) + ')">';
-            html += '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> Exclude ' + escapeHtml(groupLabel) + '</div>';
+            html += '<i data-lucide="x" class="h-4 w-4"></i> Exclude ' + escapeHtml(groupLabel) + '</div>';
 
             html += '<div class="ctx-separator"></div>';
             html += '<div class="ctx-item" onclick="openGraphFor(' + escJs(uri) + ')">';
-            html += '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51 15.42 17.49"/><path d="M15.41 6.51 8.59 10.49"/></svg> Open Graph</div>';
+            html += '<i data-lucide="waypoints" class="h-4 w-4"></i> Open Graph <i data-lucide="external-link" class="h-2 w-2"></i></div>';
 
             menu.innerHTML = html;
             menu.style.display = 'block';
             menu.style.left = evt.clientX + 'px';
             menu.style.top = evt.clientY + 'px';
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons({ nodes: [menu] });
+            }
             // Adjust if overflowing
             var rect = menu.getBoundingClientRect();
             if (rect.right > window.innerWidth) menu.style.left = (evt.clientX - rect.width) + 'px';
@@ -1749,7 +1795,7 @@
             if (!e.target.closest('#event-tbody')) hideContextMenu();
         });
 
-        /* ── Include / Exclude name actions ── */
+        /*  Include / Exclude name actions  */
 
         function ctxIncludeName(name) {
             hideContextMenu();
@@ -1804,19 +1850,19 @@
             nameIncludes.forEach(function(f, i) {
                 var short = f.text.length > 20 ? f.text.substring(0, 17) + '...' : f.text;
                 html += '<span class="filter-tag include" title="Include: ' + escAttr(f.text) + '">';
-                html += '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> ' + escapeHtml(short);
+                html += '<i data-lucide="check" class="h-4 w-4"></i> ' + escapeHtml(short);
                 html += '<span class="tag-remove" onclick="removeInclude(' + i + ')">&times;</span></span>';
             });
             nameExcludes.forEach(function(f, i) {
                 var short = f.text.length > 20 ? f.text.substring(0, 17) + '...' : f.text;
                 html += '<span class="filter-tag exclude" title="Exclude: ' + escAttr(f.text) + '">';
-                html += '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> ' + escapeHtml(short);
+                html += '<i data-lucide="x" class="h-4 w-4"></i> ' + escapeHtml(short);
                 html += '<span class="tag-remove" onclick="removeExclude(' + i + ')">&times;</span></span>';
             });
             container.innerHTML = html;
         }
 
-        /* ── Select All / None / Clear ── */
+        /*  Select All / None / Clear  */
 
         function selectAllTypes() {
             allEvents.forEach(function(e) { activeTypes.add(e.type); });
@@ -1847,7 +1893,7 @@
             applyFilters();
         }
 
-        /* ── Detail panel resizer ── */
+        /*  Detail panel resizer  */
         function initResizer() {
             var resizer = document.getElementById('detail-resizer');
             var panel = document.getElementById('detail-panel');

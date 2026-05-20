@@ -168,8 +168,10 @@
 
                 network = new vis.Network(container, { nodes: nodesDataSet, edges: edgesDataSet }, options);
                 styleNavigationButtons(container);
-                var navObserver = new MutationObserver(function () { styleNavigationButtons(container); });
-                navObserver.observe(container, { childList: true, subtree: true });
+                // Navigation buttons are created asynchronously by vis.js; retry a couple of times,
+                // but avoid subtree observers because tooltip mutations on hover can cause re-style loops.
+                setTimeout(function () { styleNavigationButtons(container); }, 120);
+                setTimeout(function () { styleNavigationButtons(container); }, 400);
 
                 // Draw dot grid on the canvas (moves & scales with the graph)
                 var DOT_SPACING = 40;  // world-coordinate spacing between dots
@@ -213,6 +215,7 @@
 
                 // Double-click to expand
                 network.on('doubleClick', function (params) {
+                    if (!nodesDataSet) return;
                     if (params.nodes.length > 0) {
                         var nodeId = params.nodes[0];
                         if (nodeId.indexOf('_lit_') >= 0) return;
@@ -222,13 +225,14 @@
 
                 // Click to show info & expand/collapse literals
                 network.on('click', function (params) {
+                    if (!nodesDataSet) return;
                     if (params.nodes.length > 0) {
                         var nodeId = params.nodes[0];
-                        collapseLiteral();  // collapse any previously expanded literal
-                        expandLiteral(nodeId);
+                        // collapseLiteral();  // collapse any previously expanded literal
+                        // expandLiteral(nodeId);
                         showNodeInfo(nodeId);
                     } else {
-                        collapseLiteral();
+                        //collapseLiteral();
                         document.getElementById('node-info').style.display = 'none';
                     }
                 });
@@ -251,8 +255,10 @@
                 return;
             }
             try {
+                javaBridge.log('Expanding node: ' + nodeId);
                 var summaryJson = javaBridge.getNeighborSummaryJson(nodeId);
                 var summary = JSON.parse(summaryJson);
+                javaBridge.log('Neighbor summary for ' + nodeId + ': ' + summary.totalCount + ' neighbors across ' + summary.types.length + ' types');
 
                 if (summary.totalCount <= EXPAND_THRESHOLD) {
                     // Small neighborhood — load everything
@@ -375,10 +381,10 @@
             html += '</div>';
 
             html += '<div class="flex gap-2 mt-4 justify-end">';
-            html += '<button class="uk-btn uk-btn-default uk-btn-xs" onclick="selectAllTypes(true)">All</button>';
-            html += '<button class="uk-btn uk-btn-default uk-btn-xs" onclick="selectAllTypes(false)">None</button>';
-            html += '<button class="uk-btn uk-btn-primary uk-btn-xs" onclick="confirmExpansion()">Expand</button>';
-            html += '<button class="uk-btn uk-btn-default uk-btn-xs" onclick="cancelExpansion()">Cancel</button>';
+            html += '<button class="px-3 py-1.5 rounded-md border border-border bg-background text-foreground text-xs font-medium transition hover:bg-secondary hover:border-border/80 cursor-pointer" onclick="selectAllTypes(true)">All</button>';
+            html += '<button class="px-3 py-1.5 rounded-md border border-border bg-background text-foreground text-xs font-medium transition hover:bg-secondary hover:border-border/80 cursor-pointer" onclick="selectAllTypes(false)">None</button>';
+            html += '<button class="px-3 py-1.5 rounded-md border border-accent bg-accent text-accent-foreground text-xs font-medium transition hover:bg-accent/90 hover:border-accent/80 cursor-pointer" onclick="confirmExpansion()">Expand</button>';
+            html += '<button class="px-3 py-1.5 rounded-md border border-border bg-background text-foreground text-xs font-medium transition hover:bg-secondary hover:border-border/80 cursor-pointer" onclick="cancelExpansion()">Cancel</button>';
             html += '</div>';
 
             dialog.innerHTML = html;
@@ -474,12 +480,13 @@
             if (!isLiteral) {
                 var isExplored = exploredNodes.has(nodeId);
                 html += '<div class="mt-1.5 flex items-center gap-1 ' + (isExplored ? 'text-green-600' : 'text-orange-500') + '">' +
-                    (isExplored ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Explored' : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg> Not explored (double-click to expand)') + '</div>';
+                    (isExplored ? '<i data-lucide="check"/> Explored' : '<i data-lucide="circle"/> Not explored (double-click to expand)') + '</div>';
             }
             info.innerHTML = html;
         }
 
         function expandLiteral(nodeId) {
+            javaBridge.log('Expanding literal node: ' + nodeId);
             var node = nodesDataSet.get(nodeId);
             if (!node) return;
             var isLiteral = (node.shape === 'box') || (nodeId && nodeId.indexOf('_lit_') >= 0);
@@ -504,10 +511,14 @@
                 nodesDataSet.update({
                     id: expandedLiteralId,
                     label: node._shortLabel,
-                    _shortLabel: undefined,
-                    font: { size: 11, color: '#333' },
-                    widthConstraint: undefined
+                    font: { size: 11, color: '#333' }
                 });
+                nodesDataSet.update({ id: expandedLiteralId });
+                // Remove private keys via remove+re-add to avoid DataSet corruption
+                var clean = Object.assign({}, nodesDataSet.get(expandedLiteralId));
+                delete clean._shortLabel;
+                delete clean.widthConstraint;
+                nodesDataSet.update(clean);
             }
             expandedLiteralId = null;
         }
@@ -566,7 +577,7 @@
             for (var type in types) {
                 body += '<div class="flex items-center gap-1.5 mb-1 whitespace-nowrap overflow-hidden text-ellipsis"><span class="w-3 h-3 rounded-full shrink-0 inline-block" style="background:' + types[type] + '"></span> ' + escapeHtml(type) + '</div>';
             }
-            legend.innerHTML = '<div class="px-3 py-2 bg-secondary text-secondary-foreground text-xs font-semibold cursor-pointer select-none flex items-center gap-1.5 hover:bg-accent transition-colors" id="legend-header" onclick="toggleLegend()"><span class="toggle-arrow flex text-[10px] transition-transform duration-200"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span> Legend</div>' +
+            legend.innerHTML = '<div class="px-3 py-2 bg-secondary text-secondary-foreground text-xs font-semibold cursor-pointer select-none flex items-center gap-1.5 hover:bg-accent transition-colors" id="legend-header" onclick="toggleLegend()"><span class="toggle-arrow flex text-[10px] transition-transform duration-200"><i data-lucide="chevron-down"></i></span> Legend</div>' +
                 '<div class="px-3 py-2 overflow-hidden transition-all duration-250" id="legend-body" style="max-height:500px;opacity:1">' + body + '</div>';
             if (wasCollapsed) {
                 legend.classList.add('collapsed');
@@ -618,7 +629,11 @@
             return _escDiv.innerHTML;
         }
     </script>
-    <script>lucide.createIcons();</script>
+    <script>
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
+    </script>
 </body>
 
 </html>

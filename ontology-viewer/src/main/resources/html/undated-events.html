@@ -12,9 +12,7 @@
     <header class="shrink-0 border-b border-white/10 bg-slate-900/80 px-5 py-4 backdrop-blur">
         <div class="flex items-center gap-3">
             <button id="back-btn" type="button" class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-100 transition hover:border-white/20 hover:bg-white/10">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path d="M7.5 2L3.5 6L7.5 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <i data-lucide="chevron-left" class="h-4 w-4"></i>
                 <span>Back</span>
             </button>
             <div class="min-w-0 flex-1">
@@ -25,11 +23,23 @@
     </header>
 
     <section class="shrink-0 border-b border-white/10 bg-slate-950/90 px-5 py-3">
-        <div class="flex items-center gap-3 rounded-xl border border-white/10 bg-slate-900/70 px-4 py-2.5 shadow-lg shadow-black/10">
-            <span class="text-slate-400">
-                <i data-lucide="search" class="h-4 w-4"></i>
-            </span>
-            <input type="text" id="search-input" placeholder="Search items by label or type..." class="w-full bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-500">
+        <div class="flex flex-col gap-3">
+            <div class="flex items-center gap-3 rounded-xl border border-white/10 bg-slate-900/70 px-4 py-2.5 shadow-lg shadow-black/10">
+                <span class="text-slate-400">
+                    <i data-lucide="search" class="h-4 w-4"></i>
+                </span>
+                <input type="text" id="search-input" placeholder="Search items by label or type..." class="w-full bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-500">
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="expand-all-btn" type="button" class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-100 transition hover:border-white/20 hover:bg-white/10">
+                    <i data-lucide="list-chevrons-up-down" class="h-3 w-3"></i>
+                    <span>Expand All</span>
+                </button>
+                <button id="collapse-all-btn" type="button" class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-100 transition hover:border-white/20 hover:bg-white/10">
+                    <i data-lucide="list-chevrons-down-up" class="h-3 w-3"></i>
+                    <span>Collapse All</span>
+                </button>
+            </div>
         </div>
     </section>
 
@@ -100,6 +110,14 @@
                 filterEvents(e.target.value.trim().toLowerCase());
             });
 
+            document.getElementById('expand-all-btn').addEventListener('click', () => {
+                expandAllGroups();
+            });
+
+            document.getElementById('collapse-all-btn').addEventListener('click', () => {
+                collapseAllGroups();
+            });
+
             lucide.createIcons();
         }
 
@@ -133,7 +151,7 @@
                 header.setAttribute('aria-expanded', 'true');
                 header.style.borderLeftColor = typeColor;
                 header.innerHTML = `
-                    <span class="toggle-indicator text-slate-400">▾</span>
+                    <i data-lucide="chevron-down" class="toggle-indicator h-4 w-4 text-slate-400"></i>
                     <span class="min-w-0 flex-1 truncate" style="color: ${typeColor};">${escapeHtml(type)}</span>
                     <span class="text-xs font-medium text-slate-400">${events.length} event${events.length !== 1 ? 's' : ''}</span>
                 `;
@@ -142,7 +160,9 @@
                     const list = typeGroup.querySelector('.events-list');
                     const expanded = header.getAttribute('aria-expanded') === 'true';
                     header.setAttribute('aria-expanded', String(!expanded));
-                    header.querySelector('.toggle-indicator').textContent = expanded ? '▸' : '▾';
+                    const toggleIcon = header.querySelector('.toggle-indicator');
+                    toggleIcon.setAttribute('data-lucide', expanded ? 'chevron-right' : 'chevron-down');
+                    lucide.createIcons();
                     list.classList.toggle('hidden');
                 });
 
@@ -213,7 +233,8 @@
 
                     // Auto-expand if searching
                     header.setAttribute('aria-expanded', 'true');
-                    header.querySelector('.toggle-indicator').textContent = '▾';
+                    header.querySelector('.toggle-indicator').setAttribute('data-lucide', 'chevron-down');
+                    lucide.createIcons();
                     group.querySelector('.events-list').classList.remove('hidden');
                     header.querySelector('.text-xs').textContent = `${visibleItems} match${visibleItems !== 1 ? 'es' : ''}`;
                 } else {
@@ -229,6 +250,34 @@
                     </div>
                 `;
             }
+        }
+
+        function expandAllGroups() {
+            const typeGroups = document.querySelectorAll('#events-container > div[data-type]');
+            typeGroups.forEach(group => {
+                const header = group.querySelector('button');
+                const eventsList = group.querySelector('.events-list');
+                if (header && eventsList) {
+                    header.setAttribute('aria-expanded', 'true');
+                    header.querySelector('.toggle-indicator').setAttribute('data-lucide', 'chevron-down');
+                    lucide.createIcons();
+                    eventsList.classList.remove('hidden');
+                }
+            });
+        }
+
+        function collapseAllGroups() {
+            const typeGroups = document.querySelectorAll('#events-container > div[data-type]');
+            typeGroups.forEach(group => {
+                const header = group.querySelector('button');
+                const eventsList = group.querySelector('.events-list');
+                if (header && eventsList) {
+                    header.setAttribute('aria-expanded', 'false');
+                    header.querySelector('.toggle-indicator').setAttribute('data-lucide', 'chevron-right');
+                    lucide.createIcons();
+                    eventsList.classList.add('hidden');
+                }
+            });
         }
 
         function escapeHtml(text) {
