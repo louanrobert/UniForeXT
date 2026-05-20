@@ -49,8 +49,13 @@ public class GraphView {
         });
 
         try {
-            String htmlContent = HtmlLoader.load("graph-view.html");
-            webEngine.loadContent(htmlContent);
+            String htmlUrl = HtmlLoader.resourceUrl("graph-view.html");
+            if (htmlUrl != null) {
+                webEngine.load(htmlUrl);
+            } else {
+                String htmlContent = HtmlLoader.load("graph-view.html");
+                webEngine.loadContent(htmlContent);
+            }
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to load graph view HTML", e);
             webEngine.loadContent("<html><body><h1>Error loading view</h1><p>" + 

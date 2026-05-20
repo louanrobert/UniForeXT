@@ -3,6 +3,7 @@ package be.ccb_uliege.incd.ontology_viewer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.net.URL;
 
 /**
  * Loads HTML files from the {@code /html/} resource directory on the classpath.
@@ -36,6 +37,23 @@ public final class HtmlLoader {
             return generateErrorPage("I/O Error", 
                 "Failed to read the HTML resource: " + e.getMessage());
         }
+    }
+
+    /**
+     * Returns the external URL of an HTML resource inside /html/.
+     * This is useful for WebEngine.load(...) so relative assets resolve correctly.
+     *
+     * @param fileName the file name inside /html/
+     * @return external URL string, or null if not found
+     */
+    public static String resourceUrl(String fileName) {
+        String path = "/html/" + fileName;
+        URL url = HtmlLoader.class.getResource(path);
+        if (url == null) {
+            System.err.println("WARNING: HTML resource URL not found: " + path);
+            return null;
+        }
+        return url.toExternalForm();
     }
 
     /**

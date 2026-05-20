@@ -53,8 +53,13 @@ public abstract class BaseWebView {
             }
         });
 
-        String htmlContent = HtmlLoader.load(htmlFileName);
-        webEngine.loadContent(htmlContent);
+        String htmlUrl = HtmlLoader.resourceUrl(htmlFileName);
+        if (htmlUrl != null) {
+            webEngine.load(htmlUrl);
+        } else {
+            String htmlContent = HtmlLoader.load(htmlFileName);
+            webEngine.loadContent(htmlContent);
+        }
         root.setCenter(webView);
     }
 

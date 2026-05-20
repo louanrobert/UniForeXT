@@ -52,8 +52,13 @@ public class FastTimelineView {
         });
 
         try {
-            String htmlContent = HtmlLoader.load("timeline-fast.html");
-            webEngine.loadContent(htmlContent);
+            String htmlUrl = HtmlLoader.resourceUrl("timeline-fast.html");
+            if (htmlUrl != null) {
+                webEngine.load(htmlUrl);
+            } else {
+                String htmlContent = HtmlLoader.load("timeline-fast.html");
+                webEngine.loadContent(htmlContent);
+            }
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to load fast timeline HTML", e);
             webEngine.loadContent("<html><body><h1>Error loading view</h1><p>" + 
