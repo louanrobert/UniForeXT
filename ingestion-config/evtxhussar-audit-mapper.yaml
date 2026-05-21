@@ -1,0 +1,123 @@
+genericMappings:
+  addTimestamp:
+    - sourceField: "EventTime"
+      type: dataProperty
+      owlProperty: hasTimestamp
+      dataType: xsd:dateTimeStamp
+
+  addComputer:
+    - type: linkedIndividual
+      owlClass: Computer
+      linkProperty: hasComputer
+      identifier:
+        fields: "Computer"
+      dataProperties:
+        - sourceField: "Computer"
+          type: dataProperty
+          owlProperty: hasHostname
+
+  addSubjectUser:
+    - type: linkedIndividual
+      owlClass: User
+      linkProperty: hasUser
+      identifier:
+        fields: "SubjectUserName"
+      dataProperties:
+        - sourceField: "SubjectUserName"
+          type: dataProperty
+          owlProperty: hasName
+        - sourceField: "SubjectDomainName"
+          type: dataProperty
+          owlProperty: hasDomain
+
+  addTargetUser:
+    - type: linkedIndividual
+      owlClass: User
+      linkProperty: hasTargetUser
+      identifier:
+        fields: "TargetUserName"
+      dataProperties:
+        - sourceField: "TargetUserName"
+          type: dataProperty
+          owlProperty: hasName
+        - sourceField: "TargetDomainName"
+          type: dataProperty
+          owlProperty: hasDomain
+
+mappers:
+  - name: LogClearedMapper
+    file: "${ANALYSIS_ROOT}/Evtxhussar_results/*/audit/log_cleared.xlsx"
+    owlClass: LogCleared_Event
+    identifier:
+      fields:
+        - "Computer"
+        - "EventTime"
+        - "EID"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addSubjectUser
+    fieldMappings:
+      - sourceField: "EID"
+        type: dataProperty
+        owlProperty: hasEventID
+        dataType: xsd:unsignedLong
+
+      - sourceField: "Description"
+        type: dataProperty
+        owlProperty: hasDescription
+
+      - sourceField: "Keywords"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Keywords: "
+
+  - name: PolicyChangeMapper
+    file: "${ANALYSIS_ROOT}/Evtxhussar_results/*/audit/policy_change.xlsx"
+    owlClass: AuditPolicyChange_Event
+    identifier:
+      fields:
+        - "Computer"
+        - "EventTime"
+        - "EID"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addSubjectUser
+      - addTargetUser
+    fieldMappings:
+      - sourceField: "EID"
+        type: dataProperty
+        owlProperty: hasEventID
+        dataType: xsd:unsignedLong
+
+      - sourceField: "Description"
+        type: dataProperty
+        owlProperty: hasDescription
+
+      - sourceField: "CategoryId"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Category ID: "
+
+      - sourceField: "SubcategoryId"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Subcategory ID: "
+
+      - sourceField: "SubcategoryGuid"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Subcategory GUID: "
+
+      - sourceField: "AuditPolicyChanges"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Policy changes: "

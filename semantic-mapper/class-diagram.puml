@@ -1,0 +1,275 @@
+@startuml mapping
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+title Mapping process class diagram
+
+package "semantic_mapper" {
+  class App <<utility>> {
+    +main(args: String[]): void
+  }
+}
+
+package "semantic_mapper.ingest.interfaces" {
+  interface SourceIngester {
+    +ingest(file: Path, mapper: SourceMapper, delimiter: Character): void
+  }
+
+  interface SourceMapper {
+    +map(record: SourceRecord): void
+  }
+
+  interface SourceRecord {
+    +get(field: String): String
+    +getHashed(field: String): String
+    +has(field: String): boolean
+  }
+}
+
+package "semantic_mapper.ingest.pipeline" {
+  abstract class IngestionStage {
+    {abstract} +execute(context: PipelineContext): void
+    #log(message: String): void
+  }
+
+  class PipelineContext {
+    -knowledgeGraph: KnowledgeGraphFacade
+    -sourceIngester: SourceIngester
+    -mapperConfigPath: String
+    -mapperRegistry: YamlMapperRegistry
+    -ingestionTasks: List<IngestionTask>
+    +getKnowledgeGraph(): KnowledgeGraphFacade
+    +getSourceIngester(): SourceIngester
+    +getMapperConfigPath(): String
+    +getMapperRegistry(): YamlMapperRegistry
+    +setMapperRegistry(registry: YamlMapperRegistry): void
+    +getIngestionTasks(): List<IngestionTask>
+    +addTask(task: IngestionTask): void
+  }
+
+  class IngestionTask <<record>> {
+    +file: Path
+    +mapper: SourceMapper
+    +delimiter: Character
+  }
+
+  class LoadMappersStage {
+    +execute(context: PipelineContext): void
+  }
+
+  class DefineIngestionTasksStage {
+    +execute(context: PipelineContext): void
+  }
+
+  class ExecuteIngestionTasksStage {
+    +execute(context: PipelineContext): void
+  }
+
+  class ValidateShaclStage {
+    +execute(context: PipelineContext): void
+  }
+}
+
+package "semantic_mapper.ingest" {
+  class IngestionPipeline {
+    -stages: List<IngestionStage>
+    +run(context: PipelineContext): void
+    +run(knowledgeGraph: KnowledgeGraphFacade): void
+  }
+}
+
+package "semantic_mapper.ingest.mappers.config" {
+  class MapperConfig {
+    -name: String
+    -owlClass: String
+    -file: Path
+    -identifier: IdentifierConfig
+    -generics: List<String>
+    -staticProperties: List<StaticPropertyConfig>
+    -fieldMappings: List<FieldMappingConfig>
+  }
+
+  class MapperConfigRegistry {
+    -genericMappings: Map<String, List<FieldMappingConfig>>
+    -mappers: List<MapperConfig>
+  }
+
+  class FieldMappingConfig {
+    -sourceField: String
+    -owlProperty: String
+    -type: String
+    -prefix: String
+    -unique: boolean
+    -owlClass: String
+    -linkProperty: String
+    -identifier: IdentifierConfig
+    -dataProperties: List<FieldMappingConfig>
+    -nestedLinks: List<FieldMappingConfig>
+  }
+
+  class IdentifierConfig {
+    -fields: List<String>
+    -separator: String
+    -useHash: boolean
+  }
+
+  class StaticPropertyConfig {
+    -owlProperty: String
+    -value: String
+  }
+
+  class MappersConfigLoader <<utility>> {
+    +load(yamlFile: File): MapperConfigRegistry
+    +load(yamlFilePath: String): MapperConfigRegistry
+  }
+}
+
+package "semantic_mapper.ingest.mappers" {
+  class YamlSourceMapper {
+    -config: MapperConfig
+    -genericMappings: Map<String, List<FieldMappingConfig>>
+    -knowledgeGraph: KnowledgeGraphFacade
+    +getName(): String
+    +map(record: SourceRecord): void
+  }
+
+  class YamlMapperRegistry {
+    -mappers: Map<String, SourceMapper>
+    +fromYamlFile(yamlFilePath: String, knowledgeGraph: KnowledgeGraphFacade): YamlMapperRegistry
+    +getMapper(name: String): SourceMapper
+    +getMappers(): Map<String, SourceMapper>
+  }
+}
+
+package "semantic_mapper.ingest.implementations.csv" {
+  class CsvIngester {
+    +ingest(file: Path, mapper: SourceMapper, delimiter: Character): void
+  }
+
+  class CsvRecord {
+    -csvRecord: CSVRecord
+    +get(field: String): String
+    +getHashed(field: String): String
+    +has(field: String): boolean
+  }
+}
+
+package "semantic_mapper.owl" {
+  class Loader {
+    -ontologyModel: Model
+    -dataModel: Model
+    +getOntologySize(): long
+    +getDataSize(): long
+    +asOntologyFacade(): OntologyFacade
+    +asKnowledgeGraphFacade(): KnowledgeGraphFacade
+    +prettyPrint(): void
+  }
+}
+
+package "semantic_mapper.owl.ontology" {
+  class OntologyFacade {
+    -ontology: Model
+    -classes: Classes
+    -properties: Properties
+    +getOntologyModel(): Model
+    +getClassResource(className: String): Resource
+    +getObjectProperty(propertyName: String): Property
+    +getDataProperty(propertyName: String): Property
+  }
+
+  class Classes {
+    -classes: Map<String, Resource>
+    -loader: Loader
+    +getClass(name: String): Resource
+  }
+
+  class Properties {
+    -properties: Map<String, Property>
+    -dataProperties: Map<String, Property>
+    -loader: Loader
+    +getProperty(name: String): Property
+    +getDataProperty(name: String): Property
+  }
+}
+
+package "semantic_mapper.owl.kg" {
+  class KnowledgeGraphFacade {
+    -ontologyFacade: OntologyFacade
+    -knowledgeGraph: Model
+    +getDataModel(): Model
+    +createIndividual(className: String, individualName: String): Resource
+    +createLiteral(value: Object, datatype: RDFDatatype): Literal
+    +getObjectProperty(propertyName: String): Property
+    +getDataProperty(propertyName: String): Property
+    +addDataProperty(subject: Resource, propertyName: String, literal: Literal): void
+    +addObjectProperty(subject: Resource, propertyName: String, object: Resource): void
+    +addUniqueDataProperty(subject: Resource, propertyName: String, literal: Literal): void
+    +addUniqueObjectProperty(subject: Resource, propertyName: String, object: Resource): void
+  }
+}
+
+LoadMappersStage ..|> IngestionStage
+DefineIngestionTasksStage ..|> IngestionStage
+ExecuteIngestionTasksStage ..|> IngestionStage
+ValidateShaclStage ..|> IngestionStage
+CsvIngester ..|> SourceIngester
+CsvRecord ..|> SourceRecord
+YamlSourceMapper ..|> SourceMapper
+
+IngestionPipeline *-- "1..*" IngestionStage : stages
+PipelineContext *-- KnowledgeGraphFacade
+PipelineContext *-- SourceIngester
+PipelineContext *-- YamlMapperRegistry
+PipelineContext *-- "0..*" IngestionTask
+
+IngestionTask --> SourceMapper
+IngestionPipeline ..> PipelineContext
+IngestionPipeline ..> CsvIngester
+IngestionPipeline ..> LoadMappersStage
+IngestionPipeline ..> DefineIngestionTasksStage
+IngestionPipeline ..> ExecuteIngestionTasksStage
+IngestionPipeline ..> KnowledgeGraphFacade
+
+LoadMappersStage ..> PipelineContext
+LoadMappersStage ..> YamlMapperRegistry
+DefineIngestionTasksStage ..> PipelineContext
+DefineIngestionTasksStage ..> IngestionTask
+ExecuteIngestionTasksStage ..> PipelineContext
+ExecuteIngestionTasksStage ..> IngestionTask
+
+YamlMapperRegistry *-- "0..*" SourceMapper : mappers
+YamlMapperRegistry ..> MapperConfigRegistry
+YamlMapperRegistry ..> MappersConfigLoader
+YamlMapperRegistry ..> YamlSourceMapper
+YamlMapperRegistry ..> KnowledgeGraphFacade
+
+YamlSourceMapper *-- MapperConfig
+YamlSourceMapper *-- "0..*" FieldMappingConfig : generic mappings
+YamlSourceMapper ..> KnowledgeGraphFacade
+YamlSourceMapper ..> SourceRecord
+
+MapperConfigRegistry *-- "0..*" MapperConfig
+MapperConfigRegistry *-- "0..*" FieldMappingConfig : generic mappings
+MapperConfig *-- IdentifierConfig
+MapperConfig *-- "0..*" StaticPropertyConfig
+MapperConfig *-- "0..*" FieldMappingConfig
+FieldMappingConfig *-- IdentifierConfig
+FieldMappingConfig *-- "0..*" FieldMappingConfig : dataProperties
+FieldMappingConfig *-- "0..*" FieldMappingConfig : nestedLinks
+
+Loader *-- OntologyFacade
+Loader *-- KnowledgeGraphFacade
+OntologyFacade *-- Classes
+OntologyFacade *-- Properties
+
+KnowledgeGraphFacade *-- OntologyFacade
+
+Classes *-- Loader
+Properties *-- Loader
+
+App ..> Loader
+App ..> KnowledgeGraphFacade
+App ..> IngestionPipeline
+
+@enduml

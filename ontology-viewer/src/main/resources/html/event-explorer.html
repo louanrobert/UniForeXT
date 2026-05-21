@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://rsms.me/" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <script src="assets/tailwindcss-cdn.js"></script>
+    <script>tailwind.config = { darkMode: 'class' };</script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://unpkg.com/@sgratzl/chartjs-chart-boxplot@4"></script>
+    <script src="https://unpkg.com/chartjs-chart-matrix@2"></script>
+    <script src="assets/lucide.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <style>
+        #context-menu {
+            position: fixed;
+            z-index: 60;
+            min-width: 15rem;
+            padding: 0.4rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            background: rgba(15, 23, 42, 0.98);
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(18px);
+            color: #e2e8f0;
+        }
+
+        #context-menu .ctx-header {
+            padding: 0.45rem 0.6rem 0.35rem;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #94a3b8;
+        }
+
+        #context-menu .ctx-item {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.5rem 0.6rem;
+            border-radius: 0.55rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: #e2e8f0;
+        }
+
+        #context-menu .ctx-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        #context-menu .ctx-separator {
+            height: 1px;
+            margin: 0.35rem 0.2rem;
+            background: rgba(255, 255, 255, 0.08);
+        }
+    </style>
+    
+    
+    </head>
+<body class="antialiased bg-slate-950 text-slate-100 font-inter h-screen flex flex-col overflow-hidden">
+    <!-- Header -->
+    <div id="header" class="flex items-center gap-4 border-b border-white/10 bg-slate-900/80 px-5 py-4 backdrop-blur">
+        <button id="back-btn" type="button" onclick="javaBridge.navigateBack()" class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-100 transition hover:border-white/20 hover:bg-white/10">
+            <i data-lucide="chevron-left" class="h-4 w-4"></i>
+            <span>Back</span>
+        </button>
+        <h1 class="ml-2 flex items-center gap-2 text-base font-semibold tracking-tight text-slate-50"><i data-lucide="bar-chart-3" class="w-4.5 h-4.5"></i> Event Explorer</h1>
+        <span id="stats" class="ml-2 text-xs text-slate-400"></span>
+    </div>
+
+    <!-- Histogram -->
+    <div id="histogram-area" class="h-60 min-h-[180px] flex flex-col flex-shrink-0 p-2 border-b border-white/10 bg-slate-800 overflow-hidden">
+        <div id="histogram-controls" class="flex items-center gap-4 pb-2 flex-wrap shrink-0">
+            <div class="control-group flex items-center gap-2 flex-wrap">
+                <span class="control-label text-xs uppercase tracking-wide text-slate-300 mr-1">Period:</span>
+                <button class="ctrl-btn period-btn active px-3 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-unit="auto" onclick="setPeriod('auto')">Auto</button>
+                <button class="ctrl-btn period-btn px-3 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-unit="day" onclick="setPeriod('day')">Day</button>
+                <button class="ctrl-btn period-btn px-3 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-unit="week" onclick="setPeriod('week')">Week</button>
+                <button class="ctrl-btn period-btn px-3 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-unit="month" onclick="setPeriod('month')">Month</button>
+                <button class="ctrl-btn period-btn px-3 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-unit="quarter" onclick="setPeriod('quarter')">Quarter</button>
+                <button class="ctrl-btn period-btn px-3 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-unit="year" onclick="setPeriod('year')">Year</button>
+            </div>
+            <div class="control-group ml-auto flex items-center gap-2">
+                <span class="control-label text-xs uppercase tracking-wide text-slate-300 mr-1">View:</span>
+                <button class="ctrl-btn chart-btn active px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="bar" onclick="setChartType('bar')" title="Stacked bars"><i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i> Bars</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="line" onclick="setChartType('line')" title="Line chart"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Lines</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="area" onclick="setChartType('area')" title="Stacked area"><i data-lucide="layers" class="w-3.5 h-3.5"></i> Area</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="cumulative" onclick="setChartType('cumulative')" title="Cumulative line"><i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> Cumul.</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="boxplot" onclick="setChartType('boxplot')" title="Box plot"><i data-lucide="box-select" class="w-3.5 h-3.5"></i> Box</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="violin" onclick="setChartType('violin')" title="Violin plot"><i data-lucide="activity" class="w-3.5 h-3.5"></i> Violin</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="pie" onclick="setChartType('pie')" title="Type distribution"><i data-lucide="pie-chart" class="w-3.5 h-3.5"></i> Donut</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="scatter" onclick="setChartType('scatter')" title="Timeline scatter"><i data-lucide="circle-dot" class="w-3.5 h-3.5"></i> Scatter</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="heatmap" onclick="setChartType('heatmap')" title="Day × Hour heatmap"><i data-lucide="grid-3x3" class="w-3.5 h-3.5"></i> Heat</button>
+                <button class="ctrl-btn chart-btn px-2 py-1 rounded-md text-xs bg-slate-700 text-slate-100" data-chart="radar" onclick="setChartType('radar')" title="Day-of-week radar"><i data-lucide="radar" class="w-3.5 h-3.5"></i> Radar</button>
+            </div>
+        </div>
+        <div id="histogram-chart-wrap" class="flex-1 min-h-0 relative">
+            <canvas id="histogram-canvas" class="w-full h-full"></canvas>
+        </div>
+    </div>
+
+    <!-- Context menu -->
+    <div id="context-menu" class="hidden"></div>
+
+    <!-- Content: table + detail -->
+    <div id="content" class="flex-1 flex min-h-0 overflow-hidden">
+        <div id="table-area" class="flex-1 flex flex-col overflow-hidden min-w-0 bg-slate-800">
+            <div id="filter-bar" class="flex items-center gap-3 p-3 border-b border-white/10 bg-slate-800 flex-wrap">
+                <span class="text-xs uppercase tracking-wide text-slate-300 flex-shrink-0">Filter:</span>
+                <input type="text" id="search-input" placeholder="Search events..." oninput="applyFilters()" class="w-56 bg-slate-700 border border-white/10 rounded-md px-3 py-1 text-sm text-slate-100 outline-none">
+                <div class="date-input-group flex items-center gap-2">
+                    <span class="date-input-label text-xs uppercase tracking-wide text-slate-300">Timeframe:</span>
+                    <input type="text" id="date-start" class="date-input bg-slate-700 border border-white/10 rounded-md px-2 py-1 text-sm text-slate-100" placeholder="Start date..." title="Start date and time">
+                    <span class="date-range-separator text-sm text-slate-300">→</span>
+                    <input type="text" id="date-end" class="date-input bg-slate-700 border border-white/10 rounded-md px-2 py-1 text-sm text-slate-100" placeholder="End date..." title="End date and time">
+                    <button id="clear-dates-btn" onclick="clearDateRange()" disabled class="px-2 py-1 bg-slate-700 border border-white/10 rounded-md text-xs text-slate-200">Clear</button>
+                    <span class="text-xs text-slate-400 whitespace-nowrap">Ctrl + wheel zooms</span>
+                </div>
+                <div id="type-chips" class="flex gap-1 flex-wrap"></div>
+                <span id="match-count" class="text-xs text-slate-300"></span>
+                <div id="filter-tags" class="flex gap-2 flex-wrap"></div>
+                <div class="ml-auto flex gap-2 flex-shrink-0">
+                    <button class="filter-action-btn px-2 py-1 bg-slate-700 border border-white/10 rounded-md text-xs text-slate-200" onclick="selectAllTypes()">All</button>
+                    <button class="filter-action-btn px-2 py-1 bg-slate-700 border border-white/10 rounded-md text-xs text-slate-200" onclick="selectNoTypes()">None</button>
+                    <button class="filter-action-btn px-2 py-1 bg-slate-700 border border-white/10 rounded-md text-xs text-slate-200" onclick="clearAllFilters()">Clear</button>
+                </div>
+            </div>
+            <div id="table-scroll" class="flex-1 overflow-auto bg-slate-800">
+                <table class="w-full border-separate border-spacing-y-1 text-sm" style="table-layout: fixed;">
+                    <thead class="sticky top-0 z-10 bg-slate-800">
+                        <tr class="bg-slate-800 text-slate-200 text-xs uppercase">
+                            <th onclick="sortBy('label')" id="th-label" class="text-left p-3 font-semibold w-1/3">Name <span class="sort-arrow"><i data-lucide="chevron-up" class="w-3 h-3"></i></span></th>
+                            <th onclick="sortBy('type')" id="th-type" class="text-left p-3 font-semibold w-1/4">Type <span class="sort-arrow"><i data-lucide="chevron-up" class="w-3 h-3"></i></span></th>
+                            <th onclick="sortBy('start')" id="th-start" class="text-left p-3 font-semibold w-1/3">Timestamp <span class="sort-arrow"><i data-lucide="chevron-up" class="w-3 h-3"></i></span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="event-tbody"></tbody>
+                </table>
+            </div>
+            <div id="table-pagination" class="flex items-center gap-2 px-4 py-2 border-t border-white/10 bg-slate-800 shrink-0 text-xs text-slate-300">
+                <button class="px-2 py-1 bg-slate-700 border border-white/10 rounded-md text-xs" onclick="prevPage()" id="page-prev">Prev</button>
+                <button class="px-2 py-1 bg-slate-700 border border-white/10 rounded-md text-xs" onclick="nextPage()" id="page-next">Next</button>
+                <span id="page-info"></span>
+            </div>
+        </div>
+
+        <!-- Resizer between table and detail -->
+        <div id="detail-resizer" class="h-full w-1 cursor-col-resize bg-transparent hover:bg-white/5" title="Drag to resize" style="touch-action:none;"></div>
+
+        <!-- Detail panel -->
+        <div id="detail-panel" class="w-72 min-w-[20rem] border-l border-white/10 bg-slate-800 flex flex-col overflow-hidden">
+            <div class="empty-state p-6 text-slate-400" id="detail-empty">
+                <span class="icon block mb-2"><i data-lucide="mouse-pointer-click" class="w-8 h-8 mx-auto"></i></span>
+                Select an event to view its details
+            </div>
+            <div id="detail-filled" style="display:none; flex-direction:column; height:100%;">
+                <div id="detail-header" class="px-4 py-3 border-b border-white/10">
+                    <span id="detail-type" class="inline-block px-2 py-1 rounded-full text-xs font-semibold bg-slate-700 text-slate-100"></span>
+                    <h2 id="detail-title" class="text-lg font-semibold mt-2"></h2>
+                    <div id="detail-uri" class="text-xs text-slate-400 break-all mt-1"></div>
+                </div>
+                <div id="detail-content" class="flex-1 overflow-auto p-4"></div>
+                <div id="detail-actions" class="px-4 py-3 border-t border-white/10 flex gap-2">
+                    <button onclick="openGraph()" class="inline-flex items-center gap-2 px-3 py-1 bg-slate-700 border border-white/10 rounded-md text-sm"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Open Graph</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var allEvents = [];
+        var filteredEvents = [];
+        var activeTypes = new Set();
+        var typeColorMap = {};
+        var selectedUri = null;
+        var sortField = 'start';
+        var sortAsc = true;
+        var histogramChart = null;
+        var currentBucketUnit = 'auto';
+        var currentChartType = 'bar';
+        var autoBucketUnit = 'day';
+        var chartEvents = [];
+        var dataTimeMin = null;
+        var dataTimeMax = null;
+        var eventPageSize = 250;
+        var eventPageIndex = 0;
+
+        var nameIncludes = [];  // [{text:'...'}] — event must match at least one
+        var nameExcludes = [];  // [{text:'...'}] — event must not match any
+        var dateStartIso = null;  // ISO datetime string or null
+        var dateEndIso = null;    // ISO datetime string or null
+
+        function getEventTimestamp(eventItem) {
+            if (typeof eventItem.timestamp === 'number') return eventItem.timestamp;
+            var ts = new Date(eventItem.start).getTime();
+            return isNaN(ts) ? null : ts;
+        }
+
+        var fpStart = null;  // flatpickr instance for start date
+        var fpEnd = null;    // flatpickr instance for end date
+        var enabledDates = [];  // array of available dates with events
+
+        function formatDateTimeLocal(ms) {
+            var d = new Date(ms);
+            var pad = function(value) { return String(value).padStart(2, '0'); };
+            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+        }
+
+        function updateDateRangeControls() {
+            // Collect all unique dates from events
+            var dateSet = {};
+            var firstEventDate = null;
+            var lastEventDate = null;
+            
+            allEvents.forEach(function(e) {
+                if (e.start) {
+                    var d = new Date(e.start);
+                    var dateKey = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                    dateSet[dateKey] = true;
+                    if (!firstEventDate) firstEventDate = new Date(e.start);
+                    lastEventDate = new Date(e.start);
+                }
+            });
+            enabledDates = Object.keys(dateSet).sort();
+
+            // Initialize flatpickr for start date if not already initialized
+            if (!fpStart) {
+                fpStart = flatpickr('#date-start', {
+                    enableTime: true,
+                    dateFormat: 'Y-m-d H:i',
+                    time_24hr: true,
+                    enable: enabledDates,
+                    onOpen: function() {
+                        if (firstEventDate && !fpStart.selectedDates.length) {
+                            fpStart.currentMonth = firstEventDate.getMonth();
+                            fpStart.currentYear = firstEventDate.getFullYear();
+                            fpStart.redraw();
+                        }
+                    },
+                    onClose: function() { applyFilters(); },
+                    onDayCreate: function(dObj, dStr, fp, dayElem) {
+                        var dateStr = dayElem.dateObj.getFullYear() + '-' + 
+                                      String(dayElem.dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                                      String(dayElem.dateObj.getDate()).padStart(2, '0');
+                        if (enabledDates.indexOf(dateStr) >= 0) {
+                            dayElem.classList.add('hasEvents');
+                        }
+                    }
+                });
+            }
+
+            // Initialize flatpickr for end date if not already initialized
+            if (!fpEnd) {
+                fpEnd = flatpickr('#date-end', {
+                    enableTime: true,
+                    dateFormat: 'Y-m-d H:i',
+                    time_24hr: true,
+                    enable: enabledDates,
+                    onOpen: function() {
+                        if (lastEventDate && !fpEnd.selectedDates.length) {
+                            fpEnd.currentMonth = lastEventDate.getMonth();
+                            fpEnd.currentYear = lastEventDate.getFullYear();
+                            fpEnd.redraw();
+                        }
+                    },
+                    onClose: function() { applyFilters(); },
+                    onDayCreate: function(dObj, dStr, fp, dayElem) {
+                        var dateStr = dayElem.dateObj.getFullYear() + '-' + 
+                                      String(dayElem.dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                                      String(dayElem.dateObj.getDate()).padStart(2, '0');
+                        if (enabledDates.indexOf(dateStr) >= 0) {
+                            dayElem.classList.add('hasEvents');
+                        }
+                    }
+                });
+            }
+
+            var clearBtn = document.getElementById('clear-dates-btn');
+            if (clearBtn) clearBtn.disabled = !dateStartIso && !dateEndIso;
+        }
+
+        function updateAutoBucketUnit(events) {
+            var sourceEvents = events || allEvents;
+            if (sourceEvents.length === 0) {
+                autoBucketUnit = 'day';
+                updateAutoLabel();
+                return;
+            }
+            var timestamps = sourceEvents.map(function(e) { return getEventTimestamp(e); }).filter(function(ts) { return ts !== null; });
+            if (timestamps.length === 0) {
+                autoBucketUnit = 'day';
+                updateAutoLabel();
+                return;
+            }
+            var minT = Math.min.apply(null, timestamps);
+            var maxT = Math.max.apply(null, timestamps);
+            var range = maxT - minT;
+            var msDay = 86400000, msMonth = msDay * 30, msYear = msDay * 365;
+            if (range > msYear * 10) autoBucketUnit = 'year';
+            else if (range > msYear * 2) autoBucketUnit = 'quarter';
+            else if (range > msMonth * 6) autoBucketUnit = 'month';
+            else if (range > msDay * 30) autoBucketUnit = 'week';
+            else autoBucketUnit = 'day';
+            updateAutoLabel();
+        }
+
+        function applyTimeframeZoom(deltaY) {
+            if (dataTimeMin === null || dataTimeMax === null) return;
+
+            var baseStart = dateStartIso ? new Date(dateStartIso).getTime() : dataTimeMin;
+            var baseEnd = dateEndIso ? new Date(dateEndIso).getTime() : dataTimeMax;
+            var range = Math.max(1, baseEnd - baseStart);
+            var center = baseStart + range / 2;
+            var zoomFactor = deltaY > 0 ? 1.25 : 0.8;
+            var nextRange = Math.max(60 * 1000, range * zoomFactor);
+            var nextStart = center - nextRange / 2;
+            var nextEnd = center + nextRange / 2;
+
+            if (nextStart < dataTimeMin) {
+                nextEnd += dataTimeMin - nextStart;
+                nextStart = dataTimeMin;
+            }
+            if (nextEnd > dataTimeMax) {
+                nextStart -= nextEnd - dataTimeMax;
+                nextEnd = dataTimeMax;
+            }
+
+            nextStart = Math.max(dataTimeMin, nextStart);
+            nextEnd = Math.min(dataTimeMax, nextEnd);
+            if (nextEnd <= nextStart) nextEnd = Math.min(dataTimeMax, nextStart + 60 * 1000);
+
+            dateStartIso = new Date(Math.floor(nextStart)).toISOString();
+            dateEndIso = new Date(Math.ceil(nextEnd)).toISOString();
+            updateDateRangeControls();
+            applyFilters();
+        }
+
+        function handleWheelShortcut(evt) {
+            if (!evt.ctrlKey) return;
+            evt.preventDefault();
+            applyTimeframeZoom(evt.deltaY);
+        }
+
+        function initExplorer() {
+            try {
+                var itemsJson = javaBridge.getTimelineItemsJson();
+                var groupsJson = javaBridge.getTimelineGroupsJson();
+                var items = JSON.parse(itemsJson);
+                var groups = JSON.parse(groupsJson);
+
+                // Build color map from provided group colors (single source of truth)
+                groups.forEach(function(g) {
+                    if (g.color) typeColorMap[g.id] = g.color;
+                });
+
+                // Parse items into our event list
+                allEvents = items.map(function(it) {
+                    var label = it.label || it.content || it.id || '';
+                    var type = it.group || 'Unknown';
+                    var timestamp = typeof it.timestamp === 'number' ? it.timestamp : new Date(it.start).getTime();
+                    return {
+                        uri: it.id,
+                        label: label,
+                        type: type,
+                        start: it.start,
+                        timestamp: isNaN(timestamp) ? null : timestamp,
+                        tooltip: it.title || '',
+                        searchText: (label + ' ' + type + ' ' + (it.id || '')).toLowerCase()
+                    };
+                });
+
+                var timestamps = allEvents.map(function(e) { return getEventTimestamp(e); }).filter(function(ts) { return ts !== null; });
+                if (timestamps.length > 0) {
+                    dataTimeMin = Math.min.apply(null, timestamps);
+                    dataTimeMax = Math.max.apply(null, timestamps);
+                }
+
+                document.getElementById('stats').textContent = allEvents.length + ' events loaded';
+
+                // Build type chips
+                buildTypeChips(groups);
+
+                updateDateRangeControls();
+
+                // Initial render
+                applyFilters();
+
+                // Build histogram
+                buildHistogram();
+
+                window.addEventListener('wheel', handleWheelShortcut, { passive: false });
+
+                // Initialize resizer for detail panel (allows horizontal resizing)
+                initResizer();
+
+                javaBridge.log('Event Explorer initialized with ' + allEvents.length + ' events');
+            } catch (e) {
+                javaBridge.log('Error initializing explorer: ' + e.message);
+                document.getElementById('table-scroll').innerHTML =
+                    '<div class="empty-state p-8 text-slate-400"><i data-lucide="circle-alert" class="h-4 w-4"></i>Error: ' + e.message + '</div>';
+            }
+        }
+
+        /*  Histogram  */
+
+        function buildHistogram() {
+            if (allEvents.length === 0) return;
+            rebuildHistogram();
+        }
+
+        function getEffectiveUnit() {
+            return currentBucketUnit === 'auto' ? autoBucketUnit : currentBucketUnit;
+        }
+
+        function setPeriod(unit) {
+            currentBucketUnit = unit;
+            document.querySelectorAll('.period-btn').forEach(function(b) {
+                b.classList.toggle('active', b.dataset.unit === unit);
+            });
+            updateAutoLabel();
+            rebuildHistogram();
+        }
+
+        function updateAutoLabel() {
+            var btn = document.querySelector('.period-btn[data-unit="auto"]');
+            if (!btn) return;
+            var resolved = autoBucketUnit.charAt(0).toUpperCase() + autoBucketUnit.slice(1);
+            btn.textContent = currentBucketUnit === 'auto' ? 'Auto (' + resolved + ')' : 'Auto';
+        }
+
+        function setChartType(type) {
+            currentChartType = type;
+            document.querySelectorAll('.chart-btn').forEach(function(b) {
+                b.classList.toggle('active', b.dataset.chart === type);
+            });
+            rebuildHistogram();
+        }
+
+        function rebuildHistogram() {
+            if (histogramChart) { histogramChart.destroy(); histogramChart = null; }
+            chartEvents = filteredEvents.slice();
+            updateAutoBucketUnit(chartEvents.length > 0 ? chartEvents : allEvents);
+            if (chartEvents.length === 0) return;
+            var unit = getEffectiveUnit();
+            switch (currentChartType) {
+                case 'bar':        buildBarChart(unit); break;
+                case 'line':       buildLineChart(unit); break;
+                case 'boxplot':    buildBoxPlotChart(unit); break;
+                case 'violin':     buildViolinChart(unit); break;
+                case 'area':       buildAreaChart(unit); break;
+                case 'cumulative': buildCumulativeChart(unit); break;
+                case 'pie':        buildPieChart(); break;
+                case 'scatter':    buildScatterChart(unit); break;
+                case 'heatmap':    buildHeatmapChart(unit); break;
+                case 'radar':      buildRadarChart(unit); break;
+                default:           buildBarChart(unit); break;
+            }
+        }
+
+        // Centralized chart options helper. Pass an `overrides` object
+        // to customize scales, plugins, onClick handlers, etc.
+        function chartOptions(overrides) {
+            var base = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 300 },
+                interaction: { mode: 'nearest', intersect: false },
+                plugins: {
+                    legend: {
+                        display: true, position: 'top', align: 'end',
+                        labels: { color: 'hsl(0 0% 63%)', font: { size: 10 }, boxWidth: 10, boxHeight: 10, padding: 8, usePointStyle: true, pointStyle: 'circle' }
+                    },
+                    tooltip: {
+                        mode: 'nearest', intersect: false,
+                        backgroundColor: 'rgba(20,20,30,0.95)', titleColor: '#fff', bodyColor: '#ccc',
+                        borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10,
+                        callbacks: {
+                            title: function(items) {
+                                if (items.length > 0 && items[0].parsed && items[0].parsed.x) {
+                                    return new Date(items[0].parsed.x).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                                }
+                                return '';
+                            }
+                        }
+                    }
+                }
+            };
+
+            function deepMerge(a, b) {
+                for (var k in b) {
+                    if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) {
+                        a[k] = a[k] || {};
+                        deepMerge(a[k], b[k]);
+                    } else {
+                        a[k] = b[k];
+                    }
+                }
+                return a;
+            }
+
+            return overrides ? deepMerge(base, overrides) : base;
+        }
+
+        /*  Aggregation helpers  */
+
+        function getBucketStart(dateStr, unit) {
+            var d = new Date(dateStr);
+            switch (unit) {
+                case 'hour':  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours()).getTime();
+                case 'day':   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+                case 'week':
+                    var day = d.getDay();
+                    var diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                    return new Date(d.getFullYear(), d.getMonth(), diff).getTime();
+                case 'month':   return new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+                case 'quarter': return new Date(d.getFullYear(), Math.floor(d.getMonth() / 3) * 3, 1).getTime();
+                case 'year':    return new Date(d.getFullYear(), 0, 1).getTime();
+                default:        return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+            }
+        }
+
+        function aggregateIntoBuckets(unit) {
+            var byType = {};
+            var allBucketKeys = new Set();
+            chartEvents.forEach(function(e) {
+                var bk = getBucketStart(e.start, unit);
+                allBucketKeys.add(bk);
+                if (!byType[e.type]) byType[e.type] = {};
+                byType[e.type][bk] = (byType[e.type][bk] || 0) + 1;
+            });
+            var sorted = Array.from(allBucketKeys).sort(function(a, b) { return a - b; });
+            return { bucketKeys: sorted, byType: byType };
+        }
+
+        function getSubUnit(unit) {
+            switch (unit) {
+                case 'year':    return 'month';
+                case 'quarter': return 'week';
+                case 'month':   return 'day';
+                case 'week':    return 'day';
+                case 'day':     return 'hour';
+                default:        return 'day';
+            }
+        }
+
+        function formatBucketLabel(ts, unit) {
+            var d = new Date(ts);
+            switch (unit) {
+                case 'day':     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                case 'week':    return 'W' + getWeekNumber(d) + ' ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                case 'month':   return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+                case 'quarter': return 'Q' + (Math.floor(d.getMonth() / 3) + 1) + ' ' + d.getFullYear();
+                case 'year':    return '' + d.getFullYear();
+                default:        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            }
+        }
+
+        function getWeekNumber(d) {
+            var dt = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+            dt.setDate(dt.getDate() + 4 - (dt.getDay() || 7));
+            var yearStart = new Date(dt.getFullYear(), 0, 1);
+            return Math.ceil((((dt - yearStart) / 86400000) + 1) / 7);
+        }
+
+        /*  Bar chart (stacked)  */
+
+        function buildBarChart(unit) {
+            var agg = aggregateIntoBuckets(unit);
+            var types = Object.keys(agg.byType);
+            var datasets = types.map(function(type) {
+                var data = agg.bucketKeys.map(function(bk) {
+                    return { x: new Date(bk).toISOString(), y: agg.byType[type][bk] || 0 };
+                });
+                var color = typeColorMap[type] || '#a6cee3';
+                return {
+                    label: type,
+                    data: data,
+                    backgroundColor: color + 'CC',
+                    borderColor: color,
+                    borderWidth: 1,
+                    borderRadius: 2,
+                    barPercentage: 0.9,
+                    categoryPercentage: 0.9,
+                    hidden: !activeTypes.has(type)
+                };
+            });
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'bar',
+                data: { datasets: datasets },
+                options: chartOptions({
+                    scales: {
+                        x: {
+                            type: 'time', time: { unit: unit, round: unit }, stacked: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, maxRotation: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            stacked: true, beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, stepSize: 1, precision: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' },
+                            title: { display: true, text: 'Events', color: 'hsl(0 0% 63%)', font: { size: 10 } }
+                        }
+                    },
+                    onClick: function(evt, elements) {
+                        if (elements.length > 0) {
+                            var el = elements[0];
+                            var ds = histogramChart.data.datasets[el.datasetIndex];
+                            var point = ds.data[el.index];
+                            if (point && point.x) scrollToTime(point.x);
+                        }
+                    }
+                })
+            });
+        }
+
+        /*  Line chart  */
+
+        function buildLineChart(unit) {
+            var agg = aggregateIntoBuckets(unit);
+            var types = Object.keys(agg.byType);
+            var datasets = types.map(function(type) {
+                var data = agg.bucketKeys.map(function(bk) {
+                    return { x: new Date(bk).toISOString(), y: agg.byType[type][bk] || 0 };
+                });
+                var color = typeColorMap[type] || '#a6cee3';
+                return {
+                    label: type,
+                    data: data,
+                    backgroundColor: color + '33',
+                    borderColor: color,
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    hidden: !activeTypes.has(type)
+                };
+            });
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'line',
+                data: { datasets: datasets },
+                options: chartOptions({
+                    scales: {
+                        x: {
+                            type: 'time', time: { unit: unit, round: unit },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, maxRotation: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, stepSize: 1, precision: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' },
+                            title: { display: true, text: 'Events', color: 'hsl(0 0% 63%)', font: { size: 10 } }
+                        }
+                    },
+                    onClick: function(evt, elements) {
+                        if (elements.length > 0) {
+                            var el = elements[0];
+                            var ds = histogramChart.data.datasets[el.datasetIndex];
+                            var point = ds.data[el.index];
+                            if (point && point.x) scrollToTime(point.x);
+                        }
+                    }
+                })
+            });
+        }
+
+        /*  Box plot chart  */
+
+        function buildBoxPlotChart(unit) {
+            var subUnit = getSubUnit(unit);
+            // For each type, for each main bucket, collect sub-bucket counts
+            var typeBucketSubs = {};
+            var allMainBuckets = new Set();
+
+            chartEvents.forEach(function(e) {
+                var mainBk = getBucketStart(e.start, unit);
+                var subBk = getBucketStart(e.start, subUnit);
+                allMainBuckets.add(mainBk);
+                if (!typeBucketSubs[e.type]) typeBucketSubs[e.type] = {};
+                if (!typeBucketSubs[e.type][mainBk]) typeBucketSubs[e.type][mainBk] = {};
+                typeBucketSubs[e.type][mainBk][subBk] = (typeBucketSubs[e.type][mainBk][subBk] || 0) + 1;
+            });
+
+            var sortedBuckets = Array.from(allMainBuckets).sort(function(a, b) { return a - b; });
+            var labels = sortedBuckets.map(function(bk) { return formatBucketLabel(bk, unit); });
+
+            var types = Object.keys(typeBucketSubs);
+            var datasets = types.map(function(type) {
+                var color = typeColorMap[type] || '#a6cee3';
+                var data = sortedBuckets.map(function(bk) {
+                    var subs = typeBucketSubs[type][bk];
+                    if (!subs) return [0];
+                    return Object.values(subs);
+                });
+                return {
+                    label: type,
+                    data: data,
+                    backgroundColor: color + '44',
+                    borderColor: color,
+                    borderWidth: 1,
+                    outlierBackgroundColor: color,
+                    outlierRadius: 3,
+                    itemRadius: 2,
+                    itemBackgroundColor: color + '88',
+                    medianColor: '#fff',
+                    hidden: !activeTypes.has(type)
+                };
+            });
+
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'boxplot',
+                data: { labels: labels, datasets: datasets },
+                options: chartOptions({
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, maxRotation: 45 },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, stepSize: 1, precision: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' },
+                            title: { display: true, text: 'Events per ' + subUnit, color: 'hsl(0 0% 63%)', font: { size: 10 } }
+                        }
+                    },
+                    onClick: function(evt, elements) {
+                        if (elements.length > 0) {
+                            var idx = elements[0].index;
+                            if (sortedBuckets[idx]) {
+                                scrollToTime(new Date(sortedBuckets[idx]).toISOString());
+                            }
+                        }
+                    }
+                })
+            });
+        }
+
+        /*  Area chart (stacked)  */
+
+        function buildAreaChart(unit) {
+            var agg = aggregateIntoBuckets(unit);
+            var types = Object.keys(agg.byType);
+            var datasets = types.map(function(type) {
+                var data = agg.bucketKeys.map(function(bk) {
+                    return { x: new Date(bk).toISOString(), y: agg.byType[type][bk] || 0 };
+                });
+                var color = typeColorMap[type] || '#a6cee3';
+                return {
+                    label: type,
+                    data: data,
+                    backgroundColor: color + '55',
+                    borderColor: color,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    pointHoverRadius: 5,
+                    hidden: !activeTypes.has(type)
+                };
+            });
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'line',
+                data: { datasets: datasets },
+                options: chartOptions({
+                    scales: {
+                        x: {
+                            type: 'time', time: { unit: unit, round: unit }, stacked: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, maxRotation: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            stacked: true, beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, stepSize: 1, precision: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' },
+                            title: { display: true, text: 'Events', color: 'hsl(0 0% 63%)', font: { size: 10 } }
+                        }
+                    },
+                    onClick: function(evt, elements) {
+                        if (elements.length > 0) {
+                            var el = elements[0];
+                            var ds = histogramChart.data.datasets[el.datasetIndex];
+                            var point = ds.data[el.index];
+                            if (point && point.x) scrollToTime(point.x);
+                        }
+                    }
+                })
+            });
+        }
+
+        /*  Cumulative line chart  */
+
+        function buildCumulativeChart(unit) {
+            var agg = aggregateIntoBuckets(unit);
+            var types = Object.keys(agg.byType);
+            var datasets = types.map(function(type) {
+                var cumulative = 0;
+                var data = agg.bucketKeys.map(function(bk) {
+                    cumulative += (agg.byType[type][bk] || 0);
+                    return { x: new Date(bk).toISOString(), y: cumulative };
+                });
+                var color = typeColorMap[type] || '#a6cee3';
+                return {
+                    label: type,
+                    data: data,
+                    backgroundColor: color + '33',
+                    borderColor: color,
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    pointHoverRadius: 5,
+                    hidden: !activeTypes.has(type)
+                };
+            });
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'line',
+                data: { datasets: datasets },
+                options: chartOptions({
+                    scales: {
+                        x: {
+                            type: 'time', time: { unit: unit, round: unit },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, maxRotation: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, precision: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' },
+                            title: { display: true, text: 'Cumulative Events', color: 'hsl(0 0% 63%)', font: { size: 10 } }
+                        }
+                    },
+                    onClick: function(evt, elements) {
+                        if (elements.length > 0) {
+                            var el = elements[0];
+                            var ds = histogramChart.data.datasets[el.datasetIndex];
+                            var point = ds.data[el.index];
+                            if (point && point.x) scrollToTime(point.x);
+                        }
+                    }
+                })
+            });
+        }
+
+        /*  Violin chart  */
+
+        function buildViolinChart(unit) {
+            var subUnit = getSubUnit(unit);
+            var typeBucketSubs = {};
+            var allMainBuckets = new Set();
+            chartEvents.forEach(function(e) {
+                var mainBk = getBucketStart(e.start, unit);
+                var subBk = getBucketStart(e.start, subUnit);
+                allMainBuckets.add(mainBk);
+                if (!typeBucketSubs[e.type]) typeBucketSubs[e.type] = {};
+                if (!typeBucketSubs[e.type][mainBk]) typeBucketSubs[e.type][mainBk] = {};
+                typeBucketSubs[e.type][mainBk][subBk] = (typeBucketSubs[e.type][mainBk][subBk] || 0) + 1;
+            });
+            var sortedBuckets = Array.from(allMainBuckets).sort(function(a, b) { return a - b; });
+            var labels = sortedBuckets.map(function(bk) { return formatBucketLabel(bk, unit); });
+            var types = Object.keys(typeBucketSubs);
+            var datasets = types.map(function(type) {
+                var color = typeColorMap[type] || '#a6cee3';
+                var data = sortedBuckets.map(function(bk) {
+                    var subs = typeBucketSubs[type] ? typeBucketSubs[type][bk] : null;
+                    if (!subs) return [0];
+                    return Object.values(subs);
+                });
+                return {
+                    label: type, data: data,
+                    backgroundColor: color + '44', borderColor: color, borderWidth: 1,
+                    outlierBackgroundColor: color, outlierRadius: 3,
+                    itemRadius: 2, itemBackgroundColor: color + '88',
+                    hidden: !activeTypes.has(type)
+                };
+            });
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'violin',
+                data: { labels: labels, datasets: datasets },
+                options: chartOptions({
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, maxRotation: 45 },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, stepSize: 1, precision: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' },
+                            title: { display: true, text: 'Events per ' + subUnit, color: 'hsl(0 0% 63%)', font: { size: 10 } }
+                        }
+                    },
+                    onClick: function(evt, elements) {
+                        if (elements.length > 0) {
+                            var idx = elements[0].index;
+                            if (sortedBuckets[idx]) scrollToTime(new Date(sortedBuckets[idx]).toISOString());
+                        }
+                    }
+                })
+            });
+        }
+
+        /*  Donut chart (type distribution)  */
+
+        function buildPieChart() {
+            var counts = {};
+            chartEvents.forEach(function(e) {
+                counts[e.type] = (counts[e.type] || 0) + 1;
+            });
+            var types = Object.keys(counts).filter(function(t) { return activeTypes.has(t); });
+            var colors = types.map(function(t) { return typeColorMap[t] || '#a6cee3'; });
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: types,
+                    datasets: [{
+                        data: types.map(function(t) { return counts[t]; }),
+                        backgroundColor: colors.map(function(c) { return c + 'CC'; }),
+                        borderColor: colors,
+                        borderWidth: 2,
+                        hoverOffset: 8
+                    }]
+                },
+                options: chartOptions({
+                    cutout: '50%',
+                    plugins: {
+                        legend: { display: true, position: 'right' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(item) {
+                                    var total = item.dataset.data.reduce(function(s, v) { return s + v; }, 0);
+                                    var pct = total > 0 ? ((item.raw / total) * 100).toFixed(1) : 0;
+                                    return item.label + ': ' + item.raw + ' (' + pct + '%)';
+                                }
+                            }
+                        }
+                    }
+                })
+            });
+        }
+
+        /*  Scatter chart (timeline strip)  */
+
+        function buildScatterChart(unit) {
+            var types = [];
+            var typeSet = new Set();
+            chartEvents.forEach(function(e) {
+                if (!typeSet.has(e.type)) { typeSet.add(e.type); types.push(e.type); }
+            });
+            var dataByType = {};
+            chartEvents.forEach(function(e) {
+                if (!dataByType[e.type]) dataByType[e.type] = [];
+                dataByType[e.type].push({
+                    x: new Date(e.start).getTime(),
+                    y: types.indexOf(e.type),
+                    label: e.label,
+                    uri: e.uri
+                });
+            });
+            var datasets = types.map(function(type) {
+                var color = typeColorMap[type] || '#a6cee3';
+                return {
+                    label: type,
+                    data: dataByType[type] || [],
+                    backgroundColor: color + '88',
+                    borderColor: color,
+                    borderWidth: 1,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    hidden: !activeTypes.has(type)
+                };
+            });
+            var scatterTypes = types;
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets: datasets },
+                options: chartOptions({
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: function(items) {
+                                    if (items.length > 0) {
+                                        return new Date(items[0].parsed.x).toLocaleDateString('en-US', {
+                                            year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                                        });
+                                    }
+                                    return '';
+                                },
+                                label: function(item) {
+                                    var raw = item.raw;
+                                    return raw.label || scatterTypes[raw.y] || '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: { unit: unit, round: unit },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, maxRotation: 0 },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        y: {
+                            type: 'linear',
+                            min: -0.5,
+                            max: types.length - 0.5,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: {
+                                color: 'hsl(0 0% 63%)', font: { size: 10 },
+                                stepSize: 1,
+                                callback: function(value) { return scatterTypes[value] || ''; }
+                            },
+                            border: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    },
+                    onClick: function(evt, elements) {
+                        if (elements.length > 0) {
+                            var el = elements[0];
+                            var point = histogramChart.data.datasets[el.datasetIndex].data[el.index];
+                            if (point && point.uri) selectEvent(point.uri);
+                        }
+                    }
+                })
+            });
+        }
+
+        /*  Heatmap  */
+
+        function getHeatmapConfig(unit) {
+            switch (unit) {
+                case 'year':
+                    return {
+                        rowCount: 12,
+                        colCount: 31,
+                        getRow: function(d) { return d.getMonth(); },
+                        getCol: function(d) { return d.getDate() - 1; },
+                        rowLabels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                        colLabel: function(v) { return '' + (v + 1); },
+                        xTitle: 'Day of Month',
+                        yTitle: 'Month',
+                        tooltipTitle: function(row, col, rowLabels) { return rowLabels[row] + ', day ' + (col + 1); }
+                    };
+                case 'quarter':
+                    return {
+                        rowCount: 3,
+                        colCount: 31,
+                        getRow: function(d) { return d.getMonth() % 3; },
+                        getCol: function(d) { return d.getDate() - 1; },
+                        rowLabels: ['Month 1','Month 2','Month 3'],
+                        colLabel: function(v) { return '' + (v + 1); },
+                        xTitle: 'Day of Month',
+                        yTitle: 'Month in Quarter',
+                        tooltipTitle: function(row, col, rowLabels) { return rowLabels[row] + ', day ' + (col + 1); }
+                    };
+                case 'month':
+                    return {
+                        rowCount: 7,
+                        colCount: 5,
+                        getRow: function(d) { var dow = d.getDay(); return dow === 0 ? 6 : dow - 1; },
+                        getCol: function(d) { return Math.floor((d.getDate() - 1) / 7); },
+                        rowLabels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                        colLabel: function(v) { return 'W' + (v + 1); },
+                        xTitle: 'Week of Month',
+                        yTitle: 'Day of Week',
+                        tooltipTitle: function(row, col, rowLabels) { return rowLabels[row] + ', week ' + (col + 1); }
+                    };
+                case 'day':
+                    return {
+                        rowCount: 1,
+                        colCount: 24,
+                        getRow: function() { return 0; },
+                        getCol: function(d) { return d.getHours(); },
+                        rowLabels: ['Events'],
+                        colLabel: function(v) { return v + ':00'; },
+                        xTitle: 'Hour of Day',
+                        yTitle: '',
+                        tooltipTitle: function(row, col) { return col + ':00'; }
+                    };
+                default: // week
+                    return {
+                        rowCount: 7,
+                        colCount: 24,
+                        getRow: function(d) { var dow = d.getDay(); return dow === 0 ? 6 : dow - 1; },
+                        getCol: function(d) { return d.getHours(); },
+                        rowLabels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                        colLabel: function(v) { return v + ':00'; },
+                        xTitle: 'Hour of Day',
+                        yTitle: 'Day of Week',
+                        tooltipTitle: function(row, col, rowLabels) { return rowLabels[row] + ' at ' + col + ':00'; }
+                    };
+            }
+        }
+
+        function buildHeatmapChart(unit) {
+            var cfg = getHeatmapConfig(unit);
+            var matrix = {};
+            chartEvents.forEach(function(e) {
+                if (!activeTypes.has(e.type)) return;
+                var d = new Date(e.start);
+                var row = cfg.getRow(d);
+                var col = cfg.getCol(d);
+                var key = row + '-' + col;
+                matrix[key] = (matrix[key] || 0) + 1;
+            });
+            var data = [];
+            var maxVal = 0;
+            for (var r = 0; r < cfg.rowCount; r++) {
+                for (var c = 0; c < cfg.colCount; c++) {
+                    var val = matrix[r + '-' + c] || 0;
+                    if (val > maxVal) maxVal = val;
+                    data.push({ x: c, y: r, v: val });
+                }
+            }
+            var capturedMax = maxVal;
+            var capturedCfg = cfg;
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'matrix',
+                data: {
+                    datasets: [{
+                        label: 'Event Density',
+                        data: data,
+                        backgroundColor: function(context) {
+                            var item = context.dataset.data[context.dataIndex];
+                            if (!item || item.v === 0) return 'rgba(255,255,255,0.03)';
+                            var alpha = capturedMax > 0 ? Math.min(0.15 + (item.v / capturedMax) * 0.85, 1) : 0.15;
+                            return 'rgba(99, 102, 241, ' + alpha + ')';
+                        },
+                        borderColor: 'rgba(255,255,255,0.06)',
+                        borderWidth: 1,
+                        width: function(context) {
+                            var area = context.chart.chartArea;
+                            return area ? (area.width / capturedCfg.colCount - 2) : 10;
+                        },
+                        height: function(context) {
+                            var area = context.chart.chartArea;
+                            return area ? (area.height / capturedCfg.rowCount - 2) : 10;
+                        }
+                    }]
+                },
+                options: chartOptions({
+                    plugins: { legend: { display: false }, tooltip: {
+                        callbacks: {
+                            title: function(items) {
+                                if (items.length > 0) {
+                                    var raw = items[0].raw;
+                                    return capturedCfg.tooltipTitle(raw.y, raw.x, capturedCfg.rowLabels);
+                                }
+                                return '';
+                            },
+                            label: function(item) { return item.raw.v + ' events'; }
+                        }
+                    } },
+                    scales: {
+                        x: {
+                            type: 'linear', position: 'top',
+                            min: -0.5, max: capturedCfg.colCount - 0.5,
+                            grid: { display: false },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, stepSize: 1, callback: function(v) { return capturedCfg.colLabel(v); } },
+                            border: { color: 'rgba(255,255,255,0.1)' },
+                            title: { display: true, text: capturedCfg.xTitle, color: 'hsl(0 0% 63%)', font: { size: 10 } }
+                        },
+                        y: {
+                            type: 'linear', min: -0.5, max: capturedCfg.rowCount - 0.5,
+                            grid: { display: false }, offset: true,
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 10 }, stepSize: 1, callback: function(v) { return capturedCfg.rowLabels[v] || ''; } },
+                            border: { color: 'rgba(255,255,255,0.1)' },
+                            title: { display: capturedCfg.yTitle !== '', text: capturedCfg.yTitle, color: 'hsl(0 0% 63%)', font: { size: 10 } }
+                        }
+                    }
+                })
+            });
+        }
+
+        /*  Radar chart (cyclical profile)  */
+
+        function getRadarConfig(unit) {
+            switch (unit) {
+                case 'day':
+                    return {
+                        labels: ['0h','1h','2h','3h','4h','5h','6h','7h','8h','9h','10h','11h',
+                                 '12h','13h','14h','15h','16h','17h','18h','19h','20h','21h','22h','23h'],
+                        count: 24,
+                        getIndex: function(d) { return d.getHours(); }
+                    };
+                case 'year':
+                    return {
+                        labels: ['January','February','March','April','May','June',
+                                 'July','August','September','October','November','December'],
+                        count: 12,
+                        getIndex: function(d) { return d.getMonth(); }
+                    };
+                case 'quarter':
+                    return {
+                        labels: ['Month 1','Month 2','Month 3'],
+                        count: 3,
+                        getIndex: function(d) { return d.getMonth() % 3; }
+                    };
+                case 'month':
+                    return {
+                        labels: (function() { var a = []; for (var i = 1; i <= 31; i++) a.push('' + i); return a; })(),
+                        count: 31,
+                        getIndex: function(d) { return d.getDate() - 1; }
+                    };
+                default: // week
+                    return {
+                        labels: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],
+                        count: 7,
+                        getIndex: function(d) { var dow = d.getDay(); return dow === 0 ? 6 : dow - 1; }
+                    };
+            }
+        }
+
+        function buildRadarChart(unit) {
+            var cfg = getRadarConfig(unit);
+            var byType = {};
+            chartEvents.forEach(function(e) {
+                if (!byType[e.type]) {
+                    byType[e.type] = [];
+                    for (var i = 0; i < cfg.count; i++) byType[e.type].push(0);
+                }
+                var d = new Date(e.start);
+                var idx = cfg.getIndex(d);
+                if (idx >= 0 && idx < cfg.count) byType[e.type][idx]++;
+            });
+            var types = Object.keys(byType);
+            var datasets = types.map(function(type) {
+                var color = typeColorMap[type] || '#a6cee3';
+                return {
+                    label: type,
+                    data: byType[type],
+                    backgroundColor: color + '33',
+                    borderColor: color,
+                    borderWidth: 2,
+                    pointBackgroundColor: color,
+                    pointBorderColor: '#fff',
+                    pointRadius: 3,
+                    pointHoverRadius: 6,
+                    hidden: !activeTypes.has(type)
+                };
+            });
+            var ctx = document.getElementById('histogram-canvas').getContext('2d');
+            histogramChart = new Chart(ctx, {
+                type: 'radar',
+                data: { labels: cfg.labels, datasets: datasets },
+                options: chartOptions({
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            pointLabels: { color: 'hsl(0 0% 63%)', font: { size: 11 } },
+                            ticks: { color: 'hsl(0 0% 63%)', font: { size: 9 }, backdropColor: 'transparent', stepSize: 1 }
+                        }
+                    }
+                })
+            });
+        }
+
+        function scrollToTime(isoDate) {
+            var targetTs = new Date(isoDate).getTime();
+            // Find the closest event row in filtered list
+            var closestIdx = 0;
+            var closestDiff = Infinity;
+            for (var i = 0; i < filteredEvents.length; i++) {
+                var diff = Math.abs(new Date(filteredEvents[i].start).getTime() - targetTs);
+                if (diff < closestDiff) { closestDiff = diff; closestIdx = i; }
+            }
+            // Auto-select and scroll
+            if (filteredEvents.length > 0) {
+                selectEvent(filteredEvents[closestIdx].uri);
+                var row = document.querySelector('tr[data-uri="' + CSS.escape(filteredEvents[closestIdx].uri) + '"]');
+                if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        /*  Type chips  */
+
+        function buildTypeChips(groups) {
+            var container = document.getElementById('type-chips');
+            container.innerHTML = '';
+            var counts = {};
+            allEvents.forEach(function(e) { counts[e.type] = (counts[e.type] || 0) + 1; });
+            groups.forEach(function(g) {
+                activeTypes.add(g.id);
+                var color = typeColorMap[g.id] || '#a6cee3';
+                var chip = document.createElement('span');
+                chip.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] cursor-pointer text-slate-100 whitespace-nowrap';
+                chip.style.background = color + '33';
+                chip.dataset.type = g.id;
+                chip.dataset.color = color;
+                var dot = document.createElement('span');
+                dot.className = 'w-1.5 h-1.5 rounded-full flex-shrink-0';
+                dot.style.background = color;
+                chip.appendChild(dot);
+                var label = document.createElement('span');
+                label.textContent = (g.content || g.id) + ' (' + (counts[g.id] || 0) + ')';
+                label.className = 'text-[10px]';
+                chip.appendChild(label);
+                chip.onclick = function() { toggleType(g.id); };
+                container.appendChild(chip);
+            });
+        }
+
+        function toggleType(type) {
+            if (activeTypes.has(type)) activeTypes.delete(type);
+            else activeTypes.add(type);
+            refreshTypeChips();
+            applyFilters();
+        }
+
+        function refreshTypeChips() {
+            document.querySelectorAll('#type-chips > span').forEach(function(c) {
+                    var type = c.dataset.type;
+                    var color = c.dataset.color;
+                    if (activeTypes.has(type)) {
+                    c.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] cursor-pointer text-slate-100 whitespace-nowrap';
+                        c.style.background = color + '33';
+                        if (c.firstChild) c.firstChild.style.display = '';
+                    } else {
+                    c.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] cursor-pointer text-slate-400 whitespace-nowrap';
+                        c.style.background = '';
+                        if (c.firstChild) c.firstChild.style.display = 'none';
+                    }
+            });
+        }
+
+        /*  Filter & Sort  */
+
+        function parseFlatpickrDate(dateStr) {
+            // Convert "Y-m-d H:i" to ISO format
+            if (!dateStr) return null;
+            var match = dateStr.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+            if (!match) return null;
+            return new Date(match[1], parseInt(match[2]) - 1, match[3], match[4], match[5]).toISOString();
+        }
+
+        function applyFilters() {
+            var query = (document.getElementById('search-input').value || '').toLowerCase();
+
+            // Get date inputs (flatpickr format: "Y-m-d H:i")
+            var dateStartInput = document.getElementById('date-start').value;
+            var dateEndInput = document.getElementById('date-end').value;
+            dateStartIso = parseFlatpickrDate(dateStartInput);
+            dateEndIso = parseFlatpickrDate(dateEndInput);
+
+            // Update clear button state
+            var clearBtn = document.getElementById('clear-dates-btn');
+            if (clearBtn) clearBtn.disabled = !dateStartInput && !dateEndInput;
+
+            filteredEvents = allEvents.filter(function(e) {
+                if (!activeTypes.has(e.type)) return false;
+                if (query.length > 0) {
+                    if (e.searchText.indexOf(query) < 0) return false;
+                }
+
+                // Name includes: event must match at least one
+                if (nameIncludes.length > 0) {
+                    var matchesAny = false;
+                    for (var i = 0; i < nameIncludes.length; i++) {
+                        var q = nameIncludes[i].text.toLowerCase();
+                        if (e.searchText.indexOf(q) >= 0) { matchesAny = true; break; }
+                    }
+                    if (!matchesAny) return false;
+                }
+
+                // Name excludes: event must not match any
+                for (var j = 0; j < nameExcludes.length; j++) {
+                    var eq = nameExcludes[j].text.toLowerCase();
+                    if (e.searchText.indexOf(eq) >= 0) return false;
+                }
+
+                // Date range filter
+                var ts = getEventTimestamp(e);
+                if (ts !== null) {
+                    if (dateStartIso && ts < new Date(dateStartIso).getTime()) return false;
+                    if (dateEndIso && ts > new Date(dateEndIso).getTime()) return false;
+                }
+
+                return true;
+            });
+
+            // Sort
+            filteredEvents.sort(function(a, b) {
+                var va = sortField === 'start' ? (a.timestamp || 0) : (a[sortField] || '');
+                var vb = sortField === 'start' ? (b.timestamp || 0) : (b[sortField] || '');
+                var cmp = (va < vb) ? -1 : (va > vb) ? 1 : 0;
+                return sortAsc ? cmp : -cmp;
+            });
+
+            eventPageIndex = 0;
+            renderTable();
+            updatePagination();
+            updateMatchCount();
+            rebuildHistogram();
+        }
+
+        function sortBy(field) {
+            if (sortField === field) { sortAsc = !sortAsc; }
+            else { sortField = field; sortAsc = true; }
+            // Update header indicators
+            document.querySelectorAll('thead th').forEach(function(th) { th.classList.remove('sorted'); });
+            var thId = 'th-' + field;
+            var th = document.getElementById(thId);
+            if (th) {
+                th.classList.add('sorted');
+                th.querySelector('.sort-arrow').innerHTML = sortAsc ? '<i data-lucide="chevron-up" style="width:12px;height:12px"></i>' : '<i data-lucide="chevron-down" style="width:12px;height:12px"></i>';
+                lucide.createIcons({nodes: [th]});
+            }
+            applyFilters();
+        }
+
+        function updateMatchCount() {
+            document.getElementById('match-count').textContent =
+                filteredEvents.length + ' / ' + allEvents.length + ' events';
+        }
+
+        function getPageStart() {
+            return eventPageIndex * eventPageSize;
+        }
+
+        function getPageEnd() {
+            return Math.min(filteredEvents.length, getPageStart() + eventPageSize);
+        }
+
+        function updatePagination() {
+            var pageInfo = document.getElementById('page-info');
+            var prevBtn = document.getElementById('page-prev');
+            var nextBtn = document.getElementById('page-next');
+            var total = filteredEvents.length;
+            var totalPages = Math.max(1, Math.ceil(total / eventPageSize));
+            if (eventPageIndex >= totalPages) eventPageIndex = totalPages - 1;
+            var start = total === 0 ? 0 : getPageStart() + 1;
+            var end = getPageEnd();
+            pageInfo.textContent = total === 0 ? 'No rows' : 'Showing ' + start + '-' + end + ' of ' + total + ' rows';
+            prevBtn.disabled = eventPageIndex <= 0;
+            nextBtn.disabled = eventPageIndex >= totalPages - 1;
+        }
+
+        function prevPage() {
+            if (eventPageIndex <= 0) return;
+            eventPageIndex--;
+            renderTable();
+            updatePagination();
+        }
+
+        function nextPage() {
+            var totalPages = Math.max(1, Math.ceil(filteredEvents.length / eventPageSize));
+            if (eventPageIndex >= totalPages - 1) return;
+            eventPageIndex++;
+            renderTable();
+            updatePagination();
+        }
+
+        /*  Table rendering  */
+
+        function renderTable() {
+            var tbody = document.getElementById('event-tbody');
+            var html = '';
+            var start = getPageStart();
+            var end = getPageEnd();
+            var pageItems = filteredEvents.slice(start, end);
+            pageItems.forEach(function(e) {
+                var color = typeColorMap[e.type] || '#a6cee3';
+                var isSelected = e.uri === selectedUri;
+                var dateStr = formatDate(e.start);
+                html += '<tr data-uri="' + escAttr(e.uri) + '" class="' + (isSelected ? 'selected' : '') + ' bg-slate-900/40 hover:bg-slate-700/60 transition-colors" ' +
+                        'onclick="selectEvent(' + escJs(e.uri) + ')" ' +
+                        'ondblclick="openGraphFor(' + escJs(e.uri) + ')" ' +
+                        'oncontextmenu="showRowContextMenu(event, ' + escJs(e.uri) + ', ' + escJs(e.label) + ', ' + escJs(e.type) + ')">';
+                html += '<td class="px-3 py-2" title="' + escAttr(e.label) + '">' + escapeHtml(e.label) + '</td>';
+                html += '<td class="px-3 py-2"><span class="type-badge inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold text-slate-950 whitespace-nowrap" style="background:' + color + '">' + escapeHtml(e.type) + '</span></td>';
+                html += '<td class="px-3 py-2 whitespace-nowrap">' + escapeHtml(dateStr) + '</td>';
+                html += '</tr>';
+            });
+            if (filteredEvents.length === 0) {
+                html = '<tr><td colspan="3"><div class="empty-state"><span class="icon"><i data-lucide="circle-alert" class="h-4 w-4"></i></span>No events match filters</div></td></tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+        function formatDate(isoStr) {
+            try {
+                var d = new Date(isoStr);
+                return d.toLocaleString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+                });
+            } catch (e) { return isoStr; }
+        }
+
+        /* Event selection & detail panel */
+
+        function selectEvent(uri) {
+            selectedUri = uri;
+            // Highlight row
+            document.querySelectorAll('tbody tr').forEach(function(tr) {
+                tr.classList.toggle('selected', tr.dataset.uri === uri);
+            });
+            // Load detail
+            loadDetail(uri);
+        }
+
+        function loadDetail(uri) {
+            try {
+                var detailJson = javaBridge.getIndividualDetailsJson(uri);
+                var detail = JSON.parse(detailJson);
+
+                document.getElementById('detail-empty').style.display = 'none';
+                var filled = document.getElementById('detail-filled');
+                filled.style.display = 'flex';
+                document.getElementById('detail-panel').classList.remove('empty');
+
+                // Header
+                document.getElementById('detail-title').textContent = detail.label || 'Unknown';
+                var typeEl = document.getElementById('detail-type');
+                typeEl.textContent = detail.type || 'Unknown';
+                typeEl.style.background = typeColorMap[detail.type] || '#a6cee3';
+                document.getElementById('detail-uri').textContent = uri;
+                document.getElementById('detail-content').className = 'flex-1 overflow-auto p-2 space-y-4';
+
+                // Properties
+                var contentEl = document.getElementById('detail-content');
+                var html = '';
+
+                function startSection(title) {
+                    html += '<section class="rounded-xl border border-white/10 bg-slate-900/40 overflow-hidden shadow-sm">';
+                    html += '<div class="px-2 py-2 border-b border-white/10 bg-slate-900/60 text-[10px] font-semibold tracking-[0.18em] text-slate-400">' + escapeHtml(title) + '</div>';
+                    html += '<div class="divide-y divide-white/5">';
+                }
+
+                function endSection() {
+                    html += '</div></section>';
+                }
+
+                // Literal properties
+                if (detail.literals && detail.literals.length > 0) {
+                    startSection('Properties');
+                    detail.literals.forEach(function(prop) {
+                        html += '<div class="grid gap-1 px-2 py-3 sm:grid-cols-[minmax(10rem,14rem)_1fr] sm:gap-4 sm:items-start">';
+                        html += '<div class="text-[11px] font-medium tracking-wide text-slate-400 break-words" title="' + escAttr(prop.predicate) + '">' + escapeHtml(prop.predicate) + '</div>';
+                        html += '<div class="text-sm leading-6 text-slate-100 break-words">' + escapeHtml(prop.value) + '</div>';
+                        html += '</div>';
+                    });
+                    endSection();
+                }
+
+                // Outgoing relations
+                if (detail.outgoing && detail.outgoing.length > 0) {
+                    startSection('Outgoing Relations');
+                    detail.outgoing.forEach(function(rel) {
+                        html += '<div class="grid gap-1 px-2 py-3 sm:grid-cols-[minmax(10rem,14rem)_1fr] sm:gap-4 sm:items-start">';
+                        html += '<div class="text-[11px] font-medium tracking-wide text-slate-400 break-words" title="' + escAttr(rel.predicate) + '">' + escapeHtml(rel.predicate) + '</div>';
+                        html += '<div class="text-sm leading-6 break-words"><a class="text-indigo-300 hover:text-indigo-200 hover:underline" href="#" onclick="selectEvent(' + escJs(rel.targetUri) + '); return false;">' + escapeHtml(rel.targetLabel) + '</a></div>';
+                        html += '</div>';
+                    });
+                    endSection();
+                }
+
+                // Incoming relations
+                if (detail.incoming && detail.incoming.length > 0) {
+                    startSection('Incoming Relations');
+                    detail.incoming.forEach(function(rel) {
+                        html += '<div class="grid gap-1 px-2 py-3 sm:grid-cols-[minmax(10rem,14rem)_1fr] sm:gap-4 sm:items-start">';
+                        html += '<div class="text-[11px] font-medium tracking-wide text-slate-400 break-words" title="' + escAttr(rel.predicate) + '">' + escapeHtml(rel.predicate) + '</div>';
+                        html += '<div class="text-sm leading-6 break-words"><a class="text-indigo-300 hover:text-indigo-200 hover:underline" href="#" onclick="selectEvent(' + escJs(rel.sourceUri) + '); return false;">' + escapeHtml(rel.sourceLabel) + '</a></div>';
+                        html += '</div>';
+                    });
+                    endSection();
+                }
+
+                if (!html) {
+                    html = '<div class="rounded-xl border border-dashed border-white/10 bg-slate-900/30 px-6 py-10 text-center text-sm text-slate-400"><span class="icon block mb-3"><i data-lucide="circle-alert" class="h-4 w-4"></i></span>No properties found</div>';
+                }
+
+                contentEl.innerHTML = html;
+            } catch (e) {
+                javaBridge.log('Error loading detail: ' + e.message);
+            }
+        }
+
+        function openGraph() {
+            if (selectedUri) javaBridge.openGraphForIndividual(selectedUri);
+        }
+
+        function openGraphFor(uri) {
+            javaBridge.openGraphForIndividual(uri);
+        }
+
+        /*  Utilities  */
+
+        var _escDiv = document.createElement('div');
+        function escapeHtml(text) {
+            _escDiv.textContent = text;
+            return _escDiv.innerHTML;
+        }
+
+        function escAttr(text) {
+            return (text || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function escJs(s) {
+            var bs = String.fromCharCode(92);
+            return "'" + s.split(bs).join(bs + bs).split("'").join(bs + "'") + "'";
+        }
+
+        /*  Context menu  */
+
+        function showRowContextMenu(evt, uri, label, type) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            var menu = document.getElementById('context-menu');
+            var shortName = label.length > 30 ? label.substring(0, 27) + '...' : label;
+
+            var html = '<div class="ctx-header">Event: ' + escapeHtml(shortName) + '</div>';
+            html += '<div class="ctx-item" onclick="ctxIncludeName(' + escJs(label) + ')">';
+            html += '<i data-lucide="check" class="h-4 w-4"></i> Include \"' + escapeHtml(shortName) + '\"</div>';
+            html += '<div class="ctx-item" onclick="ctxExcludeName(' + escJs(label) + ')">';
+            html += '<i data-lucide="x" class="h-4 w-4"></i> Exclude \"' + escapeHtml(shortName) + '\"</div>';
+            html += '<div class="ctx-separator"></div>';
+
+            var groupLabel = type;
+            html += '<div class="ctx-header">Type: ' + escapeHtml(groupLabel) + '</div>';
+            html += '<div class="ctx-item" onclick="ctxShowOnly(' + escJs(type) + ')">';
+            html += '<i data-lucide="list" class="h-4 w-4"></i> Show only ' + escapeHtml(groupLabel) + '</div>';
+            html += '<div class="ctx-item" onclick="ctxExcludeType(' + escJs(type) + ')">';
+            html += '<i data-lucide="x" class="h-4 w-4"></i> Exclude ' + escapeHtml(groupLabel) + '</div>';
+
+            html += '<div class="ctx-separator"></div>';
+            html += '<div class="ctx-item" onclick="openGraphFor(' + escJs(uri) + ')">';
+            html += '<i data-lucide="waypoints" class="h-4 w-4"></i> Open Graph <i data-lucide="external-link" class="h-2 w-2"></i></div>';
+
+            menu.innerHTML = html;
+            menu.style.display = 'block';
+            menu.style.left = evt.clientX + 'px';
+            menu.style.top = evt.clientY + 'px';
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons({ nodes: [menu] });
+            }
+            // Adjust if overflowing
+            var rect = menu.getBoundingClientRect();
+            if (rect.right > window.innerWidth) menu.style.left = (evt.clientX - rect.width) + 'px';
+            if (rect.bottom > window.innerHeight) menu.style.top = (evt.clientY - rect.height) + 'px';
+        }
+
+        function hideContextMenu() {
+            document.getElementById('context-menu').style.display = 'none';
+        }
+
+        document.addEventListener('click', function() { hideContextMenu(); });
+        document.addEventListener('contextmenu', function(e) {
+            // Only allow our custom context menu on table rows
+            if (!e.target.closest('#event-tbody')) hideContextMenu();
+        });
+
+        /*  Include / Exclude name actions  */
+
+        function ctxIncludeName(name) {
+            hideContextMenu();
+            for (var i = 0; i < nameIncludes.length; i++) {
+                if (nameIncludes[i].text === name) return;
+            }
+            nameIncludes.push({ text: name });
+            renderFilterTags();
+            applyFilters();
+        }
+
+        function ctxExcludeName(name) {
+            hideContextMenu();
+            for (var i = 0; i < nameExcludes.length; i++) {
+                if (nameExcludes[i].text === name) return;
+            }
+            nameExcludes.push({ text: name });
+            renderFilterTags();
+            applyFilters();
+        }
+
+        function ctxShowOnly(type) {
+            hideContextMenu();
+            activeTypes.clear();
+            activeTypes.add(type);
+            refreshTypeChips();
+            applyFilters();
+        }
+
+        function ctxExcludeType(type) {
+            hideContextMenu();
+            activeTypes.delete(type);
+            refreshTypeChips();
+            applyFilters();
+        }
+
+        function removeInclude(idx) {
+            nameIncludes.splice(idx, 1);
+            renderFilterTags();
+            applyFilters();
+        }
+
+        function removeExclude(idx) {
+            nameExcludes.splice(idx, 1);
+            renderFilterTags();
+            applyFilters();
+        }
+
+        function renderFilterTags() {
+            var container = document.getElementById('filter-tags');
+            var html = '';
+            nameIncludes.forEach(function(f, i) {
+                var short = f.text.length > 20 ? f.text.substring(0, 17) + '...' : f.text;
+                html += '<span class="filter-tag include" title="Include: ' + escAttr(f.text) + '">';
+                html += '<i data-lucide="check" class="h-4 w-4"></i> ' + escapeHtml(short);
+                html += '<span class="tag-remove" onclick="removeInclude(' + i + ')">&times;</span></span>';
+            });
+            nameExcludes.forEach(function(f, i) {
+                var short = f.text.length > 20 ? f.text.substring(0, 17) + '...' : f.text;
+                html += '<span class="filter-tag exclude" title="Exclude: ' + escAttr(f.text) + '">';
+                html += '<i data-lucide="x" class="h-4 w-4"></i> ' + escapeHtml(short);
+                html += '<span class="tag-remove" onclick="removeExclude(' + i + ')">&times;</span></span>';
+            });
+            container.innerHTML = html;
+        }
+
+        /*  Select All / None / Clear  */
+
+        function selectAllTypes() {
+            allEvents.forEach(function(e) { activeTypes.add(e.type); });
+            refreshTypeChips();
+            applyFilters();
+        }
+
+        function selectNoTypes() {
+            activeTypes.clear();
+            refreshTypeChips();
+            applyFilters();
+        }
+
+        function clearAllFilters() {
+            document.getElementById('search-input').value = '';
+            nameIncludes = [];
+            nameExcludes = [];
+            eventPageIndex = 0;
+            renderFilterTags();
+            selectAllTypes();
+        }
+
+        function clearDateRange() {
+            if (fpStart) fpStart.clear();
+            if (fpEnd) fpEnd.clear();
+            dateStartIso = null;
+            dateEndIso = null;
+            applyFilters();
+        }
+
+        /*  Detail panel resizer  */
+        function initResizer() {
+            var resizer = document.getElementById('detail-resizer');
+            var panel = document.getElementById('detail-panel');
+            if (!resizer || !panel) return;
+
+            // Restore stored width if any
+            try {
+                var stored = localStorage.getItem('eventExplorer.detailWidth');
+                if (stored) panel.style.width = stored;
+            } catch (e) {}
+
+            var dragging = false;
+            var startX = 0;
+            var startW = 0;
+
+            resizer.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                dragging = true;
+                startX = e.clientX;
+                startW = panel.getBoundingClientRect().width;
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+                window.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('mouseup', onMouseUp);
+            });
+
+            function onMouseMove(e) {
+                if (!dragging) return;
+                var dx = startX - e.clientX;
+                var newW = Math.round(startW + dx);
+                var minW = 160; // px
+                var maxW = window.innerWidth;
+                newW = Math.max(minW, Math.min(maxW, newW));
+                panel.style.width = newW + 'px';
+            }
+
+            function onMouseUp() {
+                if (!dragging) return;
+                dragging = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                window.removeEventListener('mousemove', onMouseMove);
+                window.removeEventListener('mouseup', onMouseUp);
+                try { localStorage.setItem('eventExplorer.detailWidth', panel.style.width); } catch (e) {}
+            }
+
+            // Touch support
+            resizer.addEventListener('touchstart', function (e) {
+                if (e.touches.length !== 1) return;
+                dragging = true;
+                startX = e.touches[0].clientX;
+                startW = panel.getBoundingClientRect().width;
+                document.body.style.userSelect = 'none';
+                window.addEventListener('touchmove', onTouchMove, { passive: false });
+                window.addEventListener('touchend', onTouchEnd);
+            });
+
+            function onTouchMove(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                var clientX = e.touches[0].clientX;
+                var dx = startX - clientX;
+                var newW = Math.round(startW + dx);
+                var minW = 160;
+                var maxW = window.innerWidth;
+                newW = Math.max(minW, Math.min(maxW, newW));
+                panel.style.width = newW + 'px';
+            }
+
+            function onTouchEnd() {
+                if (!dragging) return;
+                dragging = false;
+                document.body.style.userSelect = '';
+                window.removeEventListener('touchmove', onTouchMove);
+                window.removeEventListener('touchend', onTouchEnd);
+                try { localStorage.setItem('eventExplorer.detailWidth', panel.style.width); } catch (e) {}
+            }
+
+            // Double click resets
+            resizer.addEventListener('dblclick', function () {
+                panel.style.width = '';
+                try { localStorage.removeItem('eventExplorer.detailWidth'); } catch (e) {}
+            });
+        }
+    </script>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

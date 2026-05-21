@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://rsms.me/" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <script src="assets/tailwindcss-cdn.js"></script>
+    <script>tailwind.config = { darkMode: 'class' };</script>
+    <script src="assets/lucide.js"></script>
+</head>
+<body class="flex h-screen flex-col overflow-hidden bg-slate-950 text-slate-100 antialiased">
+    <header class="shrink-0 border-b border-white/10 bg-slate-900/80 px-5 py-4 backdrop-blur">
+        <div class="flex items-center gap-3">
+            <button id="back-btn" type="button" class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-100 transition hover:border-white/20 hover:bg-white/10">
+                <i data-lucide="chevron-left" class="h-4 w-4"></i>
+                <span>Back</span>
+            </button>
+            <div class="min-w-0 flex-1">
+                <h1 class="truncate text-base font-semibold tracking-tight text-slate-50">Undated Items</h1>
+                <div id="stats" class="text-xs text-slate-400">Loading...</div>
+            </div>
+        </div>
+    </header>
+
+    <section class="shrink-0 border-b border-white/10 bg-slate-950/90 px-5 py-3">
+        <div class="flex flex-col gap-3">
+            <div class="flex items-center gap-3 rounded-xl border border-white/10 bg-slate-900/70 px-4 py-2.5 shadow-lg shadow-black/10">
+                <span class="text-slate-400">
+                    <i data-lucide="search" class="h-4 w-4"></i>
+                </span>
+                <input type="text" id="search-input" placeholder="Search items by label or type..." class="w-full bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-500">
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="expand-all-btn" type="button" class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-100 transition hover:border-white/20 hover:bg-white/10">
+                    <i data-lucide="list-chevrons-up-down" class="h-3 w-3"></i>
+                    <span>Expand All</span>
+                </button>
+                <button id="collapse-all-btn" type="button" class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-100 transition hover:border-white/20 hover:bg-white/10">
+                    <i data-lucide="list-chevrons-down-up" class="h-3 w-3"></i>
+                    <span>Collapse All</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <main id="content" class="flex flex-1 flex-col overflow-hidden bg-slate-950">
+        <div id="events-container" class="flex flex-1 flex-col gap-4 overflow-y-auto px-5 py-4">
+            <div class="flex h-full flex-col items-center justify-center gap-3 text-sm text-slate-400">
+                <i data-lucide="loader" class="h-8 w-8 animate-spin text-slate-500"></i>
+                <span>Loading undated items...</span>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let undatedEvents = {};
+        let currentSortedTypes = [];
+
+        async function initUndatedEvents() {
+            console.log("Initializing Undated items view");
+
+            // Load undated events from Java bridge
+            try {
+                const jsonStr = javaBridge.getUndatedIndividualsJson();
+                const events = JSON.parse(jsonStr);
+
+                // Group events by type
+                undatedEvents = {};
+
+                for (const event of events) {
+                    if (!undatedEvents[event.type]) {
+                        undatedEvents[event.type] = [];
+                    }
+                    undatedEvents[event.type].push(event);
+                }
+
+                // Sort each type's events by label
+                for (const type in undatedEvents) {
+                    undatedEvents[type].sort((a, b) => a.label.localeCompare(b.label));
+                }
+
+                // Sort types by count (descending) then by name
+                currentSortedTypes = Object.keys(undatedEvents).sort((a, b) => {
+                    const countDiff = undatedEvents[b].length - undatedEvents[a].length;
+                    return countDiff !== 0 ? countDiff : a.localeCompare(b);
+                });
+
+                // Update stats
+                const totalCount = events.length;
+                document.getElementById('stats').textContent = `${totalCount} total event${totalCount !== 1 ? 's' : ''} • ${Object.keys(undatedEvents).length} type${Object.keys(undatedEvents).length !== 1 ? 's' : ''}`;
+
+                // Render the list
+                renderEventsList(currentSortedTypes);
+            } catch (error) {
+                console.error("Error loading undated events:", error);
+                document.getElementById('events-container').innerHTML = `
+                    <div class="flex h-full flex-col items-center justify-center gap-3 text-sm text-slate-400">
+                        <i data-lucide="alert-circle" class="h-8 w-8 text-slate-500"></i>
+                        <span>Error loading undated items</span>
+                    </div>
+                `;
+            }
+
+            // Attach event listeners
+            document.getElementById('back-btn').addEventListener('click', () => {
+                javaBridge.navigateBack();
+            });
+
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                filterEvents(e.target.value.trim().toLowerCase());
+            });
+
+            document.getElementById('expand-all-btn').addEventListener('click', () => {
+                expandAllGroups();
+            });
+
+            document.getElementById('collapse-all-btn').addEventListener('click', () => {
+                collapseAllGroups();
+            });
+
+            lucide.createIcons();
+        }
+
+        function renderEventsList(sortedTypes) {
+            const container = document.getElementById('events-container');
+            container.innerHTML = '';
+
+            if (sortedTypes.length === 0) {
+                container.innerHTML = `
+                    <div class="flex h-full flex-col items-center justify-center gap-3 text-sm text-slate-400">
+                        <i data-lucide="check-circle" class="h-8 w-8 text-slate-500"></i>
+                        <span>No undated items found!</span>
+                    </div>
+                `;
+                return;
+            }
+
+            for (const type of sortedTypes) {
+                const events = undatedEvents[type];
+                const typeColor = events[0]?.color || '#64748b';
+                const typeLighterColor = events[0]?.lighterColor || '#94a3b8';
+                const typeGroup = document.createElement('div');
+                typeGroup.className = 'flex flex-col gap-2';
+                typeGroup.dataset.type = type;
+
+                // Type header
+                const header = document.createElement('button');
+                header.type = 'button';
+                header.className = 'flex items-center gap-3 rounded-lg border-l-4 border-slate-700 bg-slate-900/70 px-4 py-3 text-left text-sm font-semibold text-slate-100 transition hover:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-sky-400/20';
+                header.dataset.type = type;
+                header.setAttribute('aria-expanded', 'true');
+                header.style.borderLeftColor = typeColor;
+                header.innerHTML = `
+                    <i data-lucide="chevron-down" class="toggle-indicator h-4 w-4 text-slate-400"></i>
+                    <span class="min-w-0 flex-1 truncate" style="color: ${typeColor};">${escapeHtml(type)}</span>
+                    <span class="text-xs font-medium text-slate-400">${events.length} event${events.length !== 1 ? 's' : ''}</span>
+                `;
+
+                header.addEventListener('click', () => {
+                    const list = typeGroup.querySelector('.events-list');
+                    const expanded = header.getAttribute('aria-expanded') === 'true';
+                    header.setAttribute('aria-expanded', String(!expanded));
+                    const toggleIcon = header.querySelector('.toggle-indicator');
+                    toggleIcon.setAttribute('data-lucide', expanded ? 'chevron-right' : 'chevron-down');
+                    lucide.createIcons();
+                    list.classList.toggle('hidden');
+                });
+
+                typeGroup.appendChild(header);
+
+                // Events list
+                const eventsList = document.createElement('div');
+                eventsList.className = 'events-list flex flex-col gap-2 pl-4';
+
+                for (const event of events) {
+                    const item = document.createElement('div');
+                    item.className = 'event-item flex cursor-pointer items-center gap-3 rounded-lg border border-white/5 bg-slate-900/60 px-4 py-3 text-sm text-slate-100 transition hover:border-slate-500/40 hover:bg-slate-800/80';
+                    item.dataset.uri = event.uri;
+                    item.dataset.label = event.label;
+                    item.dataset.type = type;
+
+                    item.innerHTML = `
+                        <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md" style="background-color: ${typeLighterColor}; color: ${typeColor};">
+                            <i data-lucide="circle-dot" class="h-3 w-3"></i>
+                        </div>
+                        <span class="min-w-0 flex-1 truncate" title="${escapeHtml(event.label)}">${escapeHtml(event.label)}</span>
+                    `;
+
+                    item.addEventListener('click', () => {
+                        javaBridge.openGraphForIndividual(event.uri);
+                    });
+
+                    eventsList.appendChild(item);
+                }
+
+                typeGroup.appendChild(eventsList);
+                container.appendChild(typeGroup);
+            }
+
+            lucide.createIcons();
+        }
+
+        function filterEvents(query) {
+            if (!query) {
+                renderEventsList(currentSortedTypes);
+                return;
+            }
+
+            renderEventsList(currentSortedTypes);
+
+            const typeGroups = document.querySelectorAll('#events-container > div[data-type]');
+            let visibleCount = 0;
+
+            typeGroups.forEach(group => {
+                const type = group.dataset.type;
+                if (!type) {
+                    return;
+                }
+
+                const items = group.querySelectorAll('[data-label]');
+                let visibleItems = 0;
+
+                items.forEach(item => {
+                    const label = item.dataset.label.toLowerCase();
+                    const matches = label.includes(query) || type.toLowerCase().includes(query);
+                    item.classList.toggle('hidden', !matches);
+                    if (matches) visibleItems++;
+                });
+
+                const header = group.querySelector('button');
+                if (visibleItems > 0) {
+                    visibleCount += visibleItems;
+
+                    // Auto-expand if searching
+                    header.setAttribute('aria-expanded', 'true');
+                    header.querySelector('.toggle-indicator').setAttribute('data-lucide', 'chevron-down');
+                    lucide.createIcons();
+                    group.querySelector('.events-list').classList.remove('hidden');
+                    header.querySelector('.text-xs').textContent = `${visibleItems} match${visibleItems !== 1 ? 'es' : ''}`;
+                } else {
+                    group.classList.add('hidden');
+                }
+            });
+
+            if (visibleCount === 0 && query) {
+                document.getElementById('events-container').innerHTML = `
+                    <div class="flex h-full flex-col items-center justify-center gap-3 text-sm text-slate-400">
+                        <i data-lucide="search-x" class="h-8 w-8 text-slate-500"></i>
+                        <span>No events match your search</span>
+                    </div>
+                `;
+            }
+        }
+
+        function expandAllGroups() {
+            const typeGroups = document.querySelectorAll('#events-container > div[data-type]');
+            typeGroups.forEach(group => {
+                const header = group.querySelector('button');
+                const eventsList = group.querySelector('.events-list');
+                if (header && eventsList) {
+                    header.setAttribute('aria-expanded', 'true');
+                    header.querySelector('.toggle-indicator').setAttribute('data-lucide', 'chevron-down');
+                    lucide.createIcons();
+                    eventsList.classList.remove('hidden');
+                }
+            });
+        }
+
+        function collapseAllGroups() {
+            const typeGroups = document.querySelectorAll('#events-container > div[data-type]');
+            typeGroups.forEach(group => {
+                const header = group.querySelector('button');
+                const eventsList = group.querySelector('.events-list');
+                if (header && eventsList) {
+                    header.setAttribute('aria-expanded', 'false');
+                    header.querySelector('.toggle-indicator').setAttribute('data-lucide', 'chevron-right');
+                    lucide.createIcons();
+                    eventsList.classList.add('hidden');
+                }
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

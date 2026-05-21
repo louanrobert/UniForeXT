@@ -1,0 +1,96 @@
+genericMappings:
+  addTimestamp:
+    - sourceField: "EventTime"
+      type: dataProperty
+      owlProperty: hasTimestamp
+      dataType: xsd:dateTimeStamp
+
+  addComputer:
+    - type: linkedIndividual
+      owlClass: Computer
+      linkProperty: hasComputer
+      identifier:
+        fields: "Computer"
+      dataProperties:
+        - sourceField: "Computer"
+          type: dataProperty
+          owlProperty: hasHostname
+
+  addParentProcessInfo:
+    - type: linkedIndividual
+      owlClass: Process
+      linkProperty: hasParentProcess
+      identifier:
+        fields:
+          - "ParentProcessName"
+      dataProperties:
+        - sourceField: "ParentProcessId"
+          type: dataProperty
+          owlProperty: hasID
+        - sourceField: "ParentProcessName"
+          type: dataProperty
+          owlProperty: hasName
+
+mappers:
+  - name: EvtxhussarProcessesMapper
+    file: "${ANALYSIS_ROOT}/Evtxhussar_results/*/processes/processes.xlsx"
+    owlClass: Process
+    identifier:
+      fields:
+        - "ProcessName"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addParentProcessInfo
+    fieldMappings:
+      - sourceField: "EID"
+        type: dataProperty
+        owlProperty: hasEventID
+        dataType: xsd:unsignedLong
+
+      - sourceField: "Channel"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Channel: "
+
+      - sourceField: "Provider"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Provider: "
+
+      - sourceField: "CurrentDirectory"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Current directory: "
+
+      - sourceField: "TokenElevationType"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+
+      - type: linkedIndividual
+        owlClass: User
+        linkProperty: hasUser
+        identifier:
+          fields: "TargetUserName"
+        dataProperties:
+          - sourceField: "TargetUserName"
+            type: dataProperty
+            owlProperty: hasName
+          - sourceField: "TargetDomainName"
+            type: dataProperty
+            owlProperty: hasDomain
+
+      - sourceField: "TargetDomainName"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Target domain: "
+        
+      - sourceField: "Hashes"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Hashes: "

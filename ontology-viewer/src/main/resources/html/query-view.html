@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://rsms.me/" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <script src="assets/tailwindcss-cdn.js"></script>
+    <script>tailwind.config = { darkMode: 'class' };</script>
+    <script src="assets/lucide.js"></script>
+</head>
+
+<body class="antialiased bg-slate-950 text-slate-100 font-inter h-screen overflow-hidden">
+    <div class="h-full flex flex-col">
+        <div class="flex shrink-0 items-center gap-3 border-b border-white/10 bg-slate-900/80 px-6 py-4 backdrop-blur">
+            <button id="back-btn" type="button" class="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-100 transition hover:border-white/20 hover:bg-white/10" onclick="javaBridge.navigateBack()">
+                <i data-lucide="chevron-left" class="h-4 w-4"></i>
+                <span>Back</span>
+            </button>
+            <h2 class="flex items-center gap-2 text-base font-semibold tracking-tight text-slate-50">
+                <i data-lucide="terminal-square" class="w-[18px] h-[18px]"></i> Query system
+            </h2>
+            <span class="ml-auto text-xs text-slate-400">Read-only SPARQL: SELECT, ASK, CONSTRUCT, DESCRIBE</span>
+        </div>
+
+        <div class="flex-1 min-h-0 p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
+            <section class="lg:col-span-5 flex min-h-0 flex-col rounded-lg border border-white/10 bg-slate-900/90 p-4 shadow-lg shadow-black/20">
+                <div class="flex items-center gap-2 mb-3">
+                    <label class="text-xs text-slate-400" for="example-query">Example</label>
+                    <select class="w-auto rounded-md border border-white/10 bg-slate-800 px-2 py-1 text-xs text-slate-100 shadow-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30" id="example-query" onchange="applyExample(this.value)">
+                        <option value="">Custom query</option>
+                        <option value="select10">List 10 triples</option>
+                        <option value="types">Count by rdf:type</option>
+                        <option value="ask">ASK if any triples exist</option>
+                        <option value="describe">Describe first subject</option>
+                        <optgroup label="Core triage">
+                            <option value="detection_on_endpoint">Any detections on endpoint (ASK)</option>
+                            <option value="count_by_level">Count detections by level on endpoint</option>
+                            <option value="users_on_endpoint">Users for high-severity detections on endpoint</option>
+                            <option value="suspicious_processes">Suspicious processes executed on endpoint</option>
+                            <option value="first_detection">First detection time on endpoint</option>
+                            <option value="detection_origin">Where did detection X originate?</option>
+                            <option value="detection_to_artifacts">Files supporting detection X</option>
+                        </optgroup>
+                        <optgroup label="Correlation & cross-tool">
+                            <option value="shared_value_events">Events sharing the same value (possible correlation)</option>
+                        </optgroup>
+                        <optgroup label="Attack semantics">
+                            <option value="tactic_of_artifact">Attack tactic for an artifact</option>
+                            <option value="technique_of_artifact">Attack technique for an artifact</option>
+                            <option value="detections_for_tactic">Detections associated with tactic X</option>
+                            <option value="endpoints_lateral">Endpoints showing lateral movement evidence</option>
+                        </optgroup>
+                        <optgroup label="Temporal & provenance">
+                            <option value="events_near_detection">Events near a specific detection (time window)</option>
+                            <option value="provenance_source">Source tool / raw record provenance for entity</option>
+                            <option value="missing_attributes">Entities missing critical attributes</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <textarea class="min-h-[230px] resize-y rounded-md border border-white/10 bg-slate-950 p-3 font-mono text-xs text-slate-100 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30"
+                    id="query-input" spellcheck="false"></textarea>
+                <div class="mt-3 flex items-center gap-2">
+                    <button class="rounded-md bg-sky-500 px-3 py-1.5 text-xs font-medium text-slate-950 shadow-sm transition hover:bg-sky-400" onclick="runQuery()">Run</button>
+                    <button class="rounded-md border border-white/10 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-100 shadow-sm transition hover:bg-slate-700" onclick="clearQuery()">Clear</button>
+                    <span class="ml-auto text-xs text-slate-400" id="status">Ready</span>
+                </div>
+            </section>
+
+            <section class="lg:col-span-7 flex min-h-0 flex-col rounded-lg border border-white/10 bg-slate-900/90 p-4 shadow-lg shadow-black/20">
+                <div class="mb-2 text-xs text-slate-400" id="result-meta">No results yet.</div>
+                <div class="min-h-0 flex-1" id="result-root"></div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        function initQueryView() {
+            lucide.createIcons();
+            document.getElementById('query-input').value = defaultQuery();
+        }
+
+        function defaultQuery() {
+            return [
+                'SELECT ?s ?p ?o',
+                'WHERE {',
+                '  ?s ?p ?o .',
+                '}',
+                'LIMIT 50'
+            ].join('\n');
+        }
+
+        function applyExample(id) {
+            var q = defaultQuery();
+            if (id === 'select10') {
+                q = [
+                    'SELECT ?s ?p ?o',
+                    'WHERE {',
+                    '  ?s ?p ?o .',
+                    '}',
+                    'LIMIT 10'
+                ].join('\n');
+            } else if (id === 'types') {
+                q = [
+                    'SELECT ?type (COUNT(?s) AS ?count)',
+                    'WHERE {',
+                    '  ?s a ?type .',
+                    '}',
+                    'GROUP BY ?type',
+                    'ORDER BY DESC(?count)',
+                    'LIMIT 100'
+                ].join('\n');
+            } else if (id === 'ask') {
+                q = 'ASK WHERE { ?s ?p ?o }';
+            } else if (id === 'describe') {
+                q = [
+                    'DESCRIBE ?s',
+                    'WHERE {',
+                    '  ?s ?p ?o .',
+                    '}',
+                    'LIMIT 1'
+                ].join('\n');
+            } else if (id === 'detection_on_endpoint') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'ASK WHERE {',
+                    '  ?d a u:Detection ;',
+                    '     u:hasComputer ?c .',
+                    '  ?c u:hasHostname "HOSTNAME" .',
+                    '}'
+                ].join('\n');
+            } else if (id === 'count_by_level') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'SELECT ?level (COUNT(?d) AS ?count)',
+                    'WHERE {',
+                    '  ?d a u:Detection ;',
+                    '     u:hasComputer ?c ;',
+                    '     u:hasLevel ?level .',
+                    '  ?c u:hasHostname "HOSTNAME" .',
+                    '}',
+                    'GROUP BY ?level',
+                    'ORDER BY DESC(?count)'
+                ].join('\n');
+            } else if (id === 'users_on_endpoint') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'SELECT DISTINCT ?user ?userName',
+                    'WHERE {',
+                    '  ?d a u:Detection ;',
+                    '     u:hasComputer ?c ;',
+                    '     u:hasLevel "high" ;',
+                    '     u:hasUser ?user .',
+                    '  ?c u:hasHostname "HOSTNAME" .',
+                    '  OPTIONAL { ?user u:hasName ?userName }',
+                    '}',
+                    'LIMIT 200'
+                ].join('\n');
+            } else if (id === 'suspicious_processes') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'SELECT DISTINCT ?proc ?procName ?procPath',
+                    'WHERE {',
+                    '  ?d a u:Detection ;',
+                    '     u:hasComputer ?c ;',
+                    '     u:hasProcess ?proc .',
+                    '  ?c u:hasHostname "HOSTNAME" .',
+                    '  OPTIONAL { ?proc u:hasName ?procName }',
+                    '  OPTIONAL { ?proc u:hasPath ?procPath }',
+                    '}',
+                    'LIMIT 200'
+                ].join('\n');
+            } else if (id === 'first_detection') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'SELECT ?d ?ts',
+                    'WHERE {',
+                    '  ?d a u:Detection ;',
+                    '     u:hasComputer ?c ;',
+                    '     u:hasTimestamp ?ts .',
+                    '  ?c u:hasHostname "HOSTNAME" .',
+                    '}',
+                    'ORDER BY ASC(?ts)',
+                    'LIMIT 1'
+                ].join('\n');
+            } else if (id === 'detection_origin') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'SELECT ?d ?computer ?hostname',
+                    'WHERE {',
+                    '  ?d u:hasID "DETECTION_ID" .',
+                    '  OPTIONAL { ?d u:hasComputer ?computer . ?computer u:hasHostname ?hostname }',
+                    '}',
+                    'LIMIT 10'
+                ].join('\n');
+            } else if (id === 'detection_to_artifacts') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'SELECT ?file ?fileName',
+                    'WHERE {',
+                    '  ?d u:hasID "DETECTION_ID" ;',
+                    '     u:hasFile ?file .',
+                    '  OPTIONAL { ?file u:hasName ?fileName }',
+                    '}',
+                    'LIMIT 200'
+                ].join('\n');
+            } else if (id === 'shared_value_events') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'SELECT ?value (COUNT(?e) AS ?count)',
+                    'WHERE {',
+                    '  ?e a ?type ;',
+                    '     u:hasValue ?value .',
+                    '}',
+                    'GROUP BY ?value',
+                    'HAVING (?count > 1)',
+                    'ORDER BY DESC(?count)',
+                    'LIMIT 100'
+                ].join('\n');
+            } else if (id === 'tactic_of_artifact') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'SELECT ?tactic',
+                    'WHERE {',
+                    '  <ARTIFACT_URI> u:hasAttackTactic ?tactic .',
+                    '}',
+                    'LIMIT 50'
+                ].join('\n');
+            } else if (id === 'technique_of_artifact') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'SELECT ?technique',
+                    'WHERE {',
+                    '  <ARTIFACT_URI> u:hasAttackTechnique ?technique .',
+                    '}',
+                    'LIMIT 50'
+                ].join('\n');
+            } else if (id === 'detections_for_tactic') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'SELECT ?d ?ts',
+                    'WHERE {',
+                    '  ?d a u:Detection ;',
+                    '     u:hasAttackTactic <TACTIC_URI> ;',
+                    '     OPTIONAL { ?d u:hasTimestamp ?ts }',
+                    '}',
+                    'ORDER BY DESC(?ts)',
+                    'LIMIT 500'
+                ].join('\n');
+            } else if (id === 'endpoints_lateral') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'SELECT DISTINCT ?hostname',
+                    'WHERE {',
+                    '  { ?d a u:LateralMovement ; u:hasComputer ?c }',
+                    '  UNION',
+                    '  { ?d a u:Detection ; u:hasAttackTechnique u:LateralMovement ; u:hasComputer ?c }',
+                    '  ?c u:hasHostname ?hostname .',
+                    '}',
+                    'LIMIT 200'
+                ].join('\n');
+            } else if (id === 'events_near_detection') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>',
+                    'SELECT ?event ?ts',
+                    'WHERE {',
+                    '  <DETECTION_URI> u:hasTimestamp ?t0 .',
+                    '  ?event u:hasTimestamp ?ts .',
+                    '  FILTER(?ts >= ?t0 - "PT3600S"^^xsd:duration && ?ts <= ?t0 + "PT3600S"^^xsd:duration)',
+                    '}',
+                    'ORDER BY ?ts',
+                    'LIMIT 500'
+                ].join('\n');
+            } else if (id === 'provenance_source') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'SELECT ?entity ?sourceTool ?sourceFile',
+                    'WHERE {',
+                    '  ?entity u:modifiedBy_property ?sourceTool ;',
+                    '          u:hasPath ?sourceFile .',
+                    '}',
+                    'LIMIT 200'
+                ].join('\n');
+            } else if (id === 'missing_attributes') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'SELECT ?e',
+                    'WHERE {',
+                    '  ?e a ?t .',
+                    '  FILTER( !EXISTS { ?e u:hasTimestamp ?ts } || !EXISTS { ?e u:hasComputer ?c } || !EXISTS { ?e u:hasUser ?u } )',
+                    '}',
+                    'LIMIT 500'
+                ].join('\n');
+            }
+            document.getElementById('query-input').value = q;
+        }
+
+        function clearQuery() {
+            document.getElementById('query-input').value = '';
+            document.getElementById('result-root').innerHTML = '';
+            document.getElementById('result-meta').textContent = 'No results yet.';
+            document.getElementById('status').textContent = 'Ready';
+        }
+
+        function runQuery() {
+            var query = document.getElementById('query-input').value || '';
+            var status = document.getElementById('status');
+            var resultRoot = document.getElementById('result-root');
+            var resultMeta = document.getElementById('result-meta');
+
+            resultRoot.innerHTML = '';
+            resultMeta.textContent = '';
+
+            if (!query.trim()) {
+                status.textContent = 'Query is empty';
+                return;
+            }
+
+            status.textContent = 'Running...';
+
+            try {
+                var raw = javaBridge.executeSparqlJson(query);
+                var res = JSON.parse(raw);
+                renderResult(res);
+                status.textContent = res.ok ? 'Done' : 'Failed';
+            } catch (e) {
+                status.textContent = 'Failed';
+                resultMeta.textContent = 'Execution error';
+                resultRoot.textContent = e.message;
+            }
+        }
+
+        function renderResult(res) {
+            var root = document.getElementById('result-root');
+            var meta = document.getElementById('result-meta');
+            root.innerHTML = '';
+
+            if (!res.ok) {
+                meta.textContent = 'Query failed';
+                var err = document.createElement('pre');
+                err.className = 'max-h-[48vh] overflow-auto whitespace-pre rounded-md border border-red-500/20 bg-slate-950 p-3 font-mono text-xs text-red-300';
+                err.textContent = res.message || 'Unknown error';
+                root.appendChild(err);
+                return;
+            }
+
+            if (res.queryType === 'SELECT') {
+                var truncated = res.truncated ? ' (truncated)' : '';
+                meta.textContent = 'SELECT: ' + (res.rowCount || 0) + ' rows' + truncated;
+                if (res.message) {
+                    meta.textContent += ' - ' + res.message;
+                }
+                root.appendChild(buildSelectTable(res.columns || [], res.rows || []));
+                return;
+            }
+
+            if (res.queryType === 'ASK') {
+                meta.textContent = 'ASK result';
+                var askBox = document.createElement('div');
+                askBox.className = 'rounded-md border border-white/10 bg-slate-950 p-4 text-sm text-slate-100 shadow-sm';
+                askBox.textContent = String(!!res.boolean);
+                root.appendChild(askBox);
+                return;
+            }
+
+            if (res.queryType === 'CONSTRUCT' || res.queryType === 'DESCRIBE') {
+                meta.textContent = res.queryType + ': ' + (res.tripleCount || 0) + ' triples';
+                var pre = document.createElement('pre');
+                pre.className = 'max-h-[48vh] overflow-auto whitespace-pre rounded-md border border-white/10 bg-slate-950 p-3 font-mono text-xs text-slate-100';
+                pre.textContent = res.ttl || '';
+                root.appendChild(pre);
+                return;
+            }
+
+            meta.textContent = 'Unknown result type';
+            root.textContent = JSON.stringify(res, null, 2);
+        }
+
+        function buildSelectTable(columns, rows) {
+            var wrap = document.createElement('div');
+            wrap.className = 'max-h-[48vh] overflow-auto rounded-lg border border-white/10';
+
+            var table = document.createElement('table');
+            table.className = 'w-full border-collapse font-mono text-xs';
+
+            var thead = document.createElement('thead');
+            var hr = document.createElement('tr');
+            for (var i = 0; i < columns.length; i++) {
+                var th = document.createElement('th');
+                th.className = 'sticky top-0 z-10 border-b border-white/10 bg-slate-800 px-2 py-2 text-left align-top whitespace-nowrap text-slate-100';
+                th.textContent = '?' + columns[i];
+                hr.appendChild(th);
+            }
+            thead.appendChild(hr);
+
+            var tbody = document.createElement('tbody');
+            for (var r = 0; r < rows.length; r++) {
+                var tr = document.createElement('tr');
+                var row = rows[r];
+                var rowUri = getRowUri(row, columns);
+
+                if (rowUri) {
+                    tr.style.cursor = 'pointer';
+                    tr.title = 'Double-click to open graph view';
+                    tr.addEventListener('dblclick', (function (uri) {
+                        return function () {
+                            openGraphView(uri);
+                        };
+                    })(rowUri));
+                }
+
+                for (var c = 0; c < columns.length; c++) {
+                    var col = columns[c];
+                    var cell = document.createElement('td');
+                    cell.className = 'max-w-[420px] overflow-hidden border-b border-white/10 px-2 py-2 align-top whitespace-nowrap text-ellipsis text-slate-100';
+                    var v = row[col];
+                    cell.title = toCellFullText(v);
+                    cell.textContent = toCellText(v);
+
+                    var kind = document.createElement('span');
+                    kind.className = 'ml-1.5 text-[10px] text-slate-400';
+                    kind.textContent = '[' + toKind(v) + ']';
+                    cell.appendChild(kind);
+
+                    tr.appendChild(cell);
+                }
+                tbody.appendChild(tr);
+            }
+
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            wrap.appendChild(table);
+            return wrap;
+        }
+
+        function getRowUri(row, columns) {
+            for (var i = 0; i < columns.length; i++) {
+                var value = row[columns[i]];
+                if (value && value.kind === 'uri' && value.value) {
+                    return value.value;
+                }
+            }
+            return null;
+        }
+
+        function openGraphView(uri) {
+            try {
+                if (javaBridge && typeof javaBridge.openGraphForIndividual === 'function') {
+                    javaBridge.openGraphForIndividual(uri);
+                }
+            } catch (e) {
+                console.error('Failed to open graph view:', e);
+            }
+        }
+
+        function toKind(v) {
+            if (!v || !v.kind) return 'null';
+            return v.kind;
+        }
+
+        function toCellText(v) {
+            if (!v || v.value === null || typeof v.value === 'undefined') return '';
+            if (v.kind === 'uri') return v.display || v.value;
+            return String(v.value);
+        }
+
+        function toCellFullText(v) {
+            if (!v) return '';
+            var text = '';
+            if (typeof v.value !== 'undefined' && v.value !== null) text += String(v.value);
+            if (v.datatype) text += '\n^^' + v.datatype;
+            if (v.lang) text += '\n@' + v.lang;
+            return text;
+        }
+    </script>
+</body>
+
+</html>

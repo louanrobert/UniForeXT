@@ -1,0 +1,153 @@
+@startuml ontology_viewer
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+title Ontology Viewer class diagram
+
+class Launcher <<utility>> {
+   +main(args: String[]): void
+}
+
+class App <<JavaFX Application>> {
+   -kgService: KGService
+   -bridge: JavaBridge
+   -primaryStage: Stage
+   +start(primaryStage: Stage): void
+   +showViewSelector(): void
+   +navigateToView(viewName: String): void
+   +openGraphView(individualUri: String): void
+   +main(args: String[]): void
+}
+
+class KGService {
+   -model: Model
+   -mapper: ObjectMapper
+   -colorService: ColorService
+   -neighborhoodCache: Map<String, String>
+   -neighborSummaryCache: Map<String, String>
+   -datePropertiesCache: Set<Property>
+   -timelineItemsCache: List<TimelineItem>
+   -labelCache: Map<String, String>
+   -typeCache: Map<String, String>
+   +KGService(ttlFilePath: String)
+   +getTimelineItems(): List<TimelineItem>
+   +getTimelineItemsJson(): String
+   +getTimelineGroupsJson(): String
+   +getUndatedIndividuals(): List<UndatedIndividual>
+   +getUndatedIndividualsJson(): String
+   +getNeighborsJson(individualUri: String): String
+   +getNeighborSummaryJson(individualUri: String): String
+   +getFilteredNeighborsJson(individualUri: String, allowedTypesJson: String, maxPerType: int, includeLiterals: boolean): String
+   +getIndividualDetailsJson(individualUri: String): String
+   +isExplored(uri: String): boolean
+   {static} +localName(uri: String): String
+}
+
+class JavaBridge {
+   -kgService: KGService
+   -app: App
+   +JavaBridge(kgService: KGService, app: App)
+   +getNeighborsJson(individualUri: String): String
+   +getNeighborSummaryJson(individualUri: String): String
+   +getFilteredNeighborsJson(individualUri: String, allowedTypesJson: String, maxPerType: int, includeLiterals: String): String
+   +getTimelineItemsJson(): String
+   +getTimelineGroupsJson(): String
+   +getUndatedIndividualsJson(): String
+   +getIndividualDetailsJson(individualUri: String): String
+   +isExplored(uri: String): boolean
+   +openGraphForIndividual(uri: String): void
+   +navigateBack(): void
+   +log(message: String): void
+}
+
+class HtmlLoader <<utility>> {
+   +{static} load(fileName: String): String
+}
+
+class ColorService {
+   -typeColors: Map<String, String>
+   -paletteIdx: AtomicInteger
+   +getColorForType(type: String): String
+   +{static} lightenColor(hex: String): String
+}
+
+class ViewSelectorView {
+   -root: BorderPane
+   -webView: WebView
+   -webEngine: WebEngine
+   -app: App
+   +ViewSelectorView(app: App)
+   +getRoot(): BorderPane
+}
+
+class ViewSelectorBridge {
+   +openView(viewName: String): void
+}
+
+class TimelineView {
+   -root: BorderPane
+   -webView: WebView
+   -webEngine: WebEngine
+   +TimelineView(bridge: JavaBridge)
+   +getRoot(): BorderPane
+}
+
+class EventExplorerView {
+   -root: BorderPane
+   -webView: WebView
+   -webEngine: WebEngine
+   +EventExplorerView(bridge: JavaBridge)
+   +getRoot(): BorderPane
+}
+
+class GraphView {
+   -stage: Stage
+   -webView: WebView
+   -webEngine: WebEngine
+   +GraphView(bridge: JavaBridge, individualUri: String)
+   +getStage(): Stage
+}
+
+class TimelineItem <<record>> {
+   +id: String
+   +uri: String
+   +label: String
+   +type: String
+   +start: String
+   +content: String
+}
+
+class UndatedIndividual <<record>> {
+   +uri: String
+   +label: String
+   +type: String
+}
+
+Launcher ..> App : delegates to
+App --|> Application
+App *-- KGService
+App *-- JavaBridge
+App ..> ViewSelectorView
+App ..> TimelineView
+App ..> EventExplorerView
+App ..> GraphView
+
+JavaBridge ..> KGService
+JavaBridge ..> App
+
+ViewSelectorView *-- ViewSelectorBridge
+ViewSelectorView ..> HtmlLoader
+ViewSelectorView ..> App
+TimelineView ..> HtmlLoader
+TimelineView ..> JavaBridge
+EventExplorerView ..> HtmlLoader
+EventExplorerView ..> JavaBridge
+GraphView ..> HtmlLoader
+GraphView ..> JavaBridge
+
+KGService *-- ColorService
+KGService ..> TimelineItem
+KGService ..> UndatedIndividual
+
+@enduml

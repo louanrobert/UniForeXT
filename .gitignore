@@ -198,4 +198,8 @@ dependency-reduced-pom.xml
 README.html
 *.iml
 .idea
-.exercism
+out.ttl
+ontology.rdf
+out
+.metals
+.venv

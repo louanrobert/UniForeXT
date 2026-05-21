@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://rsms.me/" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <script src="assets/tailwindcss-cdn.js"></script>
+    <script>tailwind.config = { darkMode: 'class' };</script>
+    <script src="assets/lucide.js"></script>
+</head>
+<body class="flex min-h-screen flex-col items-center justify-center bg-slate-950 text-slate-100 select-none antialiased font-inter">
+    <div class="text-center max-w-4xl w-full px-6 py-10">
+        <h1 class="mb-2 flex items-center justify-center gap-2.5 text-2xl font-semibold tracking-tight text-slate-50">
+            <i data-lucide="scan-search" class="h-7 w-7"></i> Knowledge Graph Viewer
+        </h1>
+        <p class="text-slate-400 text-sm mb-12">Select a view to explore the loaded knowledge graph</p>
+        <div class="flex gap-6 justify-center flex-wrap">
+            <div class="group bg-slate-900/80 hover:bg-slate-800/80 border border-white/[0.06] hover:border-white/[0.12] rounded-xl py-8 px-7 w-80 cursor-pointer text-left relative transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 active:translate-y-0"
+                 onclick="viewSelector.openView('timeline-fast')">
+                <span class="absolute top-8 right-6 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white">
+                    <i data-lucide="arrow-right" class="h-5 w-5"></i>
+                </span>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center mb-4 bg-cyan-500/15 transition-transform duration-300 group-hover:scale-110">
+                    <i data-lucide="gauge-circle" class="h-6 w-6 text-cyan-300"></i>
+                </div>
+                <div class="mb-2 text-lg font-semibold text-slate-50">Historical timeline</div>
+                <div class="text-xs text-slate-400 leading-relaxed">
+                    Canvas-based timeline optimized for very large datasets.
+                    Supports smooth pan/zoom, clustering, and a colored minimap scrollbar.
+                </div>
+            </div>
+            <div class="group bg-slate-900/80 hover:bg-slate-800/80 border border-white/[0.06] hover:border-white/[0.12] rounded-xl py-8 px-7 w-80 cursor-pointer text-left relative transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 active:translate-y-0"
+                 onclick="viewSelector.openView('explorer')">
+                <span class="absolute top-8 right-6 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white">
+                    <i data-lucide="arrow-right" class="h-5 w-5"></i>
+                </span>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center mb-4 bg-emerald-500/10 transition-transform duration-300 group-hover:scale-110">
+                    <i data-lucide="bar-chart-3" class="h-6 w-6 text-emerald-300"></i>
+                </div>
+                <div class="mb-2 text-lg font-semibold text-slate-50">Event explorer</div>
+                <div class="text-xs text-slate-400 leading-relaxed">
+                    Overview of event distribution over time, with a
+                    searchable event table and detailed property inspector.
+                </div>
+            </div>
+            <div class="group bg-slate-900/80 hover:bg-slate-800/80 border border-white/[0.06] hover:border-white/[0.12] rounded-xl py-8 px-7 w-80 cursor-pointer text-left relative transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 active:translate-y-0"
+                 onclick="viewSelector.openView('undated')">
+                <span class="absolute top-8 right-6 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white">
+                    <i data-lucide="arrow-right" class="h-5 w-5"></i>
+                </span>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center mb-4 bg-purple-500/15 transition-transform duration-300 group-hover:scale-110">
+                    <i data-lucide="circle-slash" class="h-6 w-6 text-purple-400"></i>
+                </div>
+                <div class="mb-2 text-lg font-semibold text-slate-50">Undated items</div>
+                <div class="text-xs text-slate-400 leading-relaxed">
+                    View all items without a timestamp or date,
+                    organized and searchable by type and label.
+                </div>
+            </div>
+            <div class="group bg-slate-900/80 hover:bg-slate-800/80 border border-white/[0.06] hover:border-white/[0.12] rounded-xl py-8 px-7 w-80 cursor-pointer text-left relative transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30 active:translate-y-0"
+                 onclick="viewSelector.openView('query')">
+                <span class="absolute top-8 right-6 text-slate-400 transition-all duration-300 group-hover:translate-x-1 group-hover:text-white">
+                    <i data-lucide="arrow-right" class="h-5 w-5"></i>
+                </span>
+                <div class="h-12 w-12 rounded-xl flex items-center justify-center mb-4 bg-orange-500/15 transition-transform duration-300 group-hover:scale-110">
+                    <i data-lucide="terminal-square" class="h-6 w-6 text-orange-400"></i>
+                </div>
+                <div class="mb-2 text-lg font-semibold text-slate-50">Query</div>
+                <div class="text-xs text-slate-400 leading-relaxed">
+                    Run read-only SPARQL queries against the loaded knowledge graph.
+                    Supports SELECT, ASK, CONSTRUCT, and DESCRIBE results.
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

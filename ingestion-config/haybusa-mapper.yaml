@@ -1,0 +1,68 @@
+genericMappings:
+  addTimestamp:
+    - sourceField: "Timestamp"
+      type: dataProperty
+      owlProperty: hasTimestamp
+      dataType: xsd:dateTimeStamp
+
+  addComputer:
+    - type: linkedIndividual
+      owlClass: Computer
+      linkProperty: hasComputer
+      identifier:
+        fields: "Computer"
+      dataProperties:
+        - sourceField: "Computer"
+          type: dataProperty
+          owlProperty: hasHostname
+
+mappers:
+  - name: HayabusaMapper
+    file: "${ANALYSIS_ROOT}/QuickWins/*-haya.csv"
+    owlClass: Detection
+    delimiter: ';'
+    identifier:
+      fields:
+        - "RecordID"
+        - "Channel"
+      separator: "_"
+    staticProperties:
+      - owlProperty: hasDescription
+        value: "Hayabusa detection"
+    generics:
+      - addTimestamp
+      - addComputer
+    fieldMappings:
+      - sourceField: "RuleTitle"
+        type: dataProperty
+        owlProperty: hasName
+      - sourceField: "EventID"
+        type: dataProperty
+        owlProperty: hasEventID
+        dataType: xsd:unsignedLong
+      - sourceField: "RecordID"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "RecordID: "
+      - sourceField: "Level"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Level: "
+      - sourceField: "Channel"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Channel: "
+      - sourceField: "Details"
+        type: dataProperty
+        owlProperty: hasDescription
+      - sourceField: "ExtraFieldInfo"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+      - sourceField: "RuleID"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Rule ID: "

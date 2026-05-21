@@ -1,0 +1,62 @@
+genericMappings:
+  addTimestamp:
+    - sourceField: "System_DateCreated"
+      type: dataProperty
+      owlProperty: hasTimestamp
+      dataType: xsd:dateTimeStamp
+  addComputer:
+    - type: linkedIndividual
+      owlClass: Computer
+      linkProperty: hasComputer
+      identifier:
+        fields: "System_ComputerName"
+      dataProperties:
+        - sourceField: "System_ComputerName"
+          type: dataProperty
+          owlProperty: hasHostname
+
+
+mappers:
+  - name: UnkownFile
+    file: "${ANALYSIS_ROOT}/WinSearchDB/Unknown_File_Report_*.csv"
+    owlClass: Detection
+    generics:
+      - addTimestamp
+      - addComputer
+    identifier:
+      fields: "WorkId"
+      prefix: "UnkownFile"
+    fieldMappings:
+      - type: linkedIndividual
+        owlClass: File
+        linkProperty: hasFile
+        identifier:
+          fields: "System_ItemPathDisplay"
+        dataProperties:
+          - sourceField: "System_ItemPathDisplay"
+            type: dataProperty
+            owlProperty: hasContent
+          - type: dataProperty
+            owlProperty: hasSize
+            sourceField: System_Size
+
+
+  - name: UnkownInternetHistory
+    file: "${ANALYSIS_ROOT}/WinSearchDB/Unknown_Activity_History_Report_*.csv"
+    owlClass: Detection
+    identifier:
+      fields: "WorkId"
+      prefix: "UnkownInternetHistory"
+    generics:
+      - addTimestamp
+      - addComputer
+    fieldMappings:
+      - type: linkedIndividual
+        owlClass: Path
+        linkProperty: hasPath
+        identifier:
+          fields: "System_Link_TargetUrl"
+        dataProperties:
+          - sourceField: "System_Link_TargetUrl"
+            type: dataProperty
+            owlProperty: hasContent
