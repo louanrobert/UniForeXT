@@ -1,16 +1,47 @@
-name: WIDOCO build
-on: [push]
+name: WIDOCO build and deploy to Pages
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  widoco:
+  build:
     runs-on: ubuntu-latest
-    name: A conversion of ttl to html
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
-      - name: convert
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Convert ontology to HTML
         uses: soilwise-he/widoco-action@v0.3
         with:
           file-input: '/github/workspace/ontology/ontology.rdf'
           folder-output: '/github/workspace/ontology/doc'
           options: '-excludeProvenance -getOntologyMetadata'
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './ontology/doc'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
