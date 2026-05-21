@@ -1,0 +1,1425 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results/"
+     xml:base="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results/"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+     xmlns:terms="http://purl.org/dc/terms/">
+    <owl:Ontology rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results">
+        <owl:versionIRI rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results/1.1.0"/>
+        <owl:imports rdf:resource="http://www.w3.org/2006/time#2016"/>
+        <terms:created rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2026-02-05</terms:created>
+        <terms:creator xml:lang="en">Robert Louan</terms:creator>
+        <terms:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2026-04-14</terms:modified>
+        <terms:title xml:lang="en">Unified Forensics Results Ontology</terms:title>
+        <owl:versionInfo xml:lang="en">1.1.0</owl:versionInfo>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://purl.org/dc/terms/title -->
+
+    <owl:AnnotationProperty rdf:about="http://purl.org/dc/terms/title"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasAttackTactic -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasAttackTactic">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isAttackTacticOf"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AttackTactic"/>
+        <rdfs:comment xml:lang="en">Links an element to the ATT&amp;CK tactic it is associated with.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasAttackTactic</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasAttackTechnique -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasAttackTechnique">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isAttackTechniqueOf"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AttackTechnique"/>
+        <rdfs:comment xml:lang="en">Links an element to the ATT&amp;CK technique it is associated with.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasAttackTechnique</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasChildrenProcess -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasChildrenProcess">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasProcess"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasParentProcess"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Process"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Process"/>
+        <rdfs:comment xml:lang="en">Relates a process to one of its child processes.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasChildrenProcess</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasCommand -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasCommand">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isCommandOf"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Command"/>
+        <rdfs:comment xml:lang="en">Relates an entity to the command associated with it.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasCommand</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasComputer -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasComputer">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isComputerOf"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Computer"/>
+        <rdfs:comment xml:lang="en">Relates an entity to the computer on which it occurred or was observed.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasComputer</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasDetection -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasDetection">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isDetectionOf"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Event"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Detection"/>
+        <rdfs:comment xml:lang="en">Links an event to the detection that identified it.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasDetection</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasFile -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasFile">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasLogFile -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasLogFile">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isLogFileOf"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogFile"/>
+        <rdfs:comment xml:lang="en">Links an entity to the log file used as evidence or source.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasLogFile</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasLogonEvent -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasLogonEvent">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isLogonEventOf"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Session"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonEvent"/>
+        <rdfs:comment xml:lang="en">Associates a session with its logon event.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasLogonEvent</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasLogonType -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasLogonType">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isLogonTypeOf"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonEvent"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonType"/>
+        <rdfs:comment xml:lang="en">Specifies the logon type associated with a logon event.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasLogonType</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasParentProcess -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasParentProcess">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasProcess"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Process"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Process"/>
+        <rdfs:comment xml:lang="en">Relates a process to its parent process.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasParentProcess</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasPath -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasPath">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isPathOf"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Path"/>
+        <rdfs:comment xml:lang="en">Relates a file to its file system path.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasPath</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasProcess -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasProcess">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isProcessOf"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Process"/>
+        <rdfs:comment xml:lang="en">Relates an entity to a process associated with it.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasProcess</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasUser -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasUser">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isUserOf"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#User"/>
+        <rdfs:comment xml:lang="en">Relates an entity to the user associated with it.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasUser</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isAttackTacticOf -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isAttackTacticOf">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AttackTactic"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+        <rdfs:comment xml:lang="en">Inverse of hasAttackTactic; associates an ATT&amp;CK tactic to entities using it.</rdfs:comment>
+        <rdfs:label xml:lang="en">isAttackTacticOf</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isAttackTechniqueOf -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isAttackTechniqueOf">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AttackTechnique"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+        <rdfs:comment xml:lang="en">Inverse of hasAttackTechnique; associates an ATT&amp;CK technique to entities using it.</rdfs:comment>
+        <rdfs:label xml:lang="en">isAttackTechniqueOf</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isCommandOf -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isCommandOf">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Command"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:comment xml:lang="en">Inverse of hasCommand; associates a command to entities that used it.</rdfs:comment>
+        <rdfs:label xml:lang="en">isCommandOf</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isComputerOf -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isComputerOf">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Computer"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:comment xml:lang="en">Inverse of hasComputer; associates a computer to entities observed on it.</rdfs:comment>
+        <rdfs:label xml:lang="en">isComputerOf</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isDetectionOf -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isDetectionOf">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Detection"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Event"/>
+        <rdfs:comment xml:lang="en">Inverse of hasDetection; associates a detection to the events it identified.</rdfs:comment>
+        <rdfs:label xml:lang="en">isDetectionOf</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isLogFileOf -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isLogFileOf">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogFile"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:comment xml:lang="en">Inverse of hasLogFile; associates a log file to entities that reference it.</rdfs:comment>
+        <rdfs:label xml:lang="en">isLogFileOf</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isLogonEventOf -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isLogonEventOf">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonEvent"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Session"/>
+        <rdfs:comment xml:lang="en">Inverse of hasLogonEvent; associates a logon event to the session it created.</rdfs:comment>
+        <rdfs:label xml:lang="en">isLogonEventOf</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isLogonTypeOf -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isLogonTypeOf">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonType"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonEvent"/>
+        <rdfs:comment xml:lang="en">Inverse of hasLogonType; associates a logon type to events using it.</rdfs:comment>
+        <rdfs:label xml:lang="en">isLogonTypeOf</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isPathOf -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isPathOf">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Path"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogFile"/>
+        <rdfs:comment xml:lang="en">Inverse of hasPath; associates a path to the file it belongs to.</rdfs:comment>
+        <rdfs:label xml:lang="en">isPathOf</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isProcessOf -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isProcessOf">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Process"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:comment xml:lang="en">Inverse of hasProcess; associates a process to entities that reference it.</rdfs:comment>
+        <rdfs:label xml:lang="en">isProcessOf</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isUserOf -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#isUserOf">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#User"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:comment xml:lang="en">Inverse of hasUser; associates a user to entities related to them.</rdfs:comment>
+        <rdfs:label xml:lang="en">isUserOf</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#modifiedBy_property -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#modifiedBy_property">
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#modifier_property"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Value"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+        <rdfs:comment xml:lang="en">Inverse of modifier_property; associates values to entities that use them as modifiers.</rdfs:comment>
+        <rdfs:label xml:lang="en">modifiedBy_property</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#modifier_property -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#modifier_property">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Value"/>
+        <rdfs:comment xml:lang="en">Auxiliary property group for modifier relations.</rdfs:comment>
+        <rdfs:label xml:lang="en">modifierProperty</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <owl:inverseOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property_inverse"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+        <rdfs:comment xml:lang="en">Auxiliary super-property for relational links between ontology entities.</rdfs:comment>
+        <rdfs:label xml:lang="en">relationalProperty</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property_inverse -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property_inverse">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+        <rdfs:range rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+        <rdfs:comment xml:lang="en">Inverse of relational_property; generic super-property for inverse relational links.</rdfs:comment>
+        <rdfs:label xml:lang="en">relational_property_inverse</rdfs:label>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasContent -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasContent">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Path"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment xml:lang="en">Stores the string content of a path-like value.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasContent</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasDescription -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasDescription">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment xml:lang="en">Provides a human-readable description of an entity.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasDescription</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasDomain -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasDomain">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Computer"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment xml:lang="en">Stores the domain name associated with a computer.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasDomain</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasEventID -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasEventID">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Event"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#unsignedLong"/>
+        <rdfs:comment xml:lang="en">Stores the identifier of an event in the source log or system.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasEventID</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasExtraInformation -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasExtraInformation">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment xml:lang="en">Stores additional free-text information for an entity.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasExtraInformation</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasHostname -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasHostname">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Computer"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment xml:lang="en">Stores the hostname of a computer.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasHostname</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasID -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasID">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Detection"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#unsignedLong"/>
+        <rdfs:comment xml:lang="en">Stores the identifier of a detection record.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasID</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasIP -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasIP">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Computer"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment xml:lang="en">Stores the IP address associated with a computer.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasIP</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasLevel -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasLevel">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Detection"/>
+        <rdfs:range>
+            <rdfs:Datatype>
+                <owl:oneOf>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                        <rdf:first>High</rdf:first>
+                        <rdf:rest>
+                            <rdf:Description>
+                                <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                                <rdf:first>Info</rdf:first>
+                                <rdf:rest>
+                                    <rdf:Description>
+                                        <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                                        <rdf:first>Low</rdf:first>
+                                        <rdf:rest>
+                                            <rdf:Description>
+                                                <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                                                <rdf:first>Medium</rdf:first>
+                                                <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+                                            </rdf:Description>
+                                        </rdf:rest>
+                                    </rdf:Description>
+                                </rdf:rest>
+                            </rdf:Description>
+                        </rdf:rest>
+                    </rdf:Description>
+                </owl:oneOf>
+            </rdfs:Datatype>
+        </rdfs:range>
+        <rdfs:comment xml:lang="en">Stores the severity level associated with a detection.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasLevel</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasName -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasName">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment xml:lang="en">Stores the name of an ontology entity.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasName</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasSize -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasSize">
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#File"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasTechnique -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasTechnique">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:comment xml:lang="en">Stores a technique identifier in string form.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasTechnique</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasTimestamp -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasTimestamp">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTimeStamp"/>
+        <rdfs:comment xml:lang="en">Stores the timestamp associated with an entity or event.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasTimestamp</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasValue -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasValue">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#RegistryModification_configuration_event"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+        <rdfs:comment xml:lang="en">Stores the value used in registry modification events.</rdfs:comment>
+        <rdfs:label xml:lang="en">hasValue</rdfs:label>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AccessDetection -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AccessDetection">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Detection"/>
+        <rdfs:comment xml:lang="en">Detection category for access related activity.</rdfs:comment>
+        <rdfs:label xml:lang="en">Access Detection</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AccountTampering -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AccountTampering">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AccessDetection"/>
+        <rdfs:comment xml:lang="en">Detection indicating account tampering activity.</rdfs:comment>
+        <rdfs:label xml:lang="en">AccountTampering</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AnalyticsDetection -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AnalyticsDetection">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Detection"/>
+        <rdfs:comment xml:lang="en">Detection category for analytics or automated detection signals.</rdfs:comment>
+        <rdfs:label xml:lang="en">Analytics Detection</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Antivirus -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Antivirus">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AnalyticsDetection"/>
+        <rdfs:comment xml:lang="en">Detection produced by antivirus software.</rdfs:comment>
+        <rdfs:label xml:lang="en">Antivirus</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AttackTactic -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AttackTactic">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Value"/>
+        <rdfs:comment xml:lang="en">Controlled ATT&amp;CK tactic concept.</rdfs:comment>
+        <rdfs:label xml:lang="en">Attack Tactic</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AttackTechnique -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AttackTechnique">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Value"/>
+        <rdfs:comment xml:lang="en">Controlled ATT&amp;CK technique concept.</rdfs:comment>
+        <rdfs:label xml:lang="en">Attack Technique</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AuditPolicyChange_Event -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AuditPolicyChange_Event">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Configuration_event"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AuthenticationEvent -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AuthenticationEvent">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Event"/>
+        <rdfs:comment xml:lang="en">Event associated with authentication or logon activity.</rdfs:comment>
+        <rdfs:label xml:lang="en">Authentication Event</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Command -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Command">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasComputer"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Computer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasUser"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#User"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasDescription"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment xml:lang="en">Command observed in the forensic context.</rdfs:comment>
+        <rdfs:label xml:lang="en">Command</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Computer -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Computer">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasDomain"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasHostname"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasIP"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment xml:lang="en">Computer or host involved in the forensic investigation.</rdfs:comment>
+        <rdfs:label xml:lang="en">Computer</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Configuration_event -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Configuration_event">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Event"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasName"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment xml:lang="en">Superclass for configuration-related events.</rdfs:comment>
+        <rdfs:label xml:lang="en">Configuration Event</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#DefenseEvasionDetection -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#DefenseEvasionDetection">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Detection"/>
+        <rdfs:comment xml:lang="en">Detection category for defense evasion activity.</rdfs:comment>
+        <rdfs:label xml:lang="en">Defense Evasion Detection</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Detection -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Detection">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasLogFile"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogFile"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasUser"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#User"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasComputer"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Computer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasExtraInformation"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasID"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#unsignedLong"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasName"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasTechnique"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasDescription"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasTimestamp"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#dateTimeStamp"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment xml:lang="en">Independent evidence or alert produced by a security or forensic control.</rdfs:comment>
+        <rdfs:label xml:lang="en">Detection</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+                    <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Value"/>
+                </owl:unionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:comment xml:lang="en">Top-level domain category for all ontology entities.</rdfs:comment>
+        <rdfs:label xml:lang="en">Domain Entity</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Event -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Event">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasDetection"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Detection"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasComputer"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Computer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasLogFile"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogFile"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasUser"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#User"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasExtraInformation"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasEventID"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#unsignedLong"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasTimestamp"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#dateTimeStamp"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment xml:lang="en">Occurrence recorded in logs or forensic evidence.</rdfs:comment>
+        <rdfs:label xml:lang="en">Event</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ExecutionDetection -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ExecutionDetection">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Detection"/>
+        <rdfs:comment xml:lang="en">Detection category for execution-related activity.</rdfs:comment>
+        <rdfs:label xml:lang="en">Execution Detection</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#File -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#File">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Value"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+        <owl:disjointWith rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Value"/>
+        <rdfs:comment xml:lang="en">Entity representing a concrete forensic object or occurrence.</rdfs:comment>
+        <rdfs:label xml:lang="en">Independent Entity</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#IndicatorRemoval -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#IndicatorRemoval">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#DefenseEvasionDetection"/>
+        <rdfs:comment xml:lang="en">Detection indicating removal of indicators or traces.</rdfs:comment>
+        <rdfs:label xml:lang="en">IndicatorRemoval</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LateralMovement -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LateralMovement">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AccessDetection"/>
+        <rdfs:comment xml:lang="en">Detection indicating lateral movement activity.</rdfs:comment>
+        <rdfs:label xml:lang="en">LateralMovement</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogCleared_Event -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogCleared_Event">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Configuration_event"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogFile -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogFile">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasPath"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Path"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment xml:lang="en">Log file used as a forensic evidence source.</rdfs:comment>
+        <rdfs:label xml:lang="en">LogFile</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogTampering -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogTampering">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#DefenseEvasionDetection"/>
+        <rdfs:comment xml:lang="en">Detection indicating tampering with log data.</rdfs:comment>
+        <rdfs:label xml:lang="en">LogTampering</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonEvent -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonEvent">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AuthenticationEvent"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasLogonType"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonType"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment xml:lang="en">Event capturing a logon or authentication occurrence.</rdfs:comment>
+        <rdfs:label xml:lang="en">Logon Event</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonType -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonType">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Value"/>
+        <rdfs:comment xml:lang="en">Controlled value representing the logon type.</rdfs:comment>
+        <rdfs:label xml:lang="en">LogonType</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#MicrosoftRDS -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#MicrosoftRDS">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AccessDetection"/>
+        <rdfs:comment xml:lang="en">Detection related to Microsoft Remote Desktop Services activity.</rdfs:comment>
+        <rdfs:label xml:lang="en">MicrosoftRDS</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Path -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Path">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasContent"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment xml:lang="en">File system path or path-like string used in forensic evidence.</rdfs:comment>
+        <rdfs:label xml:lang="en">Path</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Persistence -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Persistence">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#PersistenceDetection"/>
+        <rdfs:comment xml:lang="en">Detection indicating persistence-related activity.</rdfs:comment>
+        <rdfs:label xml:lang="en">Persistence</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#PersistenceDetection -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#PersistenceDetection">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Detection"/>
+        <rdfs:comment xml:lang="en">Detection category for persistence-related activity.</rdfs:comment>
+        <rdfs:label xml:lang="en">Persistence Detection</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#PowershellEngineState -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#PowershellEngineState">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ExecutionDetection"/>
+        <rdfs:comment xml:lang="en">Detection indicating a PowerShell engine state or execution context.</rdfs:comment>
+        <rdfs:label xml:lang="en">PowershellEngineState</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Process -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Process">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasCommand"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Command"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasComputer"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Computer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasParentProcess"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Process"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasName"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment xml:lang="en">Operating system process observed in the forensic context.</rdfs:comment>
+        <rdfs:label xml:lang="en">Process</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#RDPAttacks -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#RDPAttacks">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AccessDetection"/>
+        <rdfs:comment xml:lang="en">Detection related to RDP attack activity.</rdfs:comment>
+        <rdfs:label xml:lang="en">RDPAttacks</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#RDPEvent -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#RDPEvent">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AccessDetection"/>
+        <rdfs:comment xml:lang="en">Detection related to Remote Desktop Protocol events.</rdfs:comment>
+        <rdfs:label xml:lang="en">RDPEvents</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#RegistryLoad_configuration_event -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#RegistryLoad_configuration_event">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Configuration_event"/>
+        <rdfs:comment xml:lang="en">Configuration event for registry loading activity.</rdfs:comment>
+        <rdfs:label xml:lang="en">Registry Load Configuration Event</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#RegistryModification_configuration_event -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#RegistryModification_configuration_event">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Configuration_event"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasValue"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#decimal"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment xml:lang="en">Configuration event for registry modification activity.</rdfs:comment>
+        <rdfs:label xml:lang="en">Registry Modification Configuration Event</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ScheduledTaskCreation_configuration_event -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ScheduledTaskCreation_configuration_event">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Configuration_event"/>
+        <rdfs:comment xml:lang="en">Configuration event for scheduled task creation.</rdfs:comment>
+        <rdfs:label xml:lang="en">Scheduled Task Creation Configuration Event</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ScheduledTaskDeletion_configuration_event -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ScheduledTaskDeletion_configuration_event">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Configuration_event"/>
+        <rdfs:comment xml:lang="en">Configuration event for scheduled task deletion.</rdfs:comment>
+        <rdfs:label xml:lang="en">Scheduled Task Deletion Configuration Event</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ServiceInstallation -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ServiceInstallation">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#PersistenceDetection"/>
+        <rdfs:comment xml:lang="en">Detection indicating service installation activity.</rdfs:comment>
+        <rdfs:label xml:lang="en">ServiceInstallation</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ServiceInstallation_configuration_event -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ServiceInstallation_configuration_event">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Configuration_event"/>
+        <rdfs:comment xml:lang="en">Configuration event for service installation.</rdfs:comment>
+        <rdfs:label xml:lang="en">Service Installation Configuration Event</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Session -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Session">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasLogonEvent"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonEvent"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasUser"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#User"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment xml:lang="en">User session associated with a logon event.</rdfs:comment>
+        <rdfs:label xml:lang="en">Session</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Sigma -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Sigma">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AnalyticsDetection"/>
+        <rdfs:comment xml:lang="en">Detection produced from Sigma rules or Sigma-based content.</rdfs:comment>
+        <rdfs:label xml:lang="en">Sigma</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Threat -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Threat">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasCommand"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Command"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasComputer"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Computer"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasProcess"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Process"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasUser"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#User"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasName"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasTechnique"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasTimestamp"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#dateTimeStamp"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment xml:lang="en">Suspected malicious activity or adversary-driven behavior.</rdfs:comment>
+        <rdfs:label xml:lang="en">Threat</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#User -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#User">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasName"/>
+                <owl:someValuesFrom rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:comment xml:lang="en">User account or person associated with an event or entity.</rdfs:comment>
+        <rdfs:label xml:lang="en">User</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Value -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Value">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+        <rdfs:comment xml:lang="en">Controlled conceptual value used to classify domain entities.</rdfs:comment>
+        <rdfs:label xml:lang="en">Value</rdfs:label>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#OWLNamedIndividual_1ab4667c_f883_41f9_aac5_5e82403e85ec -->
+
+    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#OWLNamedIndividual_1ab4667c_f883_41f9_aac5_5e82403e85ec">
+        <rdf:type rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonType"/>
+        <rdfs:label xml:lang="en">rdpLogon</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#OWLNamedIndividual_67b22c88_bcfe_4030_80ce_6b2d3bbd15b8 -->
+
+    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#OWLNamedIndividual_67b22c88_bcfe_4030_80ce_6b2d3bbd15b8">
+        <rdf:type rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonType"/>
+        <rdfs:label xml:lang="en">networkLogon</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#OWLNamedIndividual_8f290e9f_caa8_4bf1_8af5_788a34262633 -->
+
+    <owl:NamedIndividual rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#OWLNamedIndividual_8f290e9f_caa8_4bf1_8af5_788a34262633">
+        <rdf:type rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogonType"/>
+        <rdfs:label xml:lang="en">localLogon</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // General axioms
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AccessDetection"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AnalyticsDetection"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#DefenseEvasionDetection"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ExecutionDetection"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#PersistenceDetection"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#AccountTampering"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Antivirus"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#IndicatorRemoval"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LateralMovement"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogTampering"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#MicrosoftRDS"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Persistence"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#PowershellEngineState"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#RDPAttacks"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#RDPEvent"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ServiceInstallation"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Sigma"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Command"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Computer"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Detection"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Event"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#LogFile"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Path"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Process"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Session"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Threat"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#User"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Value"/>
+        </owl:members>
+    </rdf:Description>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.29.2024-05-13T12:11:03Z) https://github.com/owlcs/owlapi -->
+

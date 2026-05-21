@@ -18,7 +18,7 @@ public class PipelineContext {
     private final SourceIngester sourceIngester;
     private final String mapperConfigPath;
     private static final String SHACL_SHAPES_PATH_ENV = "SHACL_SHAPES_PATH";
-    private static final String DEFAULT_SHACL_SHAPES_PATH = "../shapes.ttl";
+    private static final String DEFAULT_SHACL_SHAPES_PATH = "../ontology/shapes.ttl";
     private static final String SHACL_SHAPES_PATH = System.getenv(SHACL_SHAPES_PATH_ENV) != null
             ? System.getenv(SHACL_SHAPES_PATH_ENV)
             : DEFAULT_SHACL_SHAPES_PATH;

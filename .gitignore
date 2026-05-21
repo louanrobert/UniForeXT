@@ -199,7 +199,6 @@ README.html
 *.iml
 .idea
 out.ttl
-ontology.rdf
 out
 .metals
 .venv
