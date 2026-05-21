@@ -188,6 +188,7 @@
         var dataTimeMax = null;
         var eventPageSize = 250;
         var eventPageIndex = 0;
+        var suppressHistogramAnimationOnce = false;
 
         var nameIncludes = [];  // [{text:'...'}] — event must match at least one
         var nameExcludes = [];  // [{text:'...'}] — event must not match any
@@ -204,11 +205,7 @@
         var fpEnd = null;    // flatpickr instance for end date
         var enabledDates = [];  // array of available dates with events
 
-        function formatDateTimeLocal(ms) {
-            var d = new Date(ms);
-            var pad = function(value) { return String(value).padStart(2, '0'); };
-            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-        }
+        // Consolidated date formatting: use `formatFlatpickrDate(ms)` for inputs.
 
         function updateDateRangeControls() {
             // Collect all unique dates from events
@@ -308,17 +305,40 @@
             updateAutoLabel();
         }
 
-        function applyTimeframeZoom(deltaY) {
+        function formatFlatpickrDate(ms) {
+            var d = new Date(ms);
+            var pad = function(value) { return String(value).padStart(2, '0'); };
+            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+        }
+
+        function syncDateRangeInputs(startMs, endMs) {
+            var startDate = new Date(startMs);
+            var endDate = new Date(endMs);
+            var startInput = document.getElementById('date-start');
+            var endInput = document.getElementById('date-end');
+            if (fpStart) fpStart.setDate(startDate, false);
+            if (startInput) startInput.value = formatFlatpickrDate(startMs);
+            if (fpEnd) fpEnd.setDate(endDate, false);
+            if (endInput) endInput.value = formatFlatpickrDate(endMs);
+            dateStartIso = startDate.toISOString();
+            dateEndIso = endDate.toISOString();
+            updateDateRangeControls();
+        }
+
+        function applyTimeframeZoom(evt) {
             if (dataTimeMin === null || dataTimeMax === null) return;
 
             var baseStart = dateStartIso ? new Date(dateStartIso).getTime() : dataTimeMin;
             var baseEnd = dateEndIso ? new Date(dateEndIso).getTime() : dataTimeMax;
+            suppressHistogramAnimationOnce = true;
             var range = Math.max(1, baseEnd - baseStart);
-            var center = baseStart + range / 2;
-            var zoomFactor = deltaY > 0 ? 1.25 : 0.8;
+            var pointerX = typeof evt.clientX === 'number' ? evt.clientX : window.innerWidth / 2;
+            var focusRatio = window.innerWidth > 0 ? Math.min(0.98, Math.max(0.02, pointerX / window.innerWidth)) : 0.5;
+            var focusTime = baseStart + (range * focusRatio);
+            var zoomFactor = evt.deltaY > 0 ? 1.18 : 0.84;
             var nextRange = Math.max(60 * 1000, range * zoomFactor);
-            var nextStart = center - nextRange / 2;
-            var nextEnd = center + nextRange / 2;
+            var nextStart = focusTime - (nextRange * focusRatio);
+            var nextEnd = nextStart + nextRange;
 
             if (nextStart < dataTimeMin) {
                 nextEnd += dataTimeMin - nextStart;
@@ -333,16 +353,15 @@
             nextEnd = Math.min(dataTimeMax, nextEnd);
             if (nextEnd <= nextStart) nextEnd = Math.min(dataTimeMax, nextStart + 60 * 1000);
 
-            dateStartIso = new Date(Math.floor(nextStart)).toISOString();
-            dateEndIso = new Date(Math.ceil(nextEnd)).toISOString();
-            updateDateRangeControls();
-            applyFilters();
+            syncDateRangeInputs(Math.floor(nextStart), Math.ceil(nextEnd));
+            applyFilters(true);
         }
 
         function handleWheelShortcut(evt) {
             if (!evt.ctrlKey) return;
             evt.preventDefault();
-            applyTimeframeZoom(evt.deltaY);
+            evt.stopPropagation();
+            applyTimeframeZoom(evt);
         }
 
         function initExplorer() {
@@ -392,7 +411,7 @@
                 // Build histogram
                 buildHistogram();
 
-                window.addEventListener('wheel', handleWheelShortcut, { passive: false });
+                document.addEventListener('wheel', handleWheelShortcut, { passive: false, capture: true });
 
                 // Initialize resizer for detail panel (allows horizontal resizing)
                 initResizer();
@@ -467,7 +486,7 @@
             var base = {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: { duration: 300 },
+                animation: { duration: suppressHistogramAnimationOnce ? 0 : 300 },
                 interaction: { mode: 'nearest', intersect: false },
                 plugins: {
                     legend: {
@@ -475,7 +494,6 @@
                         labels: { color: 'hsl(0 0% 63%)', font: { size: 10 }, boxWidth: 10, boxHeight: 10, padding: 8, usePointStyle: true, pointStyle: 'circle' }
                     },
                     tooltip: {
-                        mode: 'nearest', intersect: false,
                         backgroundColor: 'rgba(20,20,30,0.95)', titleColor: '#fff', bodyColor: '#ccc',
                         borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10,
                         callbacks: {
@@ -490,19 +508,21 @@
                 }
             };
 
-            function deepMerge(a, b) {
-                for (var k in b) {
-                    if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) {
-                        a[k] = a[k] || {};
-                        deepMerge(a[k], b[k]);
-                    } else {
-                        a[k] = b[k];
-                    }
-                }
-                return a;
-            }
+            var options = overrides ? deepMerge(base, overrides) : base;
+            suppressHistogramAnimationOnce = false;
+            return options;
+        }
 
-            return overrides ? deepMerge(base, overrides) : base;
+        function deepMerge(a, b) {
+            for (var k in b) {
+                if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) {
+                    a[k] = a[k] || {};
+                    deepMerge(a[k], b[k]);
+                } else {
+                    a[k] = b[k];
+                }
+            }
+            return a;
         }
 
         /*  Aggregation helpers  */
@@ -1360,18 +1380,23 @@
             return new Date(match[1], parseInt(match[2]) - 1, match[3], match[4], match[5]).toISOString();
         }
 
-        function applyFilters() {
+        function applyFilters(preserveDateRange) {
             var query = (document.getElementById('search-input').value || '').toLowerCase();
 
-            // Get date inputs (flatpickr format: "Y-m-d H:i")
-            var dateStartInput = document.getElementById('date-start').value;
-            var dateEndInput = document.getElementById('date-end').value;
-            dateStartIso = parseFlatpickrDate(dateStartInput);
-            dateEndIso = parseFlatpickrDate(dateEndInput);
+            if (!preserveDateRange) {
+                // Get date inputs (flatpickr format: "Y-m-d H:i")
+                var dateStartInput = document.getElementById('date-start').value;
+                var dateEndInput = document.getElementById('date-end').value;
+                dateStartIso = parseFlatpickrDate(dateStartInput);
+                dateEndIso = parseFlatpickrDate(dateEndInput);
+            }
 
             // Update clear button state
             var clearBtn = document.getElementById('clear-dates-btn');
-            if (clearBtn) clearBtn.disabled = !dateStartInput && !dateEndInput;
+            if (clearBtn) {
+                var hasDateFilter = !!dateStartIso || !!dateEndIso;
+                clearBtn.disabled = !hasDateFilter;
+            }
 
             filteredEvents = allEvents.filter(function(e) {
                 if (!activeTypes.has(e.type)) return false;
@@ -1773,7 +1798,7 @@
             if (fpEnd) fpEnd.clear();
             dateStartIso = null;
             dateEndIso = null;
-            applyFilters();
+            applyFilters(true);
         }
 
         /*  Detail panel resizer  */
