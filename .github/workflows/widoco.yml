@@ -5,13 +5,9 @@ jobs:
     runs-on: ubuntu-latest
     name: A conversion of ttl to html
     steps:
-      - name: Debug repository contents
-        run: |
-          echo "Workspace:"
-          pwd
-      
-          echo "Repository tree:"
-          find /github/workspace -maxdepth 4 -type f
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
       - name: convert
         uses: soilwise-he/widoco-action@v0.3
         with:
