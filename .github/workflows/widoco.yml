@@ -5,9 +5,13 @@ jobs:
     runs-on: ubuntu-latest
     name: A conversion of ttl to html
     steps:
+      - name: Debug repository tree
+        run: |
+          pwd
+          find .
       - name: convert
         uses: soilwise-he/widoco-action@v0.3
         with:
-          file-input: 'ontology/ontology.rdf'
-          folder-output: 'ontology/doc'
+          file-input: '/github/workspace/ontology/ontology.rdf'
+          folder-output: '/github/workspace/ontology/doc'
           options: '-excludeProvenance -getOntologyMetadata'
