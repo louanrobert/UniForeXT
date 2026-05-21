@@ -2,6 +2,8 @@ name: WIDOCO build and deploy to Pages
 on:
   push:
     branches: ["main"]
+    paths:
+      - ontology/ontology.rdf
   workflow_dispatch:
 
 permissions:
