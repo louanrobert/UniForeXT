@@ -1,0 +1,13 @@
+name: WIDOCO build
+on: [push]
+jobs:
+  widoco:
+    runs-on: ubuntu-latest
+    name: A conversion of ttl to html
+    steps:
+      - name: convert
+        uses: soilwise-he/widoco-action@v0.3
+        with:
+          file-input: '/ontology/ontology.rdf'
+          folder-output: '/ontology/doc'
+          options: '-excludeProvenance -getOntologyMetadata'
