@@ -24,7 +24,9 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Create output directory
-        run: mkdir -p ./ontology/doc
+        run: |
+          mkdir -p ./ontology/doc
+          chmod -R 777 ./ontology/doc
 
       - name: Convert ontology to HTML
         uses: soilwise-he/widoco-action@v0.3
