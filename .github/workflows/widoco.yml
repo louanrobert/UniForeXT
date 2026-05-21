@@ -23,6 +23,9 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Create output directory
+        run: mkdir -p ./ontology/doc
+
       - name: Convert ontology to HTML
         uses: soilwise-he/widoco-action@v0.3
         with:
