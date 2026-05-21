@@ -35,6 +35,9 @@ jobs:
           folder-output: '/github/workspace/ontology/doc'
           options: '-excludeProvenance -getOntologyMetadata'
 
+      - name: Rename index
+        run: mv ./ontology/doc/index-en.html ./ontology/doc/index.html
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
