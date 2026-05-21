@@ -1,14 +1,8 @@
 # Mappers configuration
----
-
-## Overview
----
 
 The mappers configuration is defined in YAML files that specify how to process and analyze the data from the analysis folder. These YAML files use environment variables to reference paths and values, making the configuration flexible and adaptable to different environments.
 
 ## Configuration Files
----
-
 Configuration files are YAML-based definitions that specify how to map CSV data to RDF/OWL ontology concepts. Each configuration file contains two main sections: **Generic Mappings** and **Mappers**.
 
 ### File Structure
@@ -64,7 +58,7 @@ Each mapper represents how to transform a CSV file or set of files into RDF trip
 | Property | Type | Description |
 |----------|------|-------------|
 | `name` | string | Unique name for the mapper |
-| `file` | string | File path pattern (supports glob and environment variables: `${ANALYSIS_ROOT}`) |
+| `file` | string | File path pattern (supports glob and environment variables: `${ANALYSIS_ROOT}`, etc.) |
 | `owlClass` | string | OWL class to instantiate for each CSV record |
 | `delimiter` | string | CSV delimiter character (default: comma) |
 | `identifier` | object | Specifies which fields uniquely identify each instance |
@@ -112,8 +106,8 @@ Field mappings define how individual CSV columns are transformed:
 | `unique` | boolean | Whether this property should be unique (default: true) |
 | `prefix` | string | Text prefix to add to the value |
 
-## Environment Variables
 ---
+## Environment Variables
 
 ### `ANALYSIS_ROOT`
 
