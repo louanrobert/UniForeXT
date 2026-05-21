@@ -9,11 +9,11 @@ This repository contains the code and resources of UniForeXT, a master's thesis 
 	- `ontology.rdf`: the main ontology (RDF/XML)
 	- `shapes.ttl`, `astrea-shapes.ttl`: SHACL shapes and constraints used for validation
 - `semantic-mapper/`: maven Java project that performs mapping from input formats to the ontology and produces RDF output
-	- [`README.md`](semantic-mapper/README.md): module-specific instructions and details
+	- [README.md](semantic-mapper/README.md): module-specific instructions and details
 - `ontology-viewer/`: maven Java/JavaFX project that provides an interactive viewer for knowledge graphs
-	- [`README.md`](ontology-viewer/README.md): module-specific instructions and details
+	- [README.md](ontology-viewer/README.md): module-specific instructions and details
 - `ingestion-config/`: example mappers/configurations used by the semantic-mapper for different input sources
-	- [`README.md`](ingestion-config/README.md): details on the example configurations and how to use them
+	- [README.md](ingestion-config/README.md): details on the example configurations and how to use them
 
 
 ## Prerequisites:
