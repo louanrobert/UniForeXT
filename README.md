@@ -2,6 +2,8 @@
 
 This repository contains the code and resources of UniForeXT, a master's thesis project. The project focuses on semantic mapping of heterogeneous event/log data to a unified model. To do so, it defines an ontology (UniForeXT) and associated SHACL shapes, implements a Java-based semantic mapper to convert various input formats to triples conforming to the ontology annd provides a JavaFX-based viewer to explore the resulting knowledge graph.
 
+
+
 ---
 ## Repository layout
 
