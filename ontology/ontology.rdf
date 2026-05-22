@@ -136,6 +136,15 @@
     
 
 
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasForensicTool -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasForensicTool">
+        <rdfs:subPropertyOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#relational_property"/>
+        <rdfs:domain rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasLogFile -->
 
     <owl:ObjectProperty rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasLogFile">
@@ -938,10 +947,25 @@
     
 
 
+    <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ForensicTool -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#ForensicTool">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Value"/>
+    </owl:Class>
+    
+
+
     <!-- http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity -->
 
     <owl:Class rdf:about="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Independent_entity">
         <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#hasForensicTool"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Domain_entity"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
         <owl:disjointWith rdf:resource="http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#Value"/>
         <rdfs:comment xml:lang="en">Entity representing a concrete forensic object or occurrence.</rdfs:comment>
         <rdfs:label xml:lang="en">Independent Entity</rdfs:label>
