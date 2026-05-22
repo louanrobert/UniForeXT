@@ -76,9 +76,47 @@
     </div>
 
     <script>
+        var STANDARD_PREFIXES = [
+            ['ufr', 'http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#'],
+            ['u', 'http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#'],
+            ['rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'],
+            ['rdfs', 'http://www.w3.org/2000/01/rdf-schema#'],
+            ['owl', 'http://www.w3.org/2002/07/owl#'],
+            ['xsd', 'http://www.w3.org/2001/XMLSchema#'],
+            ['sh', 'http://www.w3.org/ns/shacl#'],
+            ['skos', 'http://www.w3.org/2004/02/skos/core#'],
+            ['dcterms', 'http://purl.org/dc/terms/']
+        ];
+
         function initQueryView() {
             lucide.createIcons();
             document.getElementById('query-input').value = defaultQuery();
+        }
+
+        function escapeRegExp(value) {
+            return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function hasPrefixDeclaration(query, prefix) {
+            var pattern = new RegExp('(^|\\n)\\s*PREFIX\\s+' + escapeRegExp(prefix) + '\\s*:', 'i');
+            return pattern.test(query);
+        }
+
+        function getQueryWithStandardPrefixes(query) {
+            var prefixLines = [];
+
+            for (var i = 0; i < STANDARD_PREFIXES.length; i++) {
+                var prefix = STANDARD_PREFIXES[i];
+                if (!hasPrefixDeclaration(query, prefix[0])) {
+                    prefixLines.push('PREFIX ' + prefix[0] + ': <' + prefix[1] + '>');
+                }
+            }
+
+            if (!prefixLines.length) {
+                return query;
+            }
+
+            return prefixLines.join('\n') + '\n\n' + query.replace(/^\s+/, '');
         }
 
         function defaultQuery() {
@@ -123,102 +161,94 @@
                 ].join('\n');
             } else if (id === 'detection_on_endpoint') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'ASK WHERE {',
-                    '  ?d a u:Detection ;',
-                    '     u:hasComputer ?c .',
-                    '  ?c u:hasHostname "HOSTNAME" .',
+                    '  ?d a ufr:Detection ;',
+                    '     ufr:hasComputer ?c .',
+                    '  ?c ufr:hasHostname "HOSTNAME" .',
                     '}'
                 ].join('\n');
             } else if (id === 'count_by_level') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'SELECT ?level (COUNT(?d) AS ?count)',
                     'WHERE {',
-                    '  ?d a u:Detection ;',
-                    '     u:hasComputer ?c ;',
-                    '     u:hasLevel ?level .',
-                    '  ?c u:hasHostname "HOSTNAME" .',
+                    '  ?d a ufr:Detection ;',
+                    '     ufr:hasComputer ?c ;',
+                    '     ufr:hasLevel ?level .',
+                    '  ?c ufr:hasHostname "HOSTNAME" .',
                     '}',
                     'GROUP BY ?level',
                     'ORDER BY DESC(?count)'
                 ].join('\n');
             } else if (id === 'users_on_endpoint') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'SELECT DISTINCT ?user ?userName',
                     'WHERE {',
-                    '  ?d a u:Detection ;',
-                    '     u:hasComputer ?c ;',
-                    '     u:hasLevel "high" ;',
-                    '     u:hasUser ?user .',
-                    '  ?c u:hasHostname "HOSTNAME" .',
-                    '  OPTIONAL { ?user u:hasName ?userName }',
+                    '  ?d a ufr:Detection ;',
+                    '     ufr:hasComputer ?c ;',
+                    '     ufr:hasLevel "high" ;',
+                    '     ufr:hasUser ?user .',
+                    '  ?c ufr:hasHostname "HOSTNAME" .',
+                    '  OPTIONAL { ?user ufr:hasName ?userName }',
                     '}',
                     'LIMIT 200'
                 ].join('\n');
             } else if (id === 'suspicious_processes') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'SELECT DISTINCT ?proc ?procName ?procPath',
                     'WHERE {',
-                    '  ?d a u:Detection ;',
-                    '     u:hasComputer ?c ;',
-                    '     u:hasProcess ?proc .',
-                    '  ?c u:hasHostname "HOSTNAME" .',
-                    '  OPTIONAL { ?proc u:hasName ?procName }',
-                    '  OPTIONAL { ?proc u:hasPath ?procPath }',
+                    '  ?d a ufr:Detection ;',
+                    '     ufr:hasComputer ?c ;',
+                    '     ufr:hasProcess ?proc .',
+                    '  ?c ufr:hasHostname "HOSTNAME" .',
+                    '  OPTIONAL { ?proc ufr:hasName ?procName }',
+                    '  OPTIONAL { ?proc ufr:hasPath ?procPath }',
                     '}',
                     'LIMIT 200'
                 ].join('\n');
             } else if (id === 'first_detection') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'SELECT ?d ?ts',
                     'WHERE {',
-                    '  ?d a u:Detection ;',
-                    '     u:hasComputer ?c ;',
-                    '     u:hasTimestamp ?ts .',
-                    '  ?c u:hasHostname "HOSTNAME" .',
+                    '  ?d a ufr:Detection ;',
+                    '     ufr:hasComputer ?c ;',
+                    '     ufr:hasTimestamp ?ts .',
+                    '  ?c ufr:hasHostname "HOSTNAME" .',
                     '}',
                     'ORDER BY ASC(?ts)',
                     'LIMIT 1'
                 ].join('\n');
             } else if (id === 'detection_origin') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'SELECT DISTINCT ?neighbor',
                     'WHERE {',
                     '  {',
-                    '    u:Detection-56039_Sec ?p1 ?mid .',
+                    '    ufr:Detection-56039_Sec ?p1 ?mid .',
                     '    ?mid ?p2 ?neighbor .',
                     '  }',
                     'UNION',
                     '  {',
                     '    ?neighbor ?p1 ?mid .',
-                    '    ?mid ?p2 u:Detection-56039_Sec .',
+                    '    ?mid ?p2 ufr:Detection-56039_Sec .',
                     '  }',
                     '}',
                     'LIMIT 10'
                 ].join('\n');
             } else if (id === 'detection_to_artifacts') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'SELECT ?file ?fileName',
                     'WHERE {',
-                    '  ?d u:hasID "DETECTION_ID" ;',
-                    '     u:hasFile ?file .',
-                    '  OPTIONAL { ?file u:hasName ?fileName }',
+                    '  ?d ufr:hasID "DETECTION_ID" ;',
+                    '     ufr:hasFile ?file .',
+                    '  OPTIONAL { ?file ufr:hasName ?fileName }',
                     '}',
                     'LIMIT 200'
                 ].join('\n');
             } else if (id === 'shared_value_events') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'SELECT ?value (COUNT(?e) AS ?count)',
                     'WHERE {',
                     '  ?e a ?type ;',
-                    '     u:hasValue ?value .',
+                    '     ufr:hasValue ?value .',
                     '}',
                     'GROUP BY ?value',
                     'HAVING (?count > 1)',
@@ -227,34 +257,31 @@
                 ].join('\n');
             } else if (id === 'tactic_of_artifact') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'SELECT ?tactic',
                     'WHERE {',
-                    '  <ARTIFACT_URI> u:hasAttackTactic ?tactic .',
+                    '  <ARTIFACT_URI> ufr:hasAttackTactic ?tactic .',
                     '}',
                     'LIMIT 50'
                 ].join('\n');
             } else if (id === 'technique_of_artifact') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'SELECT ?technique',
                     'WHERE {',
-                    '  <ARTIFACT_URI> u:hasAttackTechnique ?technique .',
+                    '  <ARTIFACT_URI> ufr:hasAttackTechnique ?technique .',
                     '}',
                     'LIMIT 50'
                 ].join('\n');
             } else if (id === 'number_of_techniques_tactics') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'SELECT ?type (COUNT(DISTINCT ?instance) AS ?count)',
                     'WHERE {',
                     '  {',
-                    '    ?instance a :AttackTechnique .',
+                    '    ?instance a ufr:AttackTechnique .',
                     '    BIND("AttackTechnique" AS ?type)',
                     '  }',
                     '  UNION',
                     '  {',
-                    '    ?instance a :AttackTactic .',
+                    '    ?instance a ufr:AttackTactic .',
                     '    BIND("AttackTactic" AS ?type)',
                     '  }',
                     '}',
@@ -263,36 +290,32 @@
                 ].join('\n');
             } else if (id === 'detections_for_tactic') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'SELECT ?d ?ts',
                     'WHERE {',
-                    '  ?d a u:Detection ;',
-                    '     u:hasAttackTactic <TACTIC_URI> ;',
-                    '     OPTIONAL { ?d u:hasTimestamp ?ts }',
+                    '  ?d a ufr:Detection ;',
+                    '     ufr:hasAttackTactic <TACTIC_URI> ;',
+                    '     OPTIONAL { ?d ufr:hasTimestamp ?ts }',
                     '}',
                     'ORDER BY DESC(?ts)',
                     'LIMIT 500'
                 ].join('\n');
             } else if (id === 'endpoints_lateral') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'SELECT DISTINCT ?hostname',
                     'WHERE {',
-                    '  { ?d a u:LateralMovement ; u:hasComputer ?c }',
+                    '  { ?d a ufr:LateralMovement ; ufr:hasComputer ?c }',
                     '  UNION',
-                    '  { ?d a u:Detection ; u:hasAttackTechnique u:LateralMovement ; u:hasComputer ?c }',
-                    '  ?c u:hasHostname ?hostname .',
+                    '  { ?d a ufr:Detection ; ufr:hasAttackTechnique ufr:LateralMovement ; ufr:hasComputer ?c }',
+                    '  ?c ufr:hasHostname ?hostname .',
                     '}',
                     'LIMIT 200'
                 ].join('\n');
             } else if (id === 'events_near_detection') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
-                    'PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>',
                     'SELECT ?event ?ts',
                     'WHERE {',
-                    '  <DETECTION_URI> u:hasTimestamp ?t0 .',
-                    '  ?event u:hasTimestamp ?ts .',
+                    '  <DETECTION_URI> ufr:hasTimestamp ?t0 .',
+                    '  ?event ufr:hasTimestamp ?ts .',
                     '  FILTER(?ts >= ?t0 - "PT3600S"^^xsd:duration && ?ts <= ?t0 + "PT3600S"^^xsd:duration)',
                     '}',
                     'ORDER BY ?ts',
@@ -300,21 +323,19 @@
                 ].join('\n');
             } else if (id === 'provenance_source') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'SELECT ?entity ?sourceTool ?sourceFile',
                     'WHERE {',
-                    '  ?entity u:modifiedBy_property ?sourceTool ;',
-                    '          u:hasPath ?sourceFile .',
+                    '  ?entity ufr:modifiedBy_property ?sourceTool ;',
+                    '          ufr:hasPath ?sourceFile .',
                     '}',
                     'LIMIT 200'
                 ].join('\n');
             } else if (id === 'missing_attributes') {
                 q = [
-                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
                     'SELECT ?e',
                     'WHERE {',
                     '  ?e a ?t .',
-                    '  FILTER( !EXISTS { ?e u:hasTimestamp ?ts } || !EXISTS { ?e u:hasComputer ?c } || !EXISTS { ?e u:hasUser ?u } )',
+                    '  FILTER( !EXISTS { ?e ufr:hasTimestamp ?ts } || !EXISTS { ?e ufr:hasComputer ?c } || !EXISTS { ?e ufr:hasUser ?u } )',
                     '}',
                     'LIMIT 500'
                 ].join('\n');
@@ -346,7 +367,7 @@
             status.textContent = 'Running...';
 
             try {
-                var raw = javaBridge.executeSparqlJson(query);
+                var raw = javaBridge.executeSparqlJson(getQueryWithStandardPrefixes(query));
                 var res = JSON.parse(raw);
                 renderResult(res);
                 status.textContent = res.ok ? 'Done' : 'Failed';
