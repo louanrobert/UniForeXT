@@ -17,6 +17,7 @@ import lombok.Getter;
 public class MapperConfig {
     private String name;
     private String owlClass;
+    private String forensicTool;
     private String file;
     private Character delimiter;
     private IdentifierConfig identifier;

@@ -50,6 +50,7 @@
                             <option value="technique_of_artifact">Attack technique for an artifact</option>
                             <option value="detections_for_tactic">Detections associated with tactic X</option>
                             <option value="endpoints_lateral">Endpoints showing lateral movement evidence</option>
+                            <option value="number_of_techniques_tactics">Number of techniques and tactics</option>
                         </optgroup>
                         <optgroup label="Temporal & provenance">
                             <option value="events_near_detection">Events near a specific detection (time window)</option>
@@ -186,10 +187,17 @@
             } else if (id === 'detection_origin') {
                 q = [
                     'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
-                    'SELECT ?d ?computer ?hostname',
+                    'SELECT DISTINCT ?neighbor',
                     'WHERE {',
-                    '  ?d u:hasID "DETECTION_ID" .',
-                    '  OPTIONAL { ?d u:hasComputer ?computer . ?computer u:hasHostname ?hostname }',
+                    '  {',
+                    '    u:Detection-56039_Sec ?p1 ?mid .',
+                    '    ?mid ?p2 ?neighbor .',
+                    '  }',
+                    'UNION',
+                    '  {',
+                    '    ?neighbor ?p1 ?mid .',
+                    '    ?mid ?p2 u:Detection-56039_Sec .',
+                    '  }',
                     '}',
                     'LIMIT 10'
                 ].join('\n');
@@ -234,6 +242,24 @@
                     '  <ARTIFACT_URI> u:hasAttackTechnique ?technique .',
                     '}',
                     'LIMIT 50'
+                ].join('\n');
+            } else if (id === 'number_of_techniques_tactics') {
+                q = [
+                    'PREFIX u: <http://www.semanticweb.org/robert_louan/ontologies/2026/1/unified-forensics-results#>',
+                    'SELECT ?type (COUNT(DISTINCT ?instance) AS ?count)',
+                    'WHERE {',
+                    '  {',
+                    '    ?instance a :AttackTechnique .',
+                    '    BIND("AttackTechnique" AS ?type)',
+                    '  }',
+                    '  UNION',
+                    '  {',
+                    '    ?instance a :AttackTactic .',
+                    '    BIND("AttackTactic" AS ?type)',
+                    '  }',
+                    '}',
+                    'GROUP BY ?type',
+                    'ORDER BY ?type'
                 ].join('\n');
             } else if (id === 'detections_for_tactic') {
                 q = [

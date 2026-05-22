@@ -20,6 +20,7 @@ mappers:
   - name: UnkownFile
     file: "${ANALYSIS_ROOT}/WinSearchDB/Unknown_File_Report_*.csv"
     owlClass: Detection
+    forensicTool: WinSearchDB
     generics:
       - addTimestamp
       - addComputer
@@ -44,6 +45,7 @@ mappers:
   - name: UnkownInternetHistory
     file: "${ANALYSIS_ROOT}/WinSearchDB/Unknown_Activity_History_Report_*.csv"
     owlClass: Detection
+    forensicTool: WinSearchDB
     identifier:
       fields: "WorkId"
       prefix: "UnkownInternetHistory"

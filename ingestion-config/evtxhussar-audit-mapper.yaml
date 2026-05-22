@@ -48,6 +48,7 @@ mappers:
   - name: LogClearedMapper
     file: "${ANALYSIS_ROOT}/Evtxhussar_results/*/audit/log_cleared.xlsx"
     owlClass: LogCleared_Event
+    forensicTool: EvtxHussar
     identifier:
       fields:
         - "Computer"
@@ -77,6 +78,7 @@ mappers:
   - name: PolicyChangeMapper
     file: "${ANALYSIS_ROOT}/Evtxhussar_results/*/audit/policy_change.xlsx"
     owlClass: AuditPolicyChange_Event
+    forensicTool: EvtxHussar
     identifier:
       fields:
         - "Computer"

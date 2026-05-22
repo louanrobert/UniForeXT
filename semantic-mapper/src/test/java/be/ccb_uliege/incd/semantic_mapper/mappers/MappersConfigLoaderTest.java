@@ -22,6 +22,7 @@ class MappersConfigLoaderTest {
             + "mappers:\n"
             + "  - name: test-mapper\n"
             + "    owlClass: ex:Class\n"
+            + "    forensicTool: ex:Tool\n"
             + "    file: data.csv\n"
             + "    delimiter: ','\n"
             + "    identifier:\n"
@@ -48,6 +49,7 @@ class MappersConfigLoaderTest {
             var mapper = registry.getMappers().get(0);
             assertEquals("test-mapper", mapper.getName());
             assertEquals("ex:Class", mapper.getOwlClass());
+            assertEquals("ex:Tool", mapper.getForensicTool());
             //assertEquals("data.csv", mapper.getFile().getFileName().toString());
             assertEquals(Character.valueOf(','), mapper.getDelimiter());
             assertNotNull(mapper.getIdentifier());

@@ -202,3 +202,4 @@ out.ttl
 out
 .metals
 catalog-v001.xml
+.venv

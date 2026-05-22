@@ -50,6 +50,7 @@ mappers:
   - name: ZircoliteMapper
     file: "${ANALYSIS_ROOT}/Zircolite_results.csv"
     owlClass: Detection
+    forensicTool: Zircolite
     delimiter: ';'
     identifier:
       fields:

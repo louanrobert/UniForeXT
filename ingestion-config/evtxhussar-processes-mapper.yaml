@@ -35,6 +35,7 @@ mappers:
   - name: EvtxhussarProcessesMapper
     file: "${ANALYSIS_ROOT}/Evtxhussar_results/*/processes/processes.xlsx"
     owlClass: Process
+    forensicTool: EvtxHussar
     identifier:
       fields:
         - "ProcessName"

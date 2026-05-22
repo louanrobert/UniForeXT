@@ -60,6 +60,7 @@ Each mapper represents how to transform a CSV file or set of files into RDF trip
 | `name` | string | Unique name for the mapper |
 | `file` | string | File path pattern (supports glob and environment variables: `${ANALYSIS_ROOT}`, etc.) |
 | `owlClass` | string | OWL class to instantiate for each CSV record |
+| `forensicTool` | string | Optional local name used to instantiate the shared `ForensicTool` individual linked with `hasForensicTool` |
 | `delimiter` | string | CSV delimiter character (default: comma) |
 | `identifier` | object | Specifies which fields uniquely identify each instance |
 | `staticProperties` | array | Properties with fixed values for all instances |
@@ -72,6 +73,7 @@ mappers:
   - name: HayabusaMapper
     file: "${ANALYSIS_ROOT}/QuickWins/*-haya.csv"
     owlClass: Detection
+    forensicTool: Hayabusa
     delimiter: ';'
     identifier:
       fields:

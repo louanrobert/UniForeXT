@@ -55,6 +55,7 @@ mappers:
   - name: AntivirusMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/antivirus.csv
     owlClass: Antivirus
+    forensicTool: Chainsaw
     identifier:
       fields:
         - "Threat Name"
@@ -92,6 +93,7 @@ mappers:
   - name: SigmaMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/sigma.csv
     owlClass: Sigma
+    forensicTool: Chainsaw
     identifier:
       fields:
         - "detections"
@@ -113,6 +115,7 @@ mappers:
   - name: AccountTamperingMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/account_tampering.csv
     owlClass: AccountTampering
+    forensicTool: Chainsaw
     identifier:
       fields:
         - "detections"
@@ -141,6 +144,7 @@ mappers:
   - name: RDPEventsMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/rdp_events.csv
     owlClass: RDPEvent
+    forensicTool: Chainsaw
     identifier:
       fields:
         - "detections"
@@ -169,6 +173,7 @@ mappers:
   - name: ServiceInstallationMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/service_installation.csv
     owlClass: ServiceInstallation
+    forensicTool: Chainsaw
     identifier:
       fields:
         - "Service Name"
@@ -205,6 +210,7 @@ mappers:
   - name: IndicatorRemovalMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/indicator_removal.csv
     owlClass: IndicatorRemoval
+    forensicTool: Chainsaw
     identifier:
       fields:
         - "Scheduled Task Name"
@@ -230,6 +236,7 @@ mappers:
   - name: UserProfileDiskMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/microsoft_rds_events_-_user_profile_disk.csv
     owlClass: RegistryLoad_configuration_event
+    forensicTool: Chainsaw
     identifier:
       fields:
         - "Information"
@@ -251,6 +258,7 @@ mappers:
   - name: PersistenceMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/persistence.csv
     owlClass: Persistence
+    forensicTool: Chainsaw
     identifier:
       fields:
         - "Scheduled Task Name"
@@ -276,6 +284,7 @@ mappers:
   - name: PowerShellEngineStateMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/powershell_engine_state.csv
     owlClass: RegistryLoad_configuration_event
+    forensicTool: Chainsaw
     identifier:
       fields:
         - "detections"
@@ -305,6 +314,7 @@ mappers:
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/rdp_attacks.csv
     delimiter: ','
     owlClass: RDPAttacks
+    forensicTool: Chainsaw
     identifier:
       fields:
         - "detections"
@@ -338,6 +348,7 @@ mappers:
   - name: LateralMovementMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/lateral_movement.csv
     owlClass: LateralMovement
+    forensicTool: Chainsaw
     identifier:
       fields:
         - "detections"
@@ -375,6 +386,7 @@ mappers:
   - name: LogTamperingMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/log_tampering.csv
     owlClass: LogTampering
+    forensicTool: Chainsaw
     identifier:
       fields:
         - "detections"

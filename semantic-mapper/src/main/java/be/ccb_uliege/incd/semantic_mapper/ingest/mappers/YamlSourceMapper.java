@@ -52,12 +52,14 @@ public class YamlSourceMapper implements SourceMapper {
     private final MapperConfig config;
     private final Map<String, List<FieldMappingConfig>> genericMappings;
     private final KnowledgeGraphFacade knowledgeGraph;
+    private final Resource forensicTool;
     private static final Logger LOG = Logger.getLogger(YamlSourceMapper.class.getName());
 
     public YamlSourceMapper(MapperConfig config, Map<String, List<FieldMappingConfig>> genericMappings, KnowledgeGraphFacade knowledgeGraph) {
         this.config = config;
         this.genericMappings = genericMappings != null ? genericMappings : Collections.emptyMap();
         this.knowledgeGraph = knowledgeGraph;
+        this.forensicTool = createForensicTool();
     }
 
     /**
@@ -93,6 +95,7 @@ public class YamlSourceMapper implements SourceMapper {
             String identifier = buildIdentifier(r);
             Resource individual = knowledgeGraph.createIndividual(config.getOwlClass(), identifier);
 
+            addForensicTool(individual);
             applyStaticProperties(individual);
             applyGenerics(r, individual);
             applyFieldMappings(r, individual);
@@ -130,6 +133,18 @@ public class YamlSourceMapper implements SourceMapper {
         String normalizedValue = normalizeLiteralValue(sp.getValue(), dataType);
         knowledgeGraph.addDataProperty(individual, sp.getOwlProperty(),
                 knowledgeGraph.createLiteral(normalizedValue, dataType));
+    }
+
+    private Resource createForensicTool() {
+        String toolName = config.getForensicTool();
+        if (toolName == null || toolName.isBlank()) {
+            toolName = config.getName();
+        }
+        return knowledgeGraph.createIndividual("ForensicTool", toolName);
+    }
+
+    private void addForensicTool(Resource individual) {
+        knowledgeGraph.addUniqueObjectProperty(individual, "hasForensicTool", forensicTool);
     }
 
     /**

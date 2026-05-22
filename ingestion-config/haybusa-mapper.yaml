@@ -20,6 +20,7 @@ mappers:
   - name: HayabusaMapper
     file: "${ANALYSIS_ROOT}/QuickWins/*-haya.csv"
     owlClass: Detection
+    forensicTool: Hayabusa
     delimiter: ';'
     identifier:
       fields:
