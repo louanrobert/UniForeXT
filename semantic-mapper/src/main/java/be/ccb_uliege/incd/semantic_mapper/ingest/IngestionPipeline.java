@@ -36,6 +36,9 @@ public class IngestionPipeline {
         for (IngestionStage stage : stages) {
             try {
                 stage.execute(context);
+            } catch (IllegalStateException e) {
+                LOG.log(Level.SEVERE, "Critical stage failed: " + stage.getClass().getSimpleName() + " - halting pipeline", e);
+                throw e;  // Re-throw critical exceptions to stop the pipeline
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Stage failed: " + stage.getClass().getSimpleName() + " - continuing with next stage", e);
             }

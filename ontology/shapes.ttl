@@ -191,12 +191,10 @@ ufr:ProcessShape
   ] ;
   sh:property [
     sh:path ufr:hasComputer ;
-    sh:maxCount 1 ;
     sh:class ufr:Computer ;
   ] ;
   sh:property [
     sh:path ufr:hasParentProcess ;
-    sh:maxCount 1 ;
     sh:class ufr:Process ;
   ] ;
   sh:property [
