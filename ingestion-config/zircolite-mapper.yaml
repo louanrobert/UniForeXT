@@ -79,9 +79,8 @@ mappers:
 
       - sourceField: "rule_level"
         type: dataProperty
-        owlProperty: hasExtraInformation
+        owlProperty: hasLevel
         unique: false
-        prefix: "Rule level: "
 
       - sourceField: "rule_count"
         type: dataProperty

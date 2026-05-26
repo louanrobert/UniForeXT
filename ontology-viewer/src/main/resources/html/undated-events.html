@@ -87,7 +87,7 @@
 
                 // Update stats
                 const totalCount = events.length;
-                document.getElementById('stats').textContent = `${totalCount} total event${totalCount !== 1 ? 's' : ''} • ${Object.keys(undatedEvents).length} type${Object.keys(undatedEvents).length !== 1 ? 's' : ''}`;
+                document.getElementById('stats').textContent = `${totalCount} total item${totalCount !== 1 ? 's' : ''} • ${Object.keys(undatedEvents).length} type${Object.keys(undatedEvents).length !== 1 ? 's' : ''}`;
 
                 // Render the list
                 renderEventsList(currentSortedTypes);
@@ -153,7 +153,7 @@
                 header.innerHTML = `
                     <i data-lucide="chevron-down" class="toggle-indicator h-4 w-4 text-slate-400"></i>
                     <span class="min-w-0 flex-1 truncate" style="color: ${typeColor};">${escapeHtml(type)}</span>
-                    <span class="text-xs font-medium text-slate-400">${events.length} event${events.length !== 1 ? 's' : ''}</span>
+                    <span class="text-xs font-medium text-slate-400">${events.length} item${events.length !== 1 ? 's' : ''}</span>
                 `;
 
                 header.addEventListener('click', () => {

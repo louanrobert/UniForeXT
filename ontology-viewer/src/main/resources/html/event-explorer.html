@@ -1062,7 +1062,7 @@
                         if (elements.length > 0) {
                             var el = elements[0];
                             var point = histogramChart.data.datasets[el.datasetIndex].data[el.index];
-                            if (point && point.uri) selectEvent(point.uri);
+                            if (point && point.uri) revealEventInTable(point.uri, true);
                         }
                     }
                 })
@@ -1311,10 +1311,28 @@
                 var diff = Math.abs(new Date(filteredEvents[i].start).getTime() - targetTs);
                 if (diff < closestDiff) { closestDiff = diff; closestIdx = i; }
             }
-            // Auto-select and scroll
             if (filteredEvents.length > 0) {
-                selectEvent(filteredEvents[closestIdx].uri);
-                var row = document.querySelector('tr[data-uri="' + CSS.escape(filteredEvents[closestIdx].uri) + '"]');
+                revealEventInTable(filteredEvents[closestIdx].uri, true);
+            }
+        }
+
+        function revealEventInTable(uri, shouldScroll) {
+            var eventIndex = -1;
+            for (var i = 0; i < filteredEvents.length; i++) {
+                if (filteredEvents[i].uri === uri) {
+                    eventIndex = i;
+                    break;
+                }
+            }
+            if (eventIndex < 0) return;
+
+            eventPageIndex = Math.floor(eventIndex / eventPageSize);
+            renderTable();
+            updatePagination();
+            selectEvent(uri);
+
+            if (shouldScroll) {
+                var row = document.querySelector('tr[data-uri="' + CSS.escape(uri) + '"]');
                 if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
