@@ -4,6 +4,7 @@ on:
     branches: ["main"]
     paths:
       - ontology/ontology.rdf
+      - semantic-mapper/class-diagram.pdf
   workflow_dispatch:
 
 permissions:
@@ -39,6 +40,9 @@ jobs:
 
       - name: Rename index
         run: mv ./ontology/doc/index-en.html ./ontology/doc/index.html
+
+      - name: Include class diagram
+        run: cp ./semantic-mapper/class-diagram.pdf ./ontology/doc/semantic_mapper-class_diagram.pdf
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
