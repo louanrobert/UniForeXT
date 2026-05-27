@@ -1,18 +1,24 @@
 package be.ccb_uliege.incd.semantic_mapper;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-/**
- * Unit test for simple App.
- */
 class AppTest {
-    /**
-     * Rigorous Test.
-     */
+
     @Test
-    void testApp() {
-        assertEquals(1, 1);
+    void shouldSkipShaclValidationAcceptsPrimaryFlag() {
+        assertTrue(App.shouldSkipShaclValidation(new String[] {"--skip-shacl-validation"}));
+    }
+
+    @Test
+    void shouldSkipShaclValidationAcceptsAliasFlag() {
+        assertTrue(App.shouldSkipShaclValidation(new String[] {"--skip-shacl"}));
+    }
+
+    @Test
+    void shouldSkipShaclValidationReturnsFalseWhenFlagIsMissing() {
+        assertFalse(App.shouldSkipShaclValidation(new String[] {"--other-flag"}));
     }
 }

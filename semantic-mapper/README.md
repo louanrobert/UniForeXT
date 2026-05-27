@@ -44,6 +44,16 @@ To run the ingestion pipeline:
 mvn package exec:java
 ```
 
+To skip the SHACL validation stage, pass the flag through to the application:
+
+```bash
+# Linux
+mvn package exec:java -Dexec.args="--skip-shacl-validation"
+
+# Windows (PowerShell)
+mvn package exec:java "-Dexec.args=--skip-shacl-validation"
+```
+
 This command will:
 1. Compile the source code
 2. Package the application

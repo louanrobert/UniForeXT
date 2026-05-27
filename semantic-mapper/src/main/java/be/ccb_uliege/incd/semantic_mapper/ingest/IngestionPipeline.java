@@ -49,11 +49,11 @@ public class IngestionPipeline {
      * Static method to run the entire ingestion pipeline. This method initializes the pipeline with the necessary stages, creates a PipelineContext with the provided KnowledgeGraphFacade and a MultiFormatIngester, and then executes the pipeline. If any stage throws an exception, it is logged and re-thrown to indicate that the ingestion process failed.
      */
     public static void run(KnowledgeGraphFacade knowledgeGraph) throws Exception {
-        IngestionPipeline pipeline = new IngestionPipeline(List.of(
-                new LoadMappersStage(),
-                new DefineIngestionTasksStage(),
-                new ExecuteIngestionTasksStage(),
-                new ValidateShaclStage(true)));  // Set to 'false' to continue on validation errors
+        run(knowledgeGraph, false);
+    }
+
+    public static void run(KnowledgeGraphFacade knowledgeGraph, boolean skipShaclValidation) throws Exception {
+        IngestionPipeline pipeline = new IngestionPipeline(createDefaultStages(skipShaclValidation));
 
         PipelineContext context = new PipelineContext(
                 knowledgeGraph,
@@ -66,5 +66,20 @@ public class IngestionPipeline {
             LOG.log(Level.SEVERE, "Ingestion pipeline failed: " + e.getMessage(), e);
             throw e;
         }
+    }
+
+    static List<IngestionStage> createDefaultStages(boolean skipShaclValidation) {
+        if (skipShaclValidation) {
+            return List.of(
+                    new LoadMappersStage(),
+                    new DefineIngestionTasksStage(),
+                    new ExecuteIngestionTasksStage());
+        }
+
+        return List.of(
+                new LoadMappersStage(),
+                new DefineIngestionTasksStage(),
+                new ExecuteIngestionTasksStage(),
+                new ValidateShaclStage(true));  // Set to 'false' to continue on validation errors
     }
 }
