@@ -1,7 +1,7 @@
 # UniForeXT
 
-[![DOI](https://zenodo.org/badge/1161617323.svg)](https://doi.org/10.5281/zenodo.20396206) 
-![Static Badge](https://img.shields.io/badge/specification-ontology-blue?logo=github&link=https%3A%2F%2Flouanrobert.github.io%2FUniForeXT%2F)
+![Zenodo](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20396206-blue?logo=zenodo&logoColor=white&logoSize=auto&link=https%3A%2F%2Fdoi.org%2F10.5281%2Fzenodo.20396206)
+![Ontology spec](https://img.shields.io/badge/specification-ontology-blue?logo=github&link=https%3A%2F%2Flouanrobert.github.io%2FUniForeXT%2F)
 
 
 This repository contains the code and resources of UniForeXT, a master's thesis project. The project focuses on semantic mapping of heterogeneous event/log data to a unified model. To do so, it defines an ontology (UniForeXT) and associated SHACL shapes, implements a Java-based semantic mapper to convert various input formats to triples conforming to the ontology annd provides a JavaFX-based viewer to explore the resulting knowledge graph.
