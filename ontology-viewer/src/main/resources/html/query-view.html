@@ -202,14 +202,11 @@
                 q = [
                     'SELECT DISTINCT ?user ?userName',
                     'WHERE {',
-                    '  ?d a ufr:Detection ;',
-                    '     ufr:hasComputer ?c ;',
-                    '     ufr:hasLevel "high" ;',
+                    '  ?d a ?type ;',
                     '     ufr:hasUser ?user .',
-                    '  ?c ufr:hasHostname "HOSTNAME" .',
-                    '  OPTIONAL { ?user ufr:hasName ?userName }',
-                    '}',
-                    'LIMIT 200'
+                    '  ?type rdfs:subClassOf* ufr:Detection .',
+                    'OPTIONAL { ?user ufr:hasName ?userName }',
+                    '}'
                 ].join('\n');
             } else if (id === 'suspicious_processes') {
                 q = [
@@ -403,7 +400,7 @@
             root.innerHTML = '';
 
             if (!res.ok) {
-                meta.textContent = 'Query failed';
+                meta.textContent = formatResultMeta('Query failed', res.executionTimeMs);
                 var err = document.createElement('pre');
                 err.className = 'max-h-[48vh] overflow-auto whitespace-pre rounded-md border border-red-500/20 bg-slate-950 p-3 font-mono text-xs text-red-300';
                 err.textContent = res.message || 'Unknown error';
@@ -413,7 +410,7 @@
 
             if (res.queryType === 'SELECT') {
                 var truncated = res.truncated ? ' (truncated)' : '';
-                meta.textContent = 'SELECT: ' + (res.rowCount || 0) + ' rows' + truncated;
+                meta.textContent = formatResultMeta('SELECT: ' + (res.rowCount || 0) + ' rows' + truncated, res.executionTimeMs);
                 if (res.message) {
                     meta.textContent += ' - ' + res.message;
                 }
@@ -422,7 +419,7 @@
             }
 
             if (res.queryType === 'ASK') {
-                meta.textContent = 'ASK result';
+                meta.textContent = formatResultMeta('ASK result', res.executionTimeMs);
                 var askBox = document.createElement('div');
                 askBox.className = 'rounded-md border border-white/10 bg-slate-950 p-4 text-sm text-slate-100 shadow-sm';
                 askBox.textContent = String(!!res.boolean);
@@ -431,7 +428,7 @@
             }
 
             if (res.queryType === 'CONSTRUCT' || res.queryType === 'DESCRIBE') {
-                meta.textContent = res.queryType + ': ' + (res.tripleCount || 0) + ' triples';
+                meta.textContent = formatResultMeta(res.queryType + ': ' + (res.tripleCount || 0) + ' triples', res.executionTimeMs);
                 var pre = document.createElement('pre');
                 pre.className = 'max-h-[48vh] overflow-auto whitespace-pre rounded-md border border-white/10 bg-slate-950 p-3 font-mono text-xs text-slate-100';
                 pre.textContent = res.ttl || '';
@@ -441,6 +438,28 @@
 
             meta.textContent = 'Unknown result type';
             root.textContent = JSON.stringify(res, null, 2);
+        }
+
+        function formatResultMeta(label, executionTimeMs) {
+            if (typeof executionTimeMs !== 'number' || isNaN(executionTimeMs)) {
+                return label;
+            }
+            return label + ' - ' + formatExecutionTime(executionTimeMs);
+        }
+
+        function formatExecutionTime(executionTimeMs) {
+            if (executionTimeMs < 1000) {
+                return executionTimeMs + ' ms';
+            }
+
+            var seconds = executionTimeMs / 1000;
+            if (seconds < 60) {
+                return seconds.toFixed(2) + ' s';
+            }
+
+            var minutes = Math.floor(seconds / 60);
+            var remainingSeconds = (seconds % 60).toFixed(2);
+            return minutes + ' min ' + remainingSeconds + ' s';
         }
 
         function buildSelectTable(columns, rows) {

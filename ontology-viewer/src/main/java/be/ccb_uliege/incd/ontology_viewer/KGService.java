@@ -950,6 +950,7 @@ public class KGService {
         }
 
         final int maxRows = 500;
+        long startedAt = System.nanoTime();
 
         try {
             Query query = QueryFactory.create(sparql);
@@ -1007,6 +1008,8 @@ public class KGService {
         } catch (Exception e) {
             response.put("ok", false);
             response.put("message", e.getMessage() == null ? "Failed to execute query." : e.getMessage());
+        } finally {
+            response.put("executionTimeMs", (System.nanoTime() - startedAt) / 1_000_000L);
         }
 
         return response.toString();
