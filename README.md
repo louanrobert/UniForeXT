@@ -5,7 +5,7 @@
 # UniForeXT 
 
 [![Zenodo](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20396206-blue?logo=zenodo&logoColor=white&logoSize=auto&link=https%3A%2F%2Fdoi.org%2F10.5281%2Fzenodo.20396206)](https://doi.org/10.5281/zenodo.20396206)
-![GitHub Release](https://img.shields.io/github/v/release/louanrobert/UniForeXT?include_prereleases&logo=github&link=https%3A%2F%2Fgithub.com%2Flouanrobert%2FUniForeXT%2Freleases)
+[![GitHub Release](https://img.shields.io/github/v/release/louanrobert/UniForeXT?include_prereleases&logo=github&link=https%3A%2F%2Fgithub.com%2Flouanrobert%2FUniForeXT%2Freleases)](https://github.com/louanrobert/UniForeXT/releases)
 [![Ontology spec](https://img.shields.io/badge/ontology-specification-green?logo=github&link=https%3A%2F%2Flouanrobert.github.io%2FUniForeXT%2F)](https://louanrobert.github.io/UniForeXT/)
 [![ULiège](https://img.shields.io/badge/Universit%C3%A9_de_Li%C3%A8ge-00707f)](https://matheo.uliege.be/)
 [![Lines of Code](https://img.shields.io/endpoint?url=https%3A%2F%2Ftokei.kojix2.net%2Fbadge%2Fgithub%2Flouanrobert%2FUniForeXT%2Flines)](https://tokei.kojix2.net/github/louanrobert/UniForeXT)
