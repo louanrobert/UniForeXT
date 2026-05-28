@@ -36,7 +36,7 @@ jobs:
         with:
           file-input: '/github/workspace/ontology/ontology.rdf'
           folder-output: '/github/workspace/ontology/doc'
-          options: '-excludeProvenance -getOntologyMetadata'
+          options: '-excludeProvenance -getOntologyMetadata -excludeIntroduction'
 
       - name: Rename index
         run: mv ./ontology/doc/index-en.html ./ontology/doc/index.html
