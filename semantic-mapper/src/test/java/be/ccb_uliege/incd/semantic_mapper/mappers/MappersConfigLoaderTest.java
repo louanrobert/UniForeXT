@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -100,5 +101,42 @@ class MappersConfigLoaderTest {
         File missing = new File("non-existent-file-hopefully.yml");
         assertFalse(missing.exists());
         assertThrows(IllegalStateException.class, () -> MappersConfigLoader.load(missing));
+    }
+
+    @Test
+    void loadParsesValueTransformAndValueMapConfiguration() throws IOException {
+        String yaml = "mappers:\n"
+            + "  - name: transform-mapper\n"
+            + "    owlClass: ex:Class\n"
+            + "    file: data.csv\n"
+            + "    identifier:\n"
+            + "      fields: id\n"
+            + "      separator: '-'\n"
+            + "    fieldMappings:\n"
+            + "      - sourceField: severity\n"
+            + "        type: dataProperty\n"
+            + "        owlProperty: hasSeverity\n"
+            + "        valueTransforms:\n"
+            + "          - trim\n"
+            + "          - lowercase\n"
+            + "        valueMap:\n"
+            + "          informational: Info\n"
+            + "          warning: Medium\n"
+            + "        valueMapCaseInsensitive: true\n";
+
+        File tmp = Files.createTempFile("mappers-transform-test", ".yml").toFile();
+        try {
+            Files.writeString(tmp.toPath(), yaml);
+
+            MapperConfigRegistry registry = MappersConfigLoader.load(tmp);
+            var fieldMapping = registry.getMappers().get(0).getFieldMappings().get(0);
+
+            assertEquals(List.of("trim", "lowercase"), fieldMapping.getValueTransforms());
+            assertEquals("Info", fieldMapping.getValueMap().get("informational"));
+            assertEquals("Medium", fieldMapping.getValueMap().get("warning"));
+            assertTrue(fieldMapping.isValueMapCaseInsensitive());
+        } finally {
+            tmp.delete();
+        }
     }
 }

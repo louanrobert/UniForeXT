@@ -107,6 +107,25 @@ Field mappings define how individual CSV columns are transformed:
 | `dataType` | string | XSD data type (e.g., `xsd:string`, `xsd:dateTimeStamp`, `xsd:unsignedLong`) |
 | `unique` | boolean | Whether this property should be unique (default: true) |
 | `prefix` | string | Text prefix to add to the value |
+| `valueTransforms` | array | Optional ordered transforms applied to the raw value before datatype normalization. Supported: `trim`, `lowercase`, `uppercase`, `capitalize`, `uncapitalize` |
+| `valueMap` | object | Optional map to normalize values after transforms (key = input value, value = normalized output) |
+| `valueMapCaseInsensitive` | boolean | Optional case-insensitive matching for `valueMap` keys (default: false) |
+
+#### Value Transformation Example
+
+```yaml
+fieldMappings:
+  - sourceField: "Severity"
+    type: dataProperty
+    owlProperty: hasSeverity
+    valueTransforms:
+      - trim
+      - lowercase
+    valueMap:
+      informational: Info
+      warning: Medium
+      critical: High
+```
 
 ---
 ## Environment Variables

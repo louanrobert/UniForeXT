@@ -2,6 +2,7 @@ package be.ccb_uliege.incd.semantic_mapper.ingest.mappers;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.time.Instant;
@@ -202,9 +203,13 @@ public class YamlSourceMapper implements SourceMapper {
         if (!r.has(fm.getSourceField())) {
             return;
         }
-        String value = fm.getPrefix() != null
-                ? fm.getPrefix() + r.get(fm.getSourceField())
-                : r.get(fm.getSourceField());
+        String value = applyConfiguredValueProcessing(r.get(fm.getSourceField()), fm);
+        if (value == null) {
+            return;
+        }
+        if (fm.getPrefix() != null) {
+            value = fm.getPrefix() + value;
+        }
         RDFDatatype dataType = resolveDatatype(fm.getDataType());
         String normalizedValue = normalizeLiteralValue(value, dataType);
 
@@ -215,6 +220,75 @@ public class YamlSourceMapper implements SourceMapper {
             knowledgeGraph.addDataProperty(parent, fm.getOwlProperty(),
                 knowledgeGraph.createLiteral(normalizedValue, dataType));
         }
+    }
+
+    private String applyConfiguredValueProcessing(String value, FieldMappingConfig fieldMappingConfig) {
+        String transformedValue = applyValueTransforms(value, fieldMappingConfig.getValueTransforms());
+        return applyValueMap(
+                transformedValue,
+                fieldMappingConfig.getValueMap(),
+                fieldMappingConfig.isValueMapCaseInsensitive());
+    }
+
+    private String applyValueTransforms(String value, List<String> transforms) {
+        if (value == null || transforms == null || transforms.isEmpty()) {
+            return value;
+        }
+        String transformed = value;
+        for (String transform : transforms) {
+            transformed = applyValueTransform(transformed, transform);
+        }
+        return transformed;
+    }
+
+    private String applyValueTransform(String value, String transformName) {
+        if (transformName == null || transformName.isBlank()) {
+            return value;
+        }
+
+        String normalizedName = transformName.trim().toLowerCase(Locale.ROOT);
+        return switch (normalizedName) {
+            case "trim" -> value.trim();
+            case "lowercase" -> value.toLowerCase(Locale.ROOT);
+            case "uppercase" -> value.toUpperCase(Locale.ROOT);
+            case "capitalize" -> capitalizeValue(value);
+            case "uncapitalize" -> uncapitalizeValue(value);
+            default -> throw new IllegalArgumentException("Unknown value transform: " + transformName);
+        };
+    }
+
+    private String applyValueMap(String value, Map<String, String> valueMap, boolean caseInsensitive) {
+        if (value == null || valueMap == null || valueMap.isEmpty()) {
+            return value;
+        }
+
+        if (!caseInsensitive) {
+            return valueMap.getOrDefault(value, value);
+        }
+
+        for (Map.Entry<String, String> entry : valueMap.entrySet()) {
+            String mappedFrom = entry.getKey();
+            if (mappedFrom != null && mappedFrom.equalsIgnoreCase(value)) {
+                return entry.getValue();
+            }
+        }
+        return value;
+    }
+
+    private String capitalizeValue(String value) {
+        if (value.isEmpty()) {
+            return value;
+        }
+        return value.substring(0, 1).toUpperCase(Locale.ROOT)
+                + value.substring(1).toLowerCase(Locale.ROOT);
+    }
+
+    private String uncapitalizeValue(String value) {
+        if (value.isEmpty()) {
+            return value;
+        }
+        return value.substring(0, 1).toLowerCase(Locale.ROOT)
+                + value.substring(1);
     }
 
     /**

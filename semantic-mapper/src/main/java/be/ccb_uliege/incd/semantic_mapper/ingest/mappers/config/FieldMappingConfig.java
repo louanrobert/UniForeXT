@@ -1,6 +1,7 @@
 package be.ccb_uliege.incd.semantic_mapper.ingest.mappers.config;
 
 import java.util.List;
+import java.util.Map;
 
 import lombok.Getter;
 
@@ -21,6 +22,9 @@ public class FieldMappingConfig {
     private String dataType = "xsd:string";
     private String prefix;
     private boolean unique = true;
+    private List<String> valueTransforms;
+    private Map<String, String> valueMap;
+    private boolean valueMapCaseInsensitive = false;
     private String owlClass;
     private String linkProperty;
     private IdentifierConfig identifier;
