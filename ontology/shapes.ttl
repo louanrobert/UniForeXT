@@ -42,12 +42,10 @@ ufr:IndependentEntityShape
   ] ;
   sh:property [
     sh:path ufr:hasComputer ;
-    sh:maxCount 1 ;
     sh:class ufr:Computer ;
   ] ;
   sh:property [
     sh:path ufr:hasUser ;
-    sh:maxCount 1 ;
     sh:class ufr:User ;
   ] ;
   sh:property [
@@ -102,7 +100,7 @@ ufr:DetectionShape
   sh:property [
     sh:path ufr:hasLevel ;
     sh:maxCount 1 ;
-    sh:in ( "High" "Info" "Low" "Medium" ) ;
+    sh:in ( "High" "Info" "Low" "Medium" "Critical" ) ;
   ] .
 
 ufr:EventShape
@@ -114,7 +112,6 @@ ufr:EventShape
   ] ;
   sh:property [
     sh:path ufr:hasComputer ;
-    sh:maxCount 1 ;
     sh:class ufr:Computer ;
   ] ;
   sh:property [
@@ -124,7 +121,6 @@ ufr:EventShape
   ] ;
   sh:property [
     sh:path ufr:hasUser ;
-    sh:maxCount 1 ;
     sh:class ufr:User ;
   ] ;
   sh:property [

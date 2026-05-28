@@ -47,9 +47,14 @@ mappers:
         prefix: "RecordID: "
       - sourceField: "Level"
         type: dataProperty
-        owlProperty: hasExtraInformation
-        unique: false
-        prefix: "Level: "
+        owlProperty: hasLevel
+        valueMap:
+          info: Info
+          low: Low
+          med: Medium
+          high: High
+          crit: Critical
+
       - sourceField: "Channel"
         type: dataProperty
         owlProperty: hasExtraInformation

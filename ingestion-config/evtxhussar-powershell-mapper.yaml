@@ -1,0 +1,134 @@
+genericMappings:
+  addTimestamp:
+    - sourceField: "EventTime"
+      type: dataProperty
+      owlProperty: hasTimestamp
+      dataType: xsd:dateTimeStamp
+
+  addComputer:
+    - type: linkedIndividual
+      owlClass: Computer
+      linkProperty: hasComputer
+      identifier:
+        fields: "Computer"
+      dataProperties:
+        - sourceField: "Computer"
+          type: dataProperty
+          owlProperty: hasHostname
+
+  addUser:
+    - type: linkedIndividual
+      owlClass: User
+      linkProperty: hasUser
+      identifier:
+        fields: "User"
+      dataProperties:
+        - sourceField: "User"
+          type: dataProperty
+          owlProperty: hasName
+
+  addCommandInfo:
+    - type: linkedIndividual
+      owlClass: Command
+      linkProperty: hasCommand
+      identifier:
+        fields:
+          - "Computer"
+          - "CommandName"
+      dataProperties:
+        - sourceField: "CommandName"
+          type: dataProperty
+          owlProperty: hasName
+        - sourceField: "CommandLine"
+          type: dataProperty
+          owlProperty: hasContent
+
+mappers:
+  - name: EvtxhussarPowerShellMapper
+    file: "${ANALYSIS_ROOT}/Evtxhussar_results/*/powershell/powershell_events.xlsx"
+    owlClass: PowershellEngineState
+    forensicTool: EvtxHussar
+    identifier:
+      fields:
+        - "EID"
+        - "EventTime"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addUser
+      - addCommandInfo
+    fieldMappings:
+      - sourceField: "EID"
+        type: dataProperty
+        owlProperty: hasEventID
+        dataType: xsd:unsignedLong
+
+      - sourceField: "Description"
+        type: dataProperty
+        owlProperty: hasDescription
+
+      - sourceField: "Channel"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Channel: "
+
+      - sourceField: "Provider"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Provider: "
+
+      - sourceField: "HostApplication"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Host application: "
+
+      - sourceField: "HostName"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Host name: "
+
+      - sourceField: "HostVersion"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Host version: "
+
+      - sourceField: "EngineVersion"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Engine version: "
+
+      - sourceField: "SessionId"
+        type: dataProperty
+        owlProperty: hasID
+
+      - sourceField: "RunspaceId"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Runspace ID: "
+
+      - sourceField: "Severity"
+        type: dataProperty
+        owlProperty: hasLevel
+        valueMap:
+          Informational: Info
+          Warning: Medium
+          high: High
+          crit: Critical
+
+      - sourceField: "ScriptBlockText"
+        type: dataProperty
+        owlProperty: hasContent
+
+      - sourceField: "ErrorMessage"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "Error message: "

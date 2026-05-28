@@ -81,6 +81,9 @@ mappers:
         type: dataProperty
         owlProperty: hasLevel
         unique: false
+        valueMap:
+          info: Info
+          high: High
 
       - sourceField: "rule_count"
         type: dataProperty
