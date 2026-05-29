@@ -1,5 +1,5 @@
 <p align="right">
-  <img src="https://www.news.uliege.be/upload/docs/image/png/2021-03/uliege_logo_rvb_pos.png" alt="Logo" width="220"/>
+  <img src="https://github.com/user-attachments/assets/0b17436c-643c-423d-ae2e-39fa6d0b34c6" alt="Logo" width="220"/>
 </p>
 
 # UniForeXT 
