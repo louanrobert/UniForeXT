@@ -5,7 +5,7 @@ import java.nio.file.Path;
 /**
  * Abstraction for ingesting data from a source file.
  *
- * Each implementation handles a specific file format (CSV, JSON, XML, …)
+ * Each implementation handles a specific file format (CSV, JSON, XML, etc.)
  * and delegates the semantic mapping of each record to a SourceMapper.
  *
  */

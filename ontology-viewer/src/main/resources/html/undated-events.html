@@ -87,7 +87,7 @@
 
                 // Update stats
                 const totalCount = events.length;
-                document.getElementById('stats').textContent = `${totalCount} total item${totalCount !== 1 ? 's' : ''} • ${Object.keys(undatedEvents).length} type${Object.keys(undatedEvents).length !== 1 ? 's' : ''}`;
+                document.getElementById('stats').textContent = `${totalCount} total item${totalCount !== 1 ? 's' : ''} - ${Object.keys(undatedEvents).length} type${Object.keys(undatedEvents).length !== 1 ? 's' : ''}`;
 
                 // Render the list
                 renderEventsList(currentSortedTypes);

@@ -46,7 +46,7 @@
         <span class="topbar-title ml-1 text-base font-semibold tracking-tight text-slate-50">Historical Timeline</span>
 
         <div class="topbar-meta ml-auto flex items-center gap-3 text-xs text-slate-400">
-            <span id="stats">Loading…</span>
+            <span id="stats">Loading...</span>
             <span id="view-meta"></span>
         </div>
     </div>
@@ -1029,8 +1029,8 @@
         ctx.font = '10px Inter, sans-serif';
         if (ctx.measureText(text).width <= maxW) return text;
         var t = text;
-        while (t.length > 1 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
-        return t + '…';
+        while (t.length > 1 && ctx.measureText(t + '...').width > maxW) t = t.slice(0, -1);
+        return t + '...';
     }
 
     /*  Filter UI Creation  */
@@ -1043,7 +1043,7 @@
         var searchBox = document.createElement('input');
         searchBox.id = 'search-box';
         searchBox.type = 'text';
-        searchBox.placeholder = 'Search…';
+        searchBox.placeholder = 'Search...';
         searchBox.className = 'px-2 py-1 text-sm bg-slate-900/70 border border-white/10 rounded text-slate-100 w-32 outline-none';
         searchBox.oninput = function() {
             setSearchQuery(this.value);

@@ -167,7 +167,7 @@ public class KGService {
     /**
      * Quick regex pre-check to avoid expensive parse attempts on clearly non-date
      * strings.
-     * Matches strings that start with 2–4 digits followed by a common date
+     * Matches strings that start with 2 to 4 digits followed by a common date
      * separator
      * ('/' or '-') or 'T', which is typical of the date formats we support (e.g.
      * "2024-01-31", "31/01/2024", "2024-01-31T10:15:30"). This is intentionally a
