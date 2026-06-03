@@ -1,45 +1,45 @@
 # Semantic Mapper - Ingestion Pipeline
 
-A Java-based semantic data ingestion pipeline that processes and maps data according to an ontology, mappers definitions and SHACL validation rules.
 
 ## Overview
 
-The Semantic Mapper provides the ingestion pipeline for processing the heterogeneous data and mapping it the ontology. It uses the mappers defined in the `ingestion-config` module to transform input data into RDF format, which is then validated against SHACL shapes defined in the `shapes.ttl` file. The pipeline is designed to be flexible and extensible, allowing for easy integration of new data sources and mapping rules.
+A Java-based ingestion pipeline that maps heterogeneous input data to RDF according to an ontology, YAML mappers and SHACL shapes. The pipeline is flexible and extensible, and supports optional SHACL validation.
 
-## Building
+## Features
 
-### Prerequisites
+- Transform input records to RDF using YAML mapper definitions
+- Validate generated RDF against SHACL shapes
+- Extensible ingestion stages and pluggable mappers
 
-- Java Dev Kit (JDK) version 25
+## Prerequisites
+
+- Java Development Kit (JDK) 25
 - Maven (tested with 3.9.12)
 
-### Clean and Package
+## Build
 
-To build the project and create an executable JAR:
+Clean and package the project:
 
 ```bash
 mvn clean package
 ```
 
-### Build Without Tests
-
-If you want to skip running tests during the build:
+Build without running tests:
 
 ```bash
 mvn clean package -DskipTests
 ```
 
-## Running
 
-### Execute the Ingestion Pipeline
+## Run
 
-To run the ingestion pipeline:
+Run the ingestion pipeline via Maven:
 
 ```bash
 mvn package exec:java
 ```
 
-To skip the SHACL validation stage, pass the flag through to the application:
+Skip SHACL validation (pass-through args):
 
 ```bash
 # Linux
@@ -49,14 +49,7 @@ mvn package exec:java -Dexec.args="--skip-shacl-validation"
 mvn package exec:java "-Dexec.args=--skip-shacl-validation"
 ```
 
-This command will:
-1. Compile the source code
-2. Package the application
-3. Execute the main application entry point
-
-### Command-Line Execution
-
-Alternatively, run the packaged JAR directly:
+Or run the packaged JAR directly:
 
 ```bash
 java -cp target/semantic-mapper-1.0-SNAPSHOT.jar be.ccb_uliege.incd.semantic_mapper.App
@@ -64,52 +57,47 @@ java -cp target/semantic-mapper-1.0-SNAPSHOT.jar be.ccb_uliege.incd.semantic_map
 
 ## Configuration
 
-### Mapper Configuration
+Mapper configuration is provided as YAML files in the `ingestion-config` module; see [ingestion-config README](../ingestion-config/README.md) for details.
 
-The ingestion pipeline is configured through YAML mapper files. For detailed configuration instructions, see the [ingestion-config README](../ingestion-config/README.md).
+### Environment variables
 
-### Environment Variables
-
-Configure the pipeline behavior with the following environment variables:
+Configure runtime paths using environment variables:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `CONFIG_DIR` | Path to the directory containing mapper configuration files | `../ingestion-config` |
-| `SHACL_SHAPES_PATH` | Path to the SHACL shapes file for validation | `../shapes.ttl` |
+| CONFIG_DIR | Path to mapper configuration directory | ../ingestion-config |
+| SHACL_SHAPES_PATH | Path to SHACL shapes file for validation | ../shapes.ttl |
+| ONTOLOGY_PATH | Optional path to an ontology file | (none) |
 
-#### Example
+#### Example (Windows PowerShell):
 
-```bash
-# Windows
+```powershell
 set CONFIG_DIR=..\ingestion-config
 set SHACL_SHAPES_PATH=..\shapes.ttl
 set ONTOLOGY_PATH=..\ontology.ttl
-$env:ANALYSIS_ROOT="C:/path/to/your/analysis/folder" #if needed; use \\ for Windows paths
-mvn package exec:java
-
-# Linux/macOS
-export CONFIG_DIR=../ingestion-config
-export SHACL_SHAPES_PATH=../shapes.ttl
+$env:ANALYSIS_ROOT = "C:/path/to/your/analysis/folder"
 mvn package exec:java
 ```
 
-## Project Structure
+## Project structure
 
 ```
 semantic-mapper/
 ├── src/
 │   ├── main/java/be/ccb_uliege/incd/semantic_mapper/
-│   │   ├── App.java              # Main application entry point
-│   │   ├── ingest/               # Data ingestion logic
-│   │   ├── owl/                  # OWL ontology handling
-│   │   └── validation/           # SHACL validation
-│   └── test/java/                # Unit tests
-├── pom.xml                        # Maven configuration
-└── README.md                      # This file
+│   │   ├── App.java
+│   │   ├── ingest/
+│   │   ├── owl/
+│   │   └── validation/
+│   └── test/java/
+├── pom.xml
+└── README.md
 ```
 
-### Key Modules
+## Key modules
 
-- **ingest**: Handles data loading and ingestion from various sources
-- **owl**: Manages OWL ontology operations
-- **validation**: Performs SHACL shape validation on RDF data
+- `ingest`: data loading and ingestion pipeline
+- `owl`: OWL/ontology utilities
+- `validation`: SHACL validation logic
+
+For more details on mapper files see [ingestion-config README](../ingestion-config/README.md).
