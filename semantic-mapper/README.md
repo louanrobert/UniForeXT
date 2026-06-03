@@ -2,21 +2,16 @@
 
 A Java-based semantic data ingestion pipeline that processes and maps data according to an ontology, mappers definitions and SHACL validation rules.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Prerequisites](#prerequisites)
-- [Building](#building)
-- [Running](#running)
-- [Configuration](#configuration)
-- [Project Structure](#project-structure)
-- [Troubleshooting](#troubleshooting)
-
 ## Overview
 
 The Semantic Mapper provides the ingestion pipeline for processing the heterogeneous data and mapping it the ontology. It uses the mappers defined in the `ingestion-config` module to transform input data into RDF format, which is then validated against SHACL shapes defined in the `shapes.ttl` file. The pipeline is designed to be flexible and extensible, allowing for easy integration of new data sources and mapping rules.
 
 ## Building
+
+### Prerequisites
+
+- Java Dev Kit (JDK) version 25
+- Maven (tested with 3.9.12)
 
 ### Clean and Package
 
