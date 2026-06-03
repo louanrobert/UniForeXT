@@ -18,7 +18,8 @@ genericMappings:
 
 mappers:
   - name: UnkownFile
-    file: "${ANALYSIS_ROOT}/WinSearchDB/Unknown_File_Report_*.csv"
+    file: "${ANALYSIS_ROOT}/WinSearchDB/*_File_Report_*.csv"
+    delimiter: ','
     owlClass: Detection
     forensicTool: WinSearchDB
     generics:
@@ -43,7 +44,8 @@ mappers:
 
 
   - name: UnkownInternetHistory
-    file: "${ANALYSIS_ROOT}/WinSearchDB/Unknown_Activity_History_Report_*.csv"
+    file: "${ANALYSIS_ROOT}/WinSearchDB/*_Activity_History_Report_*.csv"
+    delimiter: ','
     owlClass: Detection
     forensicTool: WinSearchDB
     identifier:

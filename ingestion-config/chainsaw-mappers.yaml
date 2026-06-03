@@ -54,6 +54,7 @@ genericMappings:
 mappers:
   - name: AntivirusMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/antivirus.csv
+    delimiter: ','
     owlClass: Antivirus
     forensicTool: Chainsaw
     identifier:
@@ -92,6 +93,7 @@ mappers:
 
   - name: SigmaMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/sigma.csv
+    delimiter: ','
     owlClass: Sigma
     forensicTool: Chainsaw
     identifier:
@@ -114,6 +116,7 @@ mappers:
 
   - name: AccountTamperingMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/account_tampering.csv
+    delimiter: ','
     owlClass: AccountTampering
     forensicTool: Chainsaw
     identifier:
@@ -143,6 +146,7 @@ mappers:
 
   - name: RDPEventsMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/rdp_events.csv
+    delimiter: ','
     owlClass: RDPEvent
     forensicTool: Chainsaw
     identifier:
@@ -172,6 +176,7 @@ mappers:
 
   - name: ServiceInstallationMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/service_installation.csv
+    delimiter: ','
     owlClass: ServiceInstallation
     forensicTool: Chainsaw
     identifier:
@@ -209,6 +214,7 @@ mappers:
 
   - name: IndicatorRemovalMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/indicator_removal.csv
+    delimiter: ','
     owlClass: IndicatorRemoval
     forensicTool: Chainsaw
     identifier:
@@ -235,6 +241,7 @@ mappers:
 
   - name: UserProfileDiskMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/microsoft_rds_events_-_user_profile_disk.csv
+    delimiter: ','
     owlClass: RegistryLoad_configuration_event
     forensicTool: Chainsaw
     identifier:
@@ -257,6 +264,7 @@ mappers:
 
   - name: PersistenceMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/persistence.csv
+    delimiter: ','
     owlClass: Persistence
     forensicTool: Chainsaw
     identifier:
@@ -283,6 +291,7 @@ mappers:
 
   - name: PowerShellEngineStateMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/powershell_engine_state.csv
+    delimiter: ','
     owlClass: RegistryLoad_configuration_event
     forensicTool: Chainsaw
     identifier:
@@ -347,6 +356,7 @@ mappers:
 
   - name: LateralMovementMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/lateral_movement.csv
+    delimiter: ','
     owlClass: LateralMovement
     forensicTool: Chainsaw
     identifier:
@@ -385,6 +395,7 @@ mappers:
 
   - name: LogTamperingMapper
     file: ${ANALYSIS_ROOT}/QuickWins/Chainsaw_results/log_tampering.csv
+    delimiter: ','
     owlClass: LogTampering
     forensicTool: Chainsaw
     identifier:

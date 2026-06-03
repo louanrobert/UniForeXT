@@ -27,12 +27,15 @@ public class CsvIngester implements SourceIngester {
                     .setHeader()
                     .setSkipHeaderRecord(true)
                     .setDelimiter(effectiveDelimiter)
+                    .setTrim(true)
+                    .setIgnoreEmptyLines(true)
                     .build());
 
             for (var csvRecord : csvParser) {
                 mapper.map(new CsvRecord(csvRecord));
             }
             csvParser.close();
+            reader.close();
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Error ingesting CSV file: " + file + " - " + e.getMessage(), e);
         }

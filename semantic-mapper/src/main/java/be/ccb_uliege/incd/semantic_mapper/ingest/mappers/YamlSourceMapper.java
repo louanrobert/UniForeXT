@@ -50,6 +50,14 @@ public class YamlSourceMapper implements SourceMapper {
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"),
             DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss.SSSSS"));
 
+    private static final List<DateTimeFormatter> OFFSET_DATE_TIME_INPUT_FORMATTERS = List.of(
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss xxx"),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS xxx"),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS xxx"),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss xxx"),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS xxx"),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS xxx"));
+
     private final MapperConfig config;
     private final Map<String, List<FieldMappingConfig>> genericMappings;
     private final KnowledgeGraphFacade knowledgeGraph;
@@ -91,18 +99,14 @@ public class YamlSourceMapper implements SourceMapper {
      * Maps a SourceRecord to an individual in the knowledge graph according to the configuration defined in the YAML file. This includes constructing the individual's identifier, setting static properties, applying generic mapping groups, and processing field mappings for both data properties and linked individuals.
      */
     @Override
-    public void map(SourceRecord r) {
-        try {
-            String identifier = buildIdentifier(r);
-            Resource individual = knowledgeGraph.createIndividual(config.getOwlClass(), identifier);
+    public void map(SourceRecord r) throws IllegalArgumentException {
+        String identifier = buildIdentifier(r);
+        Resource individual = knowledgeGraph.createIndividual(config.getOwlClass(), identifier);
 
-            addForensicTool(individual);
-            applyStaticProperties(individual);
-            applyGenerics(r, individual);
-            applyFieldMappings(r, individual);
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "Mapper '" + getName() + "' failed for a record (id=" + r + "): " + e.getMessage(), e);
-        }
+        addForensicTool(individual);
+        applyStaticProperties(individual);
+        applyGenerics(r, individual);
+        applyFieldMappings(r, individual);
     }
 
     /**
@@ -336,6 +340,9 @@ public class YamlSourceMapper implements SourceMapper {
         String result = tryParseOffsetDateTime(value);
         if (result != null) return result;
 
+        result = tryParseOffsetDateTimeWithFormatters(value); 
+        if (result != null) return result;
+
         result = tryParseZonedDateTime(value);
         if (result != null) return result;
 
@@ -357,6 +364,16 @@ public class YamlSourceMapper implements SourceMapper {
         } catch (DateTimeParseException ignored) {
             return null;
         }
+    }
+
+    private String tryParseOffsetDateTimeWithFormatters(String value) {
+        for (DateTimeFormatter formatter : OFFSET_DATE_TIME_INPUT_FORMATTERS) {
+            try {
+                return OffsetDateTime.parse(value, formatter).format(OUTPUT_DATE_TIME_STAMP_FORMATTER);
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+        return null;
     }
 
     private String tryParseZonedDateTime(String value) {

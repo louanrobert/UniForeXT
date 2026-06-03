@@ -71,6 +71,6 @@ public class CsvRecord implements SourceRecord {
             return false;
         }
         String value = csvRecord.get(field);
-        return !value.isEmpty() && !value.isBlank();
+        return value != null && !value.isBlank();
     }
 }
