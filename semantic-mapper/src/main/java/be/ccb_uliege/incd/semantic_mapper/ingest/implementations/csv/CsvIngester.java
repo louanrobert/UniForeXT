@@ -2,7 +2,9 @@ package be.ccb_uliege.incd.semantic_mapper.ingest.implementations.csv;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.function.BiConsumer;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -18,26 +20,47 @@ import be.ccb_uliege.incd.semantic_mapper.ingest.interfaces.SourceMapper;
  */
 public class CsvIngester implements SourceIngester {
     private static final Logger LOG = Logger.getLogger(CsvIngester.class.getName());
+
     @Override
-    public void ingest(Path file, SourceMapper mapper, Character delimiter) {
+    public void ingest(Path file, SourceMapper mapper, Character delimiter,
+            BiConsumer<Integer, Integer> progressListener) {
         try {
             char effectiveDelimiter = delimiter != null ? delimiter : ';';
-            var reader = Files.newBufferedReader(file, StandardCharsets.ISO_8859_1);
-            var csvParser = new CSVParser(reader, CSVFormat.Builder.create(CSVFormat.DEFAULT)
+            CSVFormat csvFormat = CSVFormat.Builder.create(CSVFormat.DEFAULT)
                     .setHeader()
                     .setSkipHeaderRecord(true)
                     .setDelimiter(effectiveDelimiter)
                     .setTrim(true)
                     .setIgnoreEmptyLines(true)
-                    .build());
+                    .build();
 
-            for (var csvRecord : csvParser) {
-                mapper.map(new CsvRecord(csvRecord));
+            int totalRecords = countRecords(file, csvFormat);
+            if (progressListener != null) {
+                progressListener.accept(0, totalRecords);
             }
-            csvParser.close();
-            reader.close();
+
+            try (var reader = Files.newBufferedReader(file, StandardCharsets.ISO_8859_1);
+                    var csvParser = new CSVParser(reader, csvFormat)) {
+                int processedRecords = 0;
+                for (var csvRecord : csvParser) {
+                    mapper.map(new CsvRecord(csvRecord));
+                    processedRecords++;
+                    if (progressListener != null) {
+                        progressListener.accept(processedRecords, totalRecords);
+                    }
+                }
+            }
+        } catch (NoSuchFileException e) {
+            LOG.log(Level.SEVERE, "CSV file not found: " + file);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Error ingesting CSV file: " + file + " - " + e.getMessage(), e);
+        }
+    }
+
+    private int countRecords(Path file, CSVFormat csvFormat) throws Exception {
+        try (var reader = Files.newBufferedReader(file, StandardCharsets.ISO_8859_1);
+                var csvParser = new CSVParser(reader, csvFormat)) {
+            return csvParser.getRecords().size();
         }
     }
 }

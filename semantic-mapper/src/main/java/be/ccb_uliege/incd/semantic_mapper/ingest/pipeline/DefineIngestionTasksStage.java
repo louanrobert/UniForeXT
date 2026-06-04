@@ -38,6 +38,8 @@ public class DefineIngestionTasksStage extends IngestionStage {
                             yamlSourceMapper.getDelimiter());
                     context.addTask(task);
                 }
+            } catch (IllegalStateException e) {
+                log("No files found for mapper glob pattern '" + yamlSourceMapper.getFilePath() + "' ; skipping mapper: " + yamlSourceMapper.getName());
             } catch (Exception e) {
                 log("Skipping mapper '" + yamlSourceMapper.getName() + "' due to error: " + e.getMessage());
                 e.printStackTrace();

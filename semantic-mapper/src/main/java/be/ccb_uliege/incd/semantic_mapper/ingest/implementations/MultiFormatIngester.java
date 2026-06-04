@@ -5,6 +5,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.function.BiConsumer;
 
 import be.ccb_uliege.incd.semantic_mapper.ingest.implementations.csv.CsvIngester;
 import be.ccb_uliege.incd.semantic_mapper.ingest.implementations.xlsx.XlsxIngester;
@@ -27,7 +28,8 @@ public class MultiFormatIngester implements SourceIngester {
     }
 
     @Override
-    public void ingest(Path file, SourceMapper mapper, Character delimiter) {
+    public void ingest(Path file, SourceMapper mapper, Character delimiter,
+            BiConsumer<Integer, Integer> progressListener) {
         String extension = getExtension(file);
         SourceIngester ingester = ingesters.get(extension);
 
@@ -36,7 +38,7 @@ public class MultiFormatIngester implements SourceIngester {
             return;
         }
 
-        ingester.ingest(file, mapper, delimiter);
+        ingester.ingest(file, mapper, delimiter, progressListener);
     }
 
     private String getExtension(Path file) {
