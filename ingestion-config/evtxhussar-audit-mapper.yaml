@@ -44,8 +44,19 @@ genericMappings:
           type: dataProperty
           owlProperty: hasDomain
 
+  addDescription:
+    - sourceField: "Description"
+      type: dataProperty
+      owlProperty: hasDescription
+  
+  addEID:
+    - sourceField: "EID"
+      type: dataProperty
+      owlProperty: hasEventID
+      dataType: xsd:unsignedLong
+
 mappers:
-  - name: LogClearedMapper
+  - name: EvtxHussarLogClearedMapper
     file: "${ANALYSIS_ROOT}/Evtxhussar_results/*/audit/log_cleared.xlsx"
     owlClass: LogCleared_Event
     forensicTool: EvtxHussar
@@ -59,23 +70,16 @@ mappers:
       - addTimestamp
       - addComputer
       - addSubjectUser
+      - addDescription
+      - addEID
     fieldMappings:
-      - sourceField: "EID"
-        type: dataProperty
-        owlProperty: hasEventID
-        dataType: xsd:unsignedLong
-
-      - sourceField: "Description"
-        type: dataProperty
-        owlProperty: hasDescription
-
       - sourceField: "Keywords"
         type: dataProperty
         owlProperty: hasExtraInformation
         unique: false
         prefix: "Keywords: "
 
-  - name: PolicyChangeMapper
+  - name: EvtxHussarPolicyChangeMapper
     file: "${ANALYSIS_ROOT}/Evtxhussar_results/*/audit/policy_change.xlsx"
     owlClass: AuditPolicyChange_Event
     forensicTool: EvtxHussar
@@ -91,15 +95,6 @@ mappers:
       - addSubjectUser
       - addTargetUser
     fieldMappings:
-      - sourceField: "EID"
-        type: dataProperty
-        owlProperty: hasEventID
-        dataType: xsd:unsignedLong
-
-      - sourceField: "Description"
-        type: dataProperty
-        owlProperty: hasDescription
-
       - sourceField: "CategoryId"
         type: dataProperty
         owlProperty: hasExtraInformation
@@ -123,3 +118,54 @@ mappers:
         owlProperty: hasExtraInformation
         unique: false
         prefix: "Policy changes: "
+
+  - name: EvtxHussarWindowsFirewallMapper
+    file: "${ANALYSIS_ROOT}/Evtxhussar_results/*/firewall/windows_firewall.xlsx"
+    owlClass: AuditPolicyChange_Event
+    forensicTool: EvtxHussar
+    identifier:
+      fields:
+        - "Computer"
+        - "EventTime"
+        - "EID"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addDescription
+      - addEID
+    fieldMappings:
+      - sourceField: "Channel"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Channel: "
+
+      - sourceField: "Provider"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Provider: "
+
+      - sourceField: "RuleName"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "RuleName"
+
+      - type: linkedIndividual
+        owlClass: Process
+        linkProperty: hasProcess
+        identifier:
+          fields: "ModifyingApplication"
+        dataProperties:
+          - sourceField: "ModifyingApplication"
+            type: dataProperty
+            owlProperty: hasName
+        nestedLinks:
+            - type:  linkedIndividual
+              owlClass: Path
+              linkProperty: hasPath
+              identifier:
+                fields: "ModifyingApplication"
+              nestedLinks:
+                - sourceField: "ModifyingApplication"
+                  type: dataProperty
+                  owlProperty: hasContent

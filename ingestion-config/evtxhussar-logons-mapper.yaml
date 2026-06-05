@@ -21,14 +21,25 @@ genericMappings:
       owlClass: User
       linkProperty: hasUser
       identifier:
-        fields: "TargetUserName"
+        fields: "SubjectUserName"
       dataProperties:
-        - sourceField: "TargetUserName"
+        - sourceField: "SubjectUserName"
           type: dataProperty
           owlProperty: hasName
-        - sourceField: "TargetDomainName"
+        - sourceField: "SubjectDomainName"
           type: dataProperty
           owlProperty: hasDomain
+  
+  addDescription:
+    - sourceField: "Description"
+      type: dataProperty
+      owlProperty: hasDescription
+  
+  addEID:
+    - sourceField: "EID"
+      type: dataProperty
+      owlProperty: hasEventID
+      dataType: xsd:unsignedLong
 
 mappers:
   - name: EvtxhussarLogonsMapper
@@ -46,16 +57,9 @@ mappers:
       - addTimestamp
       - addComputer
       - addUser
+      - addDescription
+      - addEID
     fieldMappings:
-      - sourceField: "EID"
-        type: dataProperty
-        owlProperty: hasEventID
-        dataType: xsd:unsignedLong
-
-      - sourceField: "Description"
-        type: dataProperty
-        owlProperty: hasDescription
-
       - type: linkedIndividual
         owlClass: LogonType
         linkProperty: hasLogonType
@@ -115,4 +119,68 @@ mappers:
                 - sourceField: "ProcessName"
                   type: dataProperty
                   owlProperty: hasContent
-            
+
+  - name: EvtxhussarRDPMapper
+    file: "${ANALYSIS_ROOT}/Evtxhussar_results/*/rdp/rdp.xlsx"
+    owlClass: RDPEvent
+    forensicTool: EvtxHussar
+    identifier:
+      fields:
+        - "Computer"
+        - "EventTime"
+        - "EID"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addDescription
+      - addEID
+    fieldMappings:
+      - sourceField: "SourceIP"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        unique: false
+        prefix: "SourceIP: "
+
+      - sourceField: "Channel"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Channel: "
+
+      - sourceField: "Provider"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Provider: "
+
+  - name: EvtxhussarAccountRelatedOperationsMapper
+    file: "${ANALYSIS_ROOT}/Evtxhussar_results/*/accounts/users_related_operations.xlsx"
+    owlClass: AccountTampering
+    forensicTool: EvtxHussar
+    identifier:
+      fields:
+        - "Computer"
+        - "EventTime"
+        - "EID"
+      separator: "_"
+    generics:
+      - addTimestamp
+      - addComputer
+      - addDescription
+      - addEID
+      - addUser
+    fieldMappings:
+      - sourceField: "Channel"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Channel: "
+
+      - sourceField: "Channel"
+        type: dataProperty
+        owlProperty: hasExtraInformation
+        prefix: "Provider: "
+      
+      - type: linkedIndividual
+        owlClass: User
+        linkProperty: hasTargetUser
+        identifier:
+          fields: "TargetUserName"
