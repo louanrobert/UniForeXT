@@ -1,5 +1,7 @@
 package be.ccb_uliege.incd.ontology_viewer;
 
+import be.ccb_uliege.incd.ontology_viewer.services.KGService;
+
 /**
  * Bridge class exposed to JavaScript inside WebView via JSObject.
  * JavaScript code calls methods on this object to fetch data from Jena.
@@ -109,5 +111,14 @@ public class JavaBridge {
      */
     public void log(String message) {
         System.out.println("[JS] " + message);
+    }
+
+    public void log(String level, String message) {
+        switch (level.toLowerCase()) {
+            case "info" -> System.out.println("[JS][INFO] " + message);
+            case "error" -> System.err.println("[JS][ERROR] " + message);
+            case "warn" -> System.out.println("[JS][WARN] " + message);
+            default -> System.out.println("[JS] " + message);
+        }
     }
 }

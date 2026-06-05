@@ -19,6 +19,7 @@ import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import be.ccb_uliege.incd.ontology_viewer.services.KGService;
 import be.ccb_uliege.incd.ontology_viewer.views.EventExplorerView;
 import be.ccb_uliege.incd.ontology_viewer.views.FastTimelineView;
 import be.ccb_uliege.incd.ontology_viewer.views.GraphView;

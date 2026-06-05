@@ -287,14 +287,28 @@
                 updateAutoLabel();
                 return;
             }
-            var timestamps = sourceEvents.map(function(e) { return getEventTimestamp(e); }).filter(function(ts) { return ts !== null; });
-            if (timestamps.length === 0) {
+            // Compute min/max timestamps iteratively to avoid passing very
+            // large arrays to Math.min/Math.max which can exceed argument
+            // limits in some JS engines.
+            var minT = Infinity;
+            var maxT = -Infinity;
+            var found = false;
+            for (var i = 0; i < sourceEvents.length; i++) {
+                try {
+                    var ts = getEventTimestamp(sourceEvents[i]);
+                    if (ts === null) continue;
+                    found = true;
+                    if (ts < minT) minT = ts;
+                    if (ts > maxT) maxT = ts;
+                } catch (errTs) {
+                    // ignore malformed timestamps
+                }
+            }
+            if (!found) {
                 autoBucketUnit = 'day';
                 updateAutoLabel();
                 return;
             }
-            var minT = Math.min.apply(null, timestamps);
-            var maxT = Math.max.apply(null, timestamps);
             var range = maxT - minT;
             var msDay = 86400000, msMonth = msDay * 30, msYear = msDay * 365;
             if (range > msYear * 10) autoBucketUnit = 'year';
@@ -366,61 +380,131 @@
 
         function initExplorer() {
             try {
+                javaBridge.log('info', 'initExplorer: calling javaBridge.getTimelineItemsJson');
                 var itemsJson = javaBridge.getTimelineItemsJson();
+                javaBridge.log('info', 'initExplorer: calling javaBridge.getTimelineGroupsJson');
                 var groupsJson = javaBridge.getTimelineGroupsJson();
+                javaBridge.log('info', 'initExplorer: received JSON strings');
                 var items = JSON.parse(itemsJson);
+                javaBridge.log('info', 'initExplorer: parsed items json length=' + (itemsJson?itemsJson.length:0));
                 var groups = JSON.parse(groupsJson);
+                javaBridge.log('info', 'initExplorer: parsed groups json length=' + (groupsJson?groupsJson.length:0));
 
                 // Build color map from provided group colors (single source of truth)
+                javaBridge.log('info', 'initExplorer: building color map for groups count=' + (groups && groups.length));
                 groups.forEach(function(g) {
                     if (g.color) typeColorMap[g.id] = g.color;
                 });
+                javaBridge.log('info', 'initExplorer: built typeColorMap keys=' + Object.keys(typeColorMap).length);
 
-                // Parse items into our event list
-                allEvents = items.map(function(it) {
-                    var label = it.label || it.content || it.id || '';
-                    var type = it.group || 'Unknown';
-                    var timestamp = typeof it.timestamp === 'number' ? it.timestamp : new Date(it.start).getTime();
-                    return {
-                        uri: it.id,
-                        label: label,
-                        type: type,
-                        start: it.start,
-                        timestamp: isNaN(timestamp) ? null : timestamp,
-                        tooltip: it.title || '',
-                        searchText: (label + ' ' + type + ' ' + (it.id || '')).toLowerCase()
-                    };
-                });
-
-                var timestamps = allEvents.map(function(e) { return getEventTimestamp(e); }).filter(function(ts) { return ts !== null; });
-                if (timestamps.length > 0) {
-                    dataTimeMin = Math.min.apply(null, timestamps);
-                    dataTimeMax = Math.max.apply(null, timestamps);
+                javaBridge.log('info', 'initExplorer: parsing items into events, count=' + (items && items.length));
+                // Parse items into our event list using a guarded loop to avoid
+                // potential engine recursion/stack issues when processing very
+                // large payloads or malformed items.
+                allEvents = [];
+                for (var i = 0; i < items.length; i++) {
+                    try {
+                        var it = items[i];
+                        var label = it.label || it.content || it.id || '';
+                        var type = it.group || 'Unknown';
+                        var timestamp = (typeof it.timestamp === 'number') ? it.timestamp : (it.start ? new Date(it.start).getTime() : null);
+                        if (isNaN(timestamp)) timestamp = null;
+                        // Avoid creating extremely large searchable strings that
+                        // can stress the JS engine; truncate to 1k chars.
+                        var rawSearch = (label + ' ' + type + ' ' + (it.id || '')) || '';
+                        var searchText = rawSearch.length > 1000 ? rawSearch.substring(0, 1000).toLowerCase() : rawSearch.toLowerCase();
+                        allEvents.push({
+                            uri: it.id,
+                            label: label,
+                            type: type,
+                            start: it.start,
+                            timestamp: timestamp,
+                            tooltip: it.title || '',
+                            searchText: searchText
+                        });
+                    } catch (itemErr) {
+                        javaBridge.log('error', 'initExplorer: skipped item ' + i + ' due to error: ' + (itemErr && itemErr.message ? itemErr.message : itemErr));
+                    }
+                    if (i > 0 && i % 5000 === 0) {
+                        javaBridge.log('info', 'initExplorer: processed ' + i + ' items');
+                    }
                 }
 
-                document.getElementById('stats').textContent = allEvents.length + ' events loaded';
+                try {
+                    // Collect timestamps using an explicit loop to avoid
+                    // potential engine issues with large arrays and chained
+                    // functional methods.
+                    var timestamps = [];
+                    for (var ti = 0; ti < allEvents.length; ti++) {
+                        try {
+                            var ts = getEventTimestamp(allEvents[ti]);
+                            if (ts !== null) timestamps.push(ts);
+                        } catch(innerTsErr) {
+                            // ignore malformed event timestamps
+                        }
+                    }
+                    if (timestamps.length > 0) {
+                        // Avoid using Math.min/Math.max with apply on large arrays
+                        // (can exceed engine argument limits). Compute iteratively.
+                        var minVal = Infinity;
+                        var maxVal = -Infinity;
+                        for (var mi = 0; mi < timestamps.length; mi++) {
+                            var v = timestamps[mi];
+                            if (v < minVal) minVal = v;
+                            if (v > maxVal) maxVal = v;
+                        }
+                        dataTimeMin = minVal === Infinity ? null : minVal;
+                        dataTimeMax = maxVal === -Infinity ? null : maxVal;
+                    }
 
-                // Build type chips
-                buildTypeChips(groups);
+                    var statsEl = document.getElementById('stats');
+                    if (statsEl) statsEl.textContent = allEvents.length + ' events loaded';
+                    else javaBridge.log('info', 'initExplorer: stats element not found');
 
-                updateDateRangeControls();
+                    javaBridge.log('info', 'initExplorer: events parsed, dataTimeMin=' + dataTimeMin + ' dataTimeMax=' + dataTimeMax);
+                } catch(postLoopErr) {
+                    javaBridge.log('info', 'initExplorer: post-loop error: ' + (postLoopErr.stack || postLoopErr.message || postLoopErr));
+                    throw postLoopErr;
+                }
 
-                // Initial render
-                applyFilters();
+                try {
+                    // Build type chips
+                    javaBridge.log('info', 'initExplorer: calling buildTypeChips');
+                    buildTypeChips(groups);
+                    javaBridge.log('info', 'initExplorer: buildTypeChips done');
 
-                // Build histogram
-                buildHistogram();
+                    javaBridge.log('info', 'initExplorer: calling updateDateRangeControls');
+                    updateDateRangeControls();
+                    javaBridge.log('info', 'initExplorer: updateDateRangeControls done');
 
-                document.addEventListener('wheel', handleWheelShortcut, { passive: false, capture: true });
+                    // Initial render
+                    javaBridge.log('info', 'initExplorer: calling applyFilters');
+                    applyFilters();
+                    javaBridge.log('info', 'initExplorer: applyFilters done');
 
-                // Initialize resizer for detail panel (allows horizontal resizing)
-                initResizer();
+                    // Build histogram
+                    javaBridge.log('info', 'initExplorer: calling buildHistogram');
+                    buildHistogram();
+                    javaBridge.log('info', 'initExplorer: buildHistogram done');
 
-                javaBridge.log('Event Explorer initialized with ' + allEvents.length + ' events');
+                    document.addEventListener('wheel', handleWheelShortcut, { passive: false, capture: true });
+                    javaBridge.log('info', 'initExplorer: added wheel listener');
+
+                    // Initialize resizer for detail panel (allows horizontal resizing)
+                    javaBridge.log('info', 'initExplorer: calling initResizer');
+                    initResizer();
+                    javaBridge.log('info', 'initExplorer: initResizer done');
+                } catch(seqErr) {
+                    javaBridge.log('error', 'initExplorer: error during post-parse sequence: ' + (seqErr.stack || seqErr.message || seqErr));
+                    throw seqErr;
+                }
+
+                javaBridge.log('info', 'Event Explorer initialized with ' + allEvents.length + ' events');
             } catch (e) {
-                javaBridge.log('Error initializing explorer: ' + e.message);
-                document.getElementById('table-scroll').innerHTML =
-                    '<div class="empty-state p-8 text-slate-400"><i data-lucide="circle-alert" class="h-4 w-4"></i>Error: ' + e.message + '</div>';
+                    // Log full stack when available to help diagnose recursion/overflow
+                    javaBridge.log('error', 'Error initializing explorer: ' + (e.stack || e.message));
+                    document.getElementById('table-scroll').innerHTML =
+                        '<div class="empty-state p-8 text-slate-400"><i data-lucide="circle-alert" class="h-4 w-4"></i>Error initializing explorer. See Java log for details.</div>';
             }
         }
 
@@ -508,22 +592,17 @@
                 }
             };
 
-            var options = overrides ? deepMerge(base, overrides) : base;
+            // Use a safe shallow merge at top-level to avoid traversing
+            // potentially circular structures in Chart options which can
+            // cause "Maximum call stack size exceeded" in some WebViews.
+            var options = overrides ? Object.assign({}, base, overrides) : base;
             suppressHistogramAnimationOnce = false;
             return options;
         }
 
-        function deepMerge(a, b) {
-            for (var k in b) {
-                if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) {
-                    a[k] = a[k] || {};
-                    deepMerge(a[k], b[k]);
-                } else {
-                    a[k] = b[k];
-                }
-            }
-            return a;
-        }
+        // deepMerge removed: using shallow merge to avoid circular traversal
+        // If a true deep merge is needed later, reintroduce a cycle-safe
+        // implementation using WeakSet to track visited objects.
 
         /*  Aggregation helpers  */
 
@@ -1643,7 +1722,7 @@
 
                 contentEl.innerHTML = html;
             } catch (e) {
-                javaBridge.log('Error loading detail: ' + e.message);
+                javaBridge.log('error', 'Error loading detail: ' + e.message);
             }
         }
 

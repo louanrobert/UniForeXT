@@ -1,4 +1,4 @@
-package be.ccb_uliege.incd.ontology_viewer;
+package be.ccb_uliege.incd.ontology_viewer.services;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 import be.ccb_uliege.incd.ontology_viewer.HtmlLoader;
 import be.ccb_uliege.incd.ontology_viewer.JavaBridge;
-import be.ccb_uliege.incd.ontology_viewer.KGService;
+import be.ccb_uliege.incd.ontology_viewer.services.KGService;
 
 /**
  * Manages a new Stage with a WebView that renders a Vis.js Network graph.
