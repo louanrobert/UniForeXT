@@ -38,16 +38,25 @@ public class ExecuteIngestionTasksStage extends IngestionStage {
 
     private void renderProgress(Path currentFile, int completedRecords, int totalRecords) {
         final int barWidth = 28;
-        int safeTotal = Math.max(totalRecords, 1); // no division by zero
-        // never negative
-        int filledWidth = Math.min(completedRecords * barWidth / safeTotal, barWidth);
-        int percent = completedRecords * 100 / safeTotal;
-
-        String message = String.format("[%s%s] %3d%% (%d/%d) %s",
-                "#".repeat(filledWidth),
-                "-".repeat(barWidth - filledWidth),
-                percent, completedRecords, totalRecords,
-                currentFile.getFileName());
+        String message;
+        if (totalRecords < 0) {
+            // Unknown total: show spinner-like bar and processed count only
+            int filledWidth = (completedRecords % (barWidth + 1));
+            message = String.format("[%s%s] processed: %d %s",
+                    "#".repeat(filledWidth),
+                    "-".repeat(barWidth - filledWidth),
+                    completedRecords,
+                    currentFile.getFileName());
+        } else {
+            int safeTotal = Math.max(totalRecords, 1); // no division by zero
+            int filledWidth = Math.min(completedRecords * barWidth / safeTotal, barWidth);
+            int percent = Math.min(completedRecords * 100 / safeTotal, 100);
+            message = String.format("[%s%s] %3d%% (%d/%d) %s",
+                    "#".repeat(filledWidth),
+                    "-".repeat(barWidth - filledWidth),
+                    percent, completedRecords, totalRecords,
+                    currentFile.getFileName());
+        }
 
         // Pad with spaces to clear leftover characters from previous render
         int padding = Math.max(0, lastRenderedLength - message.length());

@@ -1,14 +1,12 @@
 package be.ccb_uliege.incd.semantic_mapper.validation;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.riot.RDFDataMgr;
+import java.nio.file.Paths;
 import org.apache.jena.shacl.ShaclValidator;
 import org.apache.jena.shacl.Shapes;
-import org.apache.jena.shacl.validation.ReportEntry;
 import org.apache.jena.shacl.ValidationReport;
 
 /**
@@ -31,10 +29,15 @@ public class ShaclShapesValidator {
      * @return Shaes containing the SHACL shapes.
      */
     public static Shapes loadShapes(String resourcePath) {
-        Model model = ModelFactory.createDefaultModel();
-        model.read(resourcePath);
-        
-        return Shapes.parse(model);
+        try {
+            Model model = ModelFactory.createDefaultModel();
+            // Normalize local paths to file: URIs so Jena reads correctly on Windows
+            String uri = Paths.get(resourcePath).toAbsolutePath().toUri().toString();
+            RDFDataMgr.read(model, uri);
+            return Shapes.parse(model);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to load SHACL shapes from: " + resourcePath, e);
+        }
     }
 
 
@@ -48,16 +51,5 @@ public class ShaclShapesValidator {
     public static ValidationReport validate(Model data, Shapes shapesGraph) {
         Graph modelAsGraph = data.getGraph();
         return ShaclValidator.get().validate(shapesGraph, modelAsGraph);
-    }
-
-    private static List<String> extractErrorMessages(ValidationReport report) {
-        List<String> errors = new ArrayList<>();
-        for (ReportEntry item : report.getEntries()) {
-                String message = item.message();
-                String focusNode = item.focusNode() != null ? item.focusNode().toString() : "unknown";
-                String severity = item.severity() != null ? item.severity().toString() : "UNKNOWN";
-                errors.add(String.format("[%s] %s (focusNode: %s)", severity, message, focusNode));
-            }
-        return errors;
     }
 }

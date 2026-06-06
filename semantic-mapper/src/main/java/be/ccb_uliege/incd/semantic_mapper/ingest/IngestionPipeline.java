@@ -1,8 +1,9 @@
 package be.ccb_uliege.incd.semantic_mapper.ingest;
 
+import java.nio.file.Path;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import be.ccb_uliege.incd.semantic_mapper.ingest.implementations.MultiFormatIngester;
 import be.ccb_uliege.incd.semantic_mapper.ingest.pipeline.DefineIngestionTasksStage;
@@ -23,7 +24,7 @@ import be.ccb_uliege.incd.semantic_mapper.owl.kg.KnowledgeGraphFacade;
 public class IngestionPipeline {
 
     private final List<IngestionStage> stages;
-    private static final Logger LOG = Logger.getLogger(IngestionPipeline.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(IngestionPipeline.class);
 
     public IngestionPipeline(List<IngestionStage> stages) {
         this.stages = List.copyOf(stages);
@@ -37,10 +38,10 @@ public class IngestionPipeline {
             try {
                 stage.execute(context);
             } catch (IllegalStateException e) {
-                LOG.log(Level.SEVERE, "Critical stage failed: " + stage.getClass().getSimpleName() + " - halting pipeline", e);
+                LOG.error("Critical stage failed: {} ; halting pipeline", stage.getClass().getSimpleName(), e);
                 throw e;  // Re-throw critical exceptions to stop the pipeline
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Stage failed: " + stage.getClass().getSimpleName() + " - continuing with next stage", e);
+                LOG.warn("Stage failed: {} ; continuing with next stage", stage.getClass().getSimpleName(), e);
             }
         }
     }
@@ -49,21 +50,22 @@ public class IngestionPipeline {
      * Static method to run the entire ingestion pipeline. This method initializes the pipeline with the necessary stages, creates a PipelineContext with the provided KnowledgeGraphFacade and a MultiFormatIngester, and then executes the pipeline. If any stage throws an exception, it is logged and re-thrown to indicate that the ingestion process failed.
      */
     public static void run(KnowledgeGraphFacade knowledgeGraph) throws Exception {
-        run(knowledgeGraph, false);
+        run(knowledgeGraph, false, Path.of("..", "ingestion-config"), Path.of("..", "ontology", "shapes.ttl"));
     }
 
-    public static void run(KnowledgeGraphFacade knowledgeGraph, boolean skipShaclValidation) throws Exception {
+    public static void run(KnowledgeGraphFacade knowledgeGraph, boolean skipShaclValidation, Path configDir, Path shapesPath) throws Exception {
         IngestionPipeline pipeline = new IngestionPipeline(createDefaultStages(skipShaclValidation));
 
         PipelineContext context = new PipelineContext(
                 knowledgeGraph,
-            new MultiFormatIngester(),
-                "..\\ingestion-config");
+                new MultiFormatIngester(),
+                configDir.toString(),
+                shapesPath.toString());
 
         try {
             pipeline.run(context);
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Ingestion pipeline failed: " + e.getMessage(), e);
+            LOG.error("Ingestion pipeline failed: {}", e.getMessage(), e);
             throw e;
         }
     }

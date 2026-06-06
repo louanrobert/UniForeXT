@@ -43,6 +43,7 @@ final class KGServiceContext {
     final Map<String, String> labelCache = new ConcurrentHashMap<>();
     final Map<String, String> typeCache = new ConcurrentHashMap<>();
 
+    // Volatile cache fields — reads are thread-safe; writes synchronized by services
     volatile Set<Property> datePropertiesCache;
     volatile java.util.List<TimelineItem> timelineItemsCache;
     volatile String timelineItemsJsonCache;
@@ -112,6 +113,7 @@ final class KGServiceContext {
                 }
             }
             Set<String> checkedNonDateProps = new HashSet<>();
+            // Iterate statements efficiently; avoid repeated predicate work
             StmtIterator iter = model.listStatements();
             while (iter.hasNext()) {
                 Statement stmt = iter.next();

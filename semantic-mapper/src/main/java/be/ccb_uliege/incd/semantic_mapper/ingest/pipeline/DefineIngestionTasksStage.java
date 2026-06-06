@@ -99,23 +99,6 @@ public class DefineIngestionTasksStage extends IngestionStage {
         }
     }
 
-    /**
-     * Walks the path components and returns the longest prefix path that contains
-     * no wildcard segment.
-     * E.g. for /data/2024-* /reports/*.csv → returns /data
-     */
-    private static Path findSearchRoot(Path path) {
-        Path current = path.isAbsolute() ? path.getRoot() : Path.of(".");
-        for (int i = 0; i < path.getNameCount(); i++) {
-            String segment = path.getName(i).toString();
-            if (containsWildcard(segment)) {
-                break;
-            }
-            current = current.resolve(segment);
-        }
-        return current;
-    }
-
     private static boolean containsWildcard(String value) {
         return value.contains("*") || value.contains("?") || value.contains("[") || value.contains("{");
     }

@@ -13,7 +13,7 @@ A Java-based ingestion pipeline that maps heterogeneous input data to RDF accord
 
 ## Prerequisites
 
-- Java Development Kit (JDK) 25
+- Java Development Kit (JDK) 21 (LTS)
 - Maven (tested with 3.9.12)
 
 ## Build
@@ -59,24 +59,41 @@ java -cp target/semantic-mapper-1.0-SNAPSHOT.jar be.ccb_uliege.incd.semantic_map
 
 Mapper configuration is provided as YAML files in the `ingestion-config` module; see [ingestion-config README](../ingestion-config/README.md) for details.
 
-### Environment variables
+### Configuration: CLI flags, system properties, environment variables
+
+You can configure paths and base IRI via CLI flags, system properties, or environment variables. Precedence is CLI > system property > environment variable > default.
+
+Supported options:
+
+- CLI flags:
+	- `--config-dir=PATH` — mapper config directory (default `../ingestion-config`)
+	- `--shapes=PATH` — SHACL shapes file path (default `../ontology/shapes.ttl`)
+	- `--base-iri=IRI` — base IRI for created resources (default from ontology loader)
+	- `--skip-shacl-validation` — skip SHACL validation stage
+
+- System properties:
+	- `-Dconfig.dir=PATH`
+	- `-Dshapes.path=PATH`
+	- `-Dbase.iri=IRI`
+
+- Environment variables:
 
 Configure runtime paths using environment variables:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | CONFIG_DIR | Path to mapper configuration directory | ../ingestion-config |
-| SHACL_SHAPES_PATH | Path to SHACL shapes file for validation | ../shapes.ttl |
+| SHACL_SHAPES_PATH | Path to SHACL shapes file for validation | ../ontology/shapes.ttl |
+| BASE_IRI | Base IRI for created resources | (safe default) |
 | ONTOLOGY_PATH | Optional path to an ontology file | (none) |
 
 #### Example (Windows PowerShell):
 
 ```powershell
-set CONFIG_DIR=..\ingestion-config
-set SHACL_SHAPES_PATH=..\shapes.ttl
-set ONTOLOGY_PATH=..\ontology.ttl
-$env:ANALYSIS_ROOT = "C:/path/to/your/analysis/folder"
-mvn package exec:java
+$env:CONFIG_DIR="..\ingestion-config"
+$env:SHACL_SHAPES_PATH="..\ontology\shapes.ttl"
+$env:BASE_IRI="http://example.org/ufr#"
+mvn package exec:java -Dexec.args="--skip-shacl-validation"
 ```
 
 ## Project structure

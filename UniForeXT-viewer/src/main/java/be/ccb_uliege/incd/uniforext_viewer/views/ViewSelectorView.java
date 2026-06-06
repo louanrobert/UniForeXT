@@ -8,11 +8,8 @@ import be.ccb_uliege.incd.uniforext_viewer.App;
  */
 public class ViewSelectorView extends BaseWebView {
 
-    private final App app;
-
     public ViewSelectorView(App app) {
         super(new ViewSelectorBridge(app), "viewSelector", "view-selector.html");
-        this.app = app;
     }
 
     /**

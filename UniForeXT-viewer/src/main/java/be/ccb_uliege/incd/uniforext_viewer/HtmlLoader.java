@@ -30,7 +30,13 @@ public final class HtmlLoader {
                     "The HTML resource '" + fileName + "' could not be found. " +
                     "This may indicate a packaging or deployment issue.");
             }
-            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            // Read fully
+            String html = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            // Inject small CSS to improve font rendering on dark backgrounds when loaded via loadContent
+            if (!html.contains("<base")) {
+                html = html.replace("</head>", "<style>body{background:#020617;color:#e2e8f0}</style></head>");
+            }
+            return html;
         } catch (IOException e) {
             System.err.println("ERROR: Failed to read HTML resource: " + path);
             e.printStackTrace();

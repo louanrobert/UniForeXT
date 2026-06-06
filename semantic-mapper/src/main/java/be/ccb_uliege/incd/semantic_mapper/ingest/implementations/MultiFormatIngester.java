@@ -3,8 +3,8 @@ package be.ccb_uliege.incd.semantic_mapper.ingest.implementations;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.function.BiConsumer;
 
 import be.ccb_uliege.incd.semantic_mapper.ingest.implementations.csv.CsvIngester;
@@ -17,7 +17,7 @@ import be.ccb_uliege.incd.semantic_mapper.ingest.interfaces.SourceMapper;
  */
 public class MultiFormatIngester implements SourceIngester {
 
-    private static final Logger LOG = Logger.getLogger(MultiFormatIngester.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(MultiFormatIngester.class);
 
     private final Map<String, SourceIngester> ingesters;
 
@@ -34,7 +34,7 @@ public class MultiFormatIngester implements SourceIngester {
         SourceIngester ingester = ingesters.get(extension);
 
         if (ingester == null) {
-            LOG.log(Level.WARNING, "No ingester registered for file type: {0} ({1})", new Object[] { extension, file });
+            LOG.warn("No ingester registered for file type: {} ({})", extension, file);
             return;
         }
 

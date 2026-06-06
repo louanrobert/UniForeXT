@@ -43,7 +43,7 @@ public class App extends Application {
 
     private static final Logger LOG = Logger.getLogger(App.class.getName());
     private static final int DEFAULT_WIDTH = 1400;
-    private static final int DEFAULT_HEIGHT = 800;
+    private static final int DEFAULT_HEIGHT = 840; // Slightly taller for filter panel spacing
     private static final Color DARK_SCENE_FILL = Color.web("#020617");
 
     private KGService kgService;
@@ -233,6 +233,7 @@ public class App extends Application {
     public void showViewSelector() {
         ViewSelectorView selectorView = new ViewSelectorView(this);
         primaryStage.setScene(createDarkScene(selectorView.getRoot()));
+        primaryStage.centerOnScreen();
     }
 
     /**

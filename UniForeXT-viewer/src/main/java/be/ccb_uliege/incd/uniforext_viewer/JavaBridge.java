@@ -114,7 +114,8 @@ public class JavaBridge {
     }
 
     public void log(String level, String message) {
-        switch (level.toLowerCase()) {
+        String lvl = level == null ? "info" : level.toLowerCase();
+        switch (lvl) {
             case "info" -> System.out.println("[JS][INFO] " + message);
             case "error" -> System.err.println("[JS][ERROR] " + message);
             case "warn" -> System.out.println("[JS][WARN] " + message);

@@ -29,12 +29,12 @@ public class FastTimelineView {
         webView.setStyle(DARK_BG_STYLE);
         webView.setOpacity(0.0);
 
-        // Let the WebView fill whatever space is given to it
-        webView.prefWidthProperty().bind(webView.widthProperty());
-        webView.prefHeightProperty().bind(webView.heightProperty());
-
         root = new StackPane(webView);
         root.setStyle(DARK_BG_STYLE);
+
+        // Ensure the WebView fills the available space provided by the root container
+        webView.prefWidthProperty().bind(root.widthProperty());
+        webView.prefHeightProperty().bind(root.heightProperty());
 
         webEngine = webView.getEngine();
         webEngine.setJavaScriptEnabled(true);
@@ -73,9 +73,9 @@ public class FastTimelineView {
     /**
      * Attaches the JavaScript bridge and initializes the fast timeline.
      */
-    @SuppressWarnings("removal")
     private void onPageLoaded(JavaBridge bridge) {
         try {
+            @SuppressWarnings("removal") // can be ignored because JavaFX is already updated and ships with JSObject
             JSObject window = (JSObject) webEngine.executeScript("window");
             if (window != null) {
                 window.setMember("javaBridge", bridge);

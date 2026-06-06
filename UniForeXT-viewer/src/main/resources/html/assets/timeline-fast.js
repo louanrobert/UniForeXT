@@ -883,7 +883,9 @@ function drawEventNode(b) {
   ctx.fillStyle = "#ddeeff";
   ctx.font = "10px Inter, sans-serif";
   ctx.textBaseline = "middle";
-  ctx.fillText(fitText(b.item.label, w - 10), x + 5, y + h / 2);
+  /* Avoid measuring text twice by reusing computed width */
+  var text = fitText(b.item.label, w - 10);
+  ctx.fillText(text, x + 5, y + h / 2);
 
   hitBoxes.push({ kind: "event", x: x, y: y, w: w, h: h, item: b.item });
 }

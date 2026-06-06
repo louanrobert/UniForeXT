@@ -8,7 +8,8 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 
-import be.ccb_uliege.incd.semantic_mapper.owl.Loader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class is responsible for loading and managing the properties defined in the ontology.
@@ -24,6 +25,7 @@ public class Properties {
 
    private final Map<String, Property> dataProperties = new HashMap<>();
    private final Model ontology;
+   private static final Logger LOG = LoggerFactory.getLogger(Properties.class);
 
    public Properties(Model ontology) {
       this.ontology = ontology;
@@ -63,13 +65,8 @@ public class Properties {
                   });
          });
       } catch (Exception e) {
-         e.printStackTrace();
-         // If error occurs, likely to be a problem with the ontology file path or
-         // format. Ensure the file exists and is a valid RDF file.
-         System.err.println("Error loading properties from ontology: " + e.getMessage());
-         System.err.println("Ontology file path: " + Loader.getBase());
-         System.err.println("Current working directory: " + System.getProperty("user.dir"));
-         System.exit(1);
+         LOG.error("Error loading properties from ontology: {}", e.getMessage(), e);
+         throw e;
       }
    }
 

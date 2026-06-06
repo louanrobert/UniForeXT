@@ -1,12 +1,11 @@
 package be.ccb_uliege.incd.semantic_mapper.ingest.pipeline;
 
 import java.util.Collection;
-import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.shacl.Shapes;
 import org.apache.jena.shacl.ValidationReport;
 import org.apache.jena.shacl.validation.ReportEntry;
-import org.apache.jena.shacl.vocabulary.SHACL;
 import be.ccb_uliege.incd.semantic_mapper.validation.ShaclShapesValidator;
 
 /**
@@ -44,12 +43,14 @@ public class ValidateShaclStage extends IngestionStage {
             
             // Get the ingested data graph from context
             Model dataGraph = context.getKnowledgeGraph().getModel();
-            // Add the ontology model to the data graph for validation, as shapes may reference ontology classes/properties
-            dataGraph.add(context.getKnowledgeGraph().getOntologyModel());
+            // Do not mutate the data graph; create a temporary union for validation
+            Model unionForValidation = ModelFactory.createDefaultModel();
+            unionForValidation.add(context.getKnowledgeGraph().getOntologyModel());
+            unionForValidation.add(dataGraph);
             
             // Validate
-            this.log("Validating " + dataGraph.size() + " triples against shapes");
-            ValidationReport report = ShaclShapesValidator.validate(dataGraph, shapesGraph);
+            this.log("Validating " + unionForValidation.size() + " triples against shapes");
+            ValidationReport report = ShaclShapesValidator.validate(unionForValidation, shapesGraph);
             
             // Handle results
             logReport(report);
@@ -67,7 +68,7 @@ public class ValidateShaclStage extends IngestionStage {
             for (ReportEntry item : items) {
                 String message = item.message();
                 String focusNode = item.focusNode() != null ? item.focusNode().toString() : "unknown";
-                String severity = nodeToSeverityString(item);
+                String severity = item.severity() != null ? item.severity().toString() : "UNKNOWN";
 
                 // Source shape (e.g. sh:NodeShape or sh:PropertyShape IRI)
                 String sourceShape = item.source() != null ? item.source().toString() : "unknown";
@@ -81,13 +82,5 @@ public class ValidateShaclStage extends IngestionStage {
                         severity, message, focusNode, sourceShape, constraint));
             }
         }
-    }
-
-   private String nodeToSeverityString(ReportEntry item) {
-      Node n = item.focusNode();
-        if ( n.equals(SHACL.Violation) ) return "Violation";
-        if ( n.equals(SHACL.Warning) ) return "Warning";
-        if ( n.equals(SHACL.Info) ) return "Info";
-        return "UNKNOWN";
     }
 }

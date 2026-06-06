@@ -9,19 +9,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import org.apache.poi.util.IOUtils;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.util.CellReference;
+import org.apache.poi.util.IOUtils;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
 import org.apache.poi.xssf.model.SharedStrings;
 import org.apache.poi.xssf.model.StylesTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 import javax.xml.parsers.SAXParserFactory;
@@ -37,7 +37,7 @@ import be.ccb_uliege.incd.semantic_mapper.ingest.interfaces.SourceMapper;
  */
 public class XlsxIngester implements SourceIngester {
 
-    private static final Logger LOG = Logger.getLogger(XlsxIngester.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(XlsxIngester.class);
 
     @Override
     public void ingest(Path file, SourceMapper mapper, Character delimiter,
@@ -54,7 +54,7 @@ public class XlsxIngester implements SourceIngester {
                 XSSFReader reader = new XSSFReader(packageFile, true);
                 Iterator<InputStream> sheets = reader.getSheetsData();
                 if (!sheets.hasNext()) {
-                    LOG.log(Level.WARNING, "XLSX file has no sheets: " + file);
+                    LOG.warn("XLSX file has no sheets: " + file);
                     return;
                 }
 
@@ -70,13 +70,13 @@ public class XlsxIngester implements SourceIngester {
                 }
 
                 if (!handler.hasHeaderRow()) {
-                    LOG.log(Level.WARNING, "XLSX file has no header row: " + file);
+                    LOG.warn("XLSX file has no header row: " + file);
                 }
             }
         } catch (FileNotFoundException e) {
-            LOG.log(Level.SEVERE, "XLSX file not found: " + file);
+            LOG.error("XLSX file not found: {}", file);
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Error ingesting XLSX file: " + file + " - " + e.getMessage(), e);
+            LOG.warn("Error ingesting XLSX file {}: {}", file, e.getMessage(), e);
         }
     }
 
@@ -105,7 +105,7 @@ public class XlsxIngester implements SourceIngester {
             XSSFReader reader = new XSSFReader(packageFile, true);
             Iterator<InputStream> sheets = reader.getSheetsData();
             if (!sheets.hasNext()) {
-                LOG.log(Level.WARNING, "XLSX file has no sheets: " + file);
+                LOG.warn("XLSX file has no sheets: " + file);
                 return;
             }
 
@@ -274,7 +274,7 @@ public class XlsxIngester implements SourceIngester {
         private int processedRows;
 
         private StreamingSheetHandler(SourceMapper mapper, BiConsumer<Integer, Integer> progressListener,
-                int totalRows) {
+            int totalRows) {
             this.mapper = mapper;
             this.progressListener = progressListener;
             this.totalRows = totalRows;
@@ -282,10 +282,15 @@ public class XlsxIngester implements SourceIngester {
 
         @Override
         protected void onDataRow(Map<String, String> values) {
-            mapper.map(new XlsxRecord(values));
+            try {
+                mapper.map(new XlsxRecord(values));
+            } catch (Exception perRowEx) {
+                LOG.warn("Row mapping failed in {}: {}", mapper, perRowEx.getMessage());
+                // continue
+            }
             processedRows++;
 
-            if (progressListener != null) {
+            if (progressListener != null && (processedRows % 100 == 0 || processedRows == totalRows)) {
                 progressListener.accept(processedRows, totalRows);
             }
         }

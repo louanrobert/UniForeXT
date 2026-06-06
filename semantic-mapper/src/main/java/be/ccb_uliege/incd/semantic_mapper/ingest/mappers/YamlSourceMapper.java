@@ -26,7 +26,8 @@ import be.ccb_uliege.incd.semantic_mapper.ingest.mappers.config.FieldMappingConf
 import be.ccb_uliege.incd.semantic_mapper.ingest.mappers.config.MapperConfig;
 import be.ccb_uliege.incd.semantic_mapper.ingest.mappers.config.StaticPropertyConfig;
 import be.ccb_uliege.incd.semantic_mapper.owl.kg.KnowledgeGraphFacade;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*
  * SourceMapper implementation that creates OWL individuals based on YAML configuration.
@@ -61,7 +62,7 @@ public class YamlSourceMapper implements SourceMapper {
     private final Map<String, List<FieldMappingConfig>> genericMappings;
     private final KnowledgeGraphFacade knowledgeGraph;
     private final Resource forensicTool;
-    private static final Logger LOG = Logger.getLogger(YamlSourceMapper.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(YamlSourceMapper.class);
 
     public YamlSourceMapper(MapperConfig config, Map<String, List<FieldMappingConfig>> genericMappings,
             KnowledgeGraphFacade knowledgeGraph) {

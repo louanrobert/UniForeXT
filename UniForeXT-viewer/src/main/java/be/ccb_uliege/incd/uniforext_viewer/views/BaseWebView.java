@@ -43,7 +43,12 @@ public abstract class BaseWebView {
         root.setStyle(DARK_BG_STYLE);
         webView = new WebView();
         webView.setStyle(DARK_BG_STYLE);
+        // Disable the default context menu to avoid conflicts with custom menus
+        webView.setContextMenuEnabled(false);
         webView.setOpacity(0.0);
+        // Ensure the WebView grows/shrinks with the root container
+        webView.prefWidthProperty().bind(root.widthProperty());
+        webView.prefHeightProperty().bind(root.heightProperty());
         webEngine = webView.getEngine();
         webEngine.setJavaScriptEnabled(true);
 
@@ -72,9 +77,9 @@ public abstract class BaseWebView {
      * Attaches the JavaScript bridge and executes the initialization function.
      * Called automatically when the page loads successfully.
      */
-    @SuppressWarnings("removal")
     private void onPageLoaded(Object bridge, String bridgeName) {
         try {
+            @SuppressWarnings("removal") // can be ignored because JavaFX is already updated and ships with JSObject
             JSObject window = (JSObject) webEngine.executeScript("window");
             if (window == null) {
                 LOG.log(Level.WARNING, "Could not access JavaScript window object");

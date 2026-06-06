@@ -5,6 +5,8 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import be.ccb_uliege.incd.semantic_mapper.owl.Loader;
 import be.ccb_uliege.incd.semantic_mapper.owl.ontology.OntologyFacade;
@@ -33,11 +35,16 @@ public class KnowledgeGraphFacade {
       if (cls == null) {
          throw new IllegalArgumentException("Class not found: " + className);
       }
-      String safeIndividualName = individualName.replaceAll("[^a-zA-Z0-9]", "_");
-      String safeClassName = className.replaceAll("[^a-zA-Z0-9]", "_");
-      Resource individual = knowledgeGraph.createResource(Loader.getBase() + safeClassName + "-" + safeIndividualName);
+      String safeIndividualName = uriEncode(individualName);
+      String safeClassName = uriEncode(className);
+      Resource individual = knowledgeGraph.createResource(Loader.getBase() + safeClassName + ":" + safeIndividualName);
       individual.addProperty(org.apache.jena.vocabulary.RDF.type, cls);
       return individual;
+   }
+
+   private String uriEncode(String value) {
+      // RFC 3986 friendly encoding for path/segment-like concatenation
+      return URLEncoder.encode(value, StandardCharsets.UTF_8);
    }
 
    public Literal createLiteral(Object value, RDFDatatype datatype) {

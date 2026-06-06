@@ -74,9 +74,9 @@ public class GraphView {
     /**
      * Attaches the JavaScript bridge and initializes the graph with the individual's neighborhood.
      */
-    @SuppressWarnings("removal")
     private void onPageLoaded(JavaBridge bridge, String individualUri) {
         try {
+            @SuppressWarnings("removal") // can be ignored because JavaFX is already updated and ships with JSObject
             JSObject window = (JSObject) webEngine.executeScript("window");
             if (window != null) {
                 window.setMember("javaBridge", bridge);

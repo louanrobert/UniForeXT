@@ -17,19 +17,16 @@ public class PipelineContext {
     private final KnowledgeGraphFacade knowledgeGraph;
     private final SourceIngester sourceIngester;
     private final String mapperConfigPath;
-    private static final String SHACL_SHAPES_PATH_ENV = "SHACL_SHAPES_PATH";
-    private static final String DEFAULT_SHACL_SHAPES_PATH = "../ontology/shapes.ttl";
-    private static final String SHACL_SHAPES_PATH = System.getenv(SHACL_SHAPES_PATH_ENV) != null
-            ? System.getenv(SHACL_SHAPES_PATH_ENV)
-            : DEFAULT_SHACL_SHAPES_PATH;
+    private final String shaclShapesPath;
 
     private YamlMapperRegistry mapperRegistry;
     private final List<IngestionTask> ingestionTasks = new ArrayList<>();
 
-    public PipelineContext(KnowledgeGraphFacade knowledgeGraph, SourceIngester sourceIngester, String mapperConfigPath) {
+    public PipelineContext(KnowledgeGraphFacade knowledgeGraph, SourceIngester sourceIngester, String mapperConfigPath, String shaclShapesPath) {
         this.knowledgeGraph = Objects.requireNonNull(knowledgeGraph, "knowledgeGraph cannot be null");
         this.sourceIngester = Objects.requireNonNull(sourceIngester, "sourceIngester cannot be null");
         this.mapperConfigPath = Objects.requireNonNull(mapperConfigPath, "mapperConfigPath cannot be null");
+        this.shaclShapesPath = Objects.requireNonNull(shaclShapesPath, "shaclShapesPath cannot be null");
     }
 
     public KnowledgeGraphFacade getKnowledgeGraph() {
@@ -45,7 +42,7 @@ public class PipelineContext {
     }
 
     public String getShaclShapesPath() {
-        return SHACL_SHAPES_PATH;
+        return shaclShapesPath;
     }
 
     public YamlMapperRegistry getMapperRegistry() {

@@ -20,6 +20,7 @@ public abstract class IngestionStage {
     }
 
     protected void log(String message) {
+        // Keep simple console logging for stage messages
         String logMessage = getLogPrefix() + message;
         System.out.println(logMessage);
     }

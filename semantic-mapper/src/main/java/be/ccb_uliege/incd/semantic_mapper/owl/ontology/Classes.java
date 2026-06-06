@@ -8,7 +8,8 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 
-import be.ccb_uliege.incd.semantic_mapper.owl.Loader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class is responsible for loading and managing the classes defined in the ontology.
@@ -20,6 +21,7 @@ public class Classes {
    
    private final Map<String, Resource> classes = new HashMap<>();
    private final Model ontology;
+   private static final Logger LOG = LoggerFactory.getLogger(Classes.class);
 
    public Classes(Model ontology) {
       this.ontology = ontology;
@@ -41,12 +43,8 @@ public class Classes {
                }
             });
       } catch (Exception e) {
-         e.printStackTrace();
-         // If error occurs, likely to be a problem with the ontology file path or format. Ensure the file exists and is a valid RDF file.
-         System.err.println("Error loading classes from ontology: " + e.getMessage());
-         System.err.println("Ontology file path: " + Loader.getBase());
-         System.err.println("Current working directory: " + System.getProperty("user.dir"));
-         System.exit(1);
+         LOG.error("Error loading classes from ontology: {}", e.getMessage(), e);
+         throw e;
       }
    }
 
