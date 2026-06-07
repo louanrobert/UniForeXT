@@ -1,72 +1,112 @@
-// package be.ccb_uliege.incd.semantic_mapper.ingest.pipeline;
+package be.ccb_uliege.incd.semantic_mapper.ingest.pipeline;
 
-// import static org.junit.jupiter.api.Assertions.assertEquals;
-// import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-// import java.io.IOException;
-// import java.nio.file.Files;
-// import java.nio.file.Path;
-// import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
-// import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-// class DefineIngestionTasksStageTest {
+import be.ccb_uliege.incd.semantic_mapper.ingest.mappers.YamlMapperRegistry;
 
-//     @Test
-//     void resolveTaskFilesReturnsConfiguredPathWhenNoWildcard() {
-//         Path configuredPath = Path.of("data", "wks02-haya.csv");
+class DefineIngestionTasksStageTest {
 
-//         List<Path> resolvedPaths = DefineIngestionTasksStage.resolveTaskFiles(configuredPath);
+    @TempDir
+    Path tempDirectory;
 
-//         assertEquals(1, resolvedPaths.size());
-//         assertEquals(configuredPath, resolvedPaths.get(0));
-//     }
+    @Test
+    void resolveTaskFilesReturnsConfiguredPathWhenNoWildcard() {
+        Path configuredPath = Path.of("data", "wks02-haya.csv");
 
-//     @Test
-//     void resolveTaskFilesExpandsWildcardFileName() throws IOException {
-//         Path tempDirectory = Files.createTempDirectory("ingestion-wildcard");
-//         try {
-//             Path matchingOne = Files.createFile(tempDirectory.resolve("wks02-haya.csv"));
-//             Path matchingTwo = Files.createFile(tempDirectory.resolve("abc-haya.csv"));
-//             Files.createFile(tempDirectory.resolve("not-matching.csv"));
+        List<Path> resolvedPaths = DefineIngestionTasksStage.resolveTaskFiles(configuredPath.toString());
 
-//             List<Path> resolvedPaths = DefineIngestionTasksStage.resolveTaskFiles(tempDirectory.resolve("*-haya.csv"));
+        assertEquals(List.of(configuredPath), resolvedPaths);
+    }
 
-//             assertEquals(List.of(matchingTwo, matchingOne), resolvedPaths);
-//         } finally {
-//             deleteRecursively(tempDirectory);
-//         }
-//     }
+    @Test
+    void resolveTaskFilesExpandsWildcardFileNameInSortedOrder() throws Exception {
+        Path matchingOne = Files.createFile(tempDirectory.resolve("wks02-haya.csv"));
+        Path matchingTwo = Files.createFile(tempDirectory.resolve("abc-haya.csv"));
+        Files.createFile(tempDirectory.resolve("not-matching.csv"));
 
-//     @Test
-//     void resolveTaskFilesThrowsWhenWildcardHasNoMatch() throws IOException {
-//         Path tempDirectory = Files.createTempDirectory("ingestion-wildcard-empty");
-//         try {
-//             IllegalStateException exception = assertThrows(
-//                     IllegalStateException.class,
-//                     () -> DefineIngestionTasksStage.resolveTaskFiles(tempDirectory.resolve("*-haya.csv")));
+        List<Path> resolvedPaths = DefineIngestionTasksStage.resolveTaskFiles(
+                tempDirectory.toString().replace('\\', '/') + "/*-haya.csv");
 
-//             assertEquals(true, exception.getMessage().contains("No files match mapper wildcard path"));
-//         } finally {
-//             deleteRecursively(tempDirectory);
-//         }
-//     }
+        assertEquals(List.of(matchingTwo, matchingOne), resolvedPaths);
+    }
 
-//     private static void deleteRecursively(Path root) throws IOException {
-//         try (var files = Files.walk(root)) {
-//             files.sorted((left, right) -> right.getNameCount() - left.getNameCount())
-//                     .forEach(path -> {
-//                         try {
-//                             Files.deleteIfExists(path);
-//                         } catch (IOException e) {
-//                             throw new RuntimeException(e);
-//                         }
-//                     });
-//         } catch (RuntimeException e) {
-//             if (e.getCause() instanceof IOException ioException) {
-//                 throw ioException;
-//             }
-//             throw e;
-//         }
-//     }
-// }
+    @Test
+    void resolveTaskFilesExpandsRecursiveWildcard() throws Exception {
+        Path nestedDirectory = Files.createDirectories(tempDirectory.resolve("nested"));
+        Path nestedMatch = Files.createFile(nestedDirectory.resolve("event.csv"));
+
+        List<Path> resolvedPaths = DefineIngestionTasksStage.resolveTaskFiles(
+                tempDirectory.toString().replace('\\', '/') + "/**/*.csv");
+
+        assertEquals(List.of(nestedMatch), resolvedPaths);
+    }
+
+    @Test
+    void resolveTaskFilesThrowsWhenWildcardRootIsMissingOrNoFilesMatch() throws Exception {
+        IllegalStateException missingRoot = assertThrows(
+                IllegalStateException.class,
+                () -> DefineIngestionTasksStage.resolveTaskFiles(
+                        tempDirectory.resolve("missing").toString().replace('\\', '/') + "/*.csv"));
+        assertTrue(missingRoot.getMessage().contains("root directory not found"));
+
+        IllegalStateException noMatches = assertThrows(
+                IllegalStateException.class,
+                () -> DefineIngestionTasksStage.resolveTaskFiles(
+                        tempDirectory.toString().replace('\\', '/') + "/*.evtx"));
+        assertTrue(noMatches.getMessage().contains("No files match mapper wildcard path"));
+    }
+
+    @Test
+    void executeCreatesTasksForResolvedYamlMappersAndSkipsMissingWildcards() throws Exception {
+        Path eventOne = Files.createFile(tempDirectory.resolve("a.csv"));
+        Path eventTwo = Files.createFile(tempDirectory.resolve("b.csv"));
+        Path mapperDirectory = Files.createDirectory(tempDirectory.resolve("mappers"));
+        Files.writeString(mapperDirectory.resolve("events.yaml"), "mappers:\n"
+                + "  - name: events\n"
+                + "    owlClass: Event\n"
+                + "    file: " + tempDirectory.toString().replace('\\', '/') + "/*.csv\n"
+                + "    delimiter: ','\n"
+                + "    identifier:\n"
+                + "      fields: id\n"
+                + "    fieldMappings: []\n"
+                + "  - name: missing\n"
+                + "    owlClass: Event\n"
+                + "    file: " + tempDirectory.toString().replace('\\', '/') + "/*.missing\n"
+                + "    identifier:\n"
+                + "      fields: id\n"
+                + "    fieldMappings: []\n");
+        PipelineContext context = new PipelineContext(
+                PipelineTestSupport.newKnowledgeGraphFacade(),
+                (file, mapper, delimiter, progressListener) -> { },
+                mapperDirectory.toString(),
+                "shapes");
+        context.setMapperRegistry(YamlMapperRegistry.fromYamlDirectory(mapperDirectory.toString(), context.getKnowledgeGraph()));
+
+        new DefineIngestionTasksStage().execute(context);
+
+        assertEquals(2, context.getIngestionTasks().size());
+        assertEquals(eventOne, context.getIngestionTasks().get(0).file());
+        assertEquals(eventTwo, context.getIngestionTasks().get(1).file());
+        assertEquals(Character.valueOf(','), context.getIngestionTasks().get(0).delimiter());
+    }
+
+    @Test
+    void executeRequiresMapperRegistry() {
+        PipelineContext context = new PipelineContext(
+                PipelineTestSupport.newKnowledgeGraphFacade(),
+                (file, mapper, delimiter, progressListener) -> { },
+                "config",
+                "shapes");
+
+        assertThrows(IllegalStateException.class, () -> new DefineIngestionTasksStage().execute(context));
+    }
+}
