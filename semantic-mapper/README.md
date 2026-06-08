@@ -15,7 +15,6 @@ A Java-based ingestion pipeline that maps heterogeneous input data to RDF accord
 
 - Java Development Kit (JDK) 21 (LTS)
 - Maven (tested with 3.9.12)
-- This tool is known to work on Windows.
 
 ## Build
 
@@ -62,7 +61,10 @@ Mapper configuration is provided as YAML files in the `ingestion-config` module;
 
 ### Configuration: CLI flags, system properties, environment variables
 
-You can configure paths and base IRI via CLI flags, system properties, or environment variables. Precedence is CLI > system property > environment variable > default.
+You can configure paths and base IRI via CLI flags, system properties, or environment variables. 
+
+> [!NOTE]
+> Precedence is CLI > system property > environment variable > default.
 
 Supported options:
 

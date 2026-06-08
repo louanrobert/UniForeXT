@@ -49,6 +49,9 @@ The viewer includes pages for:
 - Query view
 - Timelines and undated events
 
+> [!NOTE]
+> This project is known to work on Windows
+
 ---
 ## Versioning
 The project follows semantic versioning. Major changes that break backward compatibility (in terms of configuration or UI changes) will increment the major version, while minor features and bug fixes will increment the minor and patch versions respectively.
