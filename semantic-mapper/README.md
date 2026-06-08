@@ -15,6 +15,7 @@ A Java-based ingestion pipeline that maps heterogeneous input data to RDF accord
 
 - Java Development Kit (JDK) 21 (LTS)
 - Maven (tested with 3.9.12)
+- This tool is known to work on Windows.
 
 ## Build
 
