@@ -38,7 +38,7 @@ public class IngestionPipeline {
             try {
                 stage.execute(context);
             } catch (IllegalStateException e) {
-                LOG.error("Critical stage failed: {} ; halting pipeline", stage.getClass().getSimpleName(), e);
+                LOG.error("Critical stage failed: {} ; halting pipeline", stage.getClass().getSimpleName());
                 throw e;  // Re-throw critical exceptions to stop the pipeline
             } catch (Exception e) {
                 LOG.warn("Stage failed: {} ; continuing with next stage", stage.getClass().getSimpleName(), e);
@@ -62,12 +62,7 @@ public class IngestionPipeline {
                 configDir.toString(),
                 shapesPath.toString());
 
-        try {
-            pipeline.run(context);
-        } catch (Exception e) {
-            LOG.error("Ingestion pipeline failed: {}", e.getMessage(), e);
-            throw e;
-        }
+        pipeline.run(context);
     }
 
     static List<IngestionStage> createDefaultStages(boolean skipShaclValidation) {

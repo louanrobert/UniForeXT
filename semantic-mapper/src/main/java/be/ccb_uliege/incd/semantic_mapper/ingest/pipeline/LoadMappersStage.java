@@ -10,7 +10,7 @@ import be.ccb_uliege.incd.semantic_mapper.ingest.mappers.YamlMapperRegistry;
 public class LoadMappersStage extends IngestionStage {
 
     @Override
-    public void execute(PipelineContext context) {
+    public void execute(PipelineContext context) throws IllegalStateException {
         log("Loading mappers from config directory: " + context.getMapperConfigPath());
         YamlMapperRegistry mapperRegistry = YamlMapperRegistry.fromYamlDirectory(
                 context.getMapperConfigPath(),

@@ -60,7 +60,7 @@ public class YamlMapperRegistry {
             MapperConfigRegistry config = MappersConfigLoader.load(yamlFilePath);
             return new YamlMapperRegistry(config, knowledgeGraph);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load mapper configuration from " + yamlFilePath, e);
+            throw new IllegalStateException("Failed to load mapper configuration from " + yamlFilePath, e);
         }
     }
 
@@ -73,10 +73,14 @@ public class YamlMapperRegistry {
      * @param knowledgeGraph facade used for graph manipulation
      * @return a fully initialised YamlMapperRegistry with mappers from all YAML files
      */
-    public static YamlMapperRegistry fromYamlDirectory(String yamlDirectoryPath, KnowledgeGraphFacade knowledgeGraph) {
+    public static YamlMapperRegistry fromYamlDirectory(String yamlDirectoryPath, KnowledgeGraphFacade knowledgeGraph) throws IllegalStateException {
+        // Check path exists and is a directory
         File directory = new File(yamlDirectoryPath);
+        if (!directory.exists()) {
+            throw new IllegalStateException("Mapper configuration directory does not exist: " + yamlDirectoryPath);
+        }
         if (!directory.isDirectory()) {
-            throw new IllegalArgumentException("Mapper configuration path is not a directory: " + yamlDirectoryPath);
+            throw new IllegalStateException("Mapper configuration path is not a directory: " + yamlDirectoryPath);
         }
 
         YamlMapperRegistry combinedRegistry = new YamlMapperRegistry();
@@ -89,6 +93,8 @@ public class YamlMapperRegistry {
 
             if (yamlFiles.isEmpty()) {
                 throw new IllegalStateException("No YAML files found in directory: " + yamlDirectoryPath);
+            } else {
+                System.out.println("Found " + yamlFiles.size() + " YAML files in directory: " + yamlDirectoryPath);
             }
 
             for (Path yamlFile : yamlFiles) {
@@ -100,11 +106,11 @@ public class YamlMapperRegistry {
                         combinedRegistry.mappers.put(ysm.getName(), ysm);
                     }
                 } catch (IOException e) {
-                    throw new RuntimeException("Failed to load mapper configuration from " + yamlFile, e);
+                    throw new IllegalStateException("Failed to load mapper configuration from " + yamlFile, e);
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read mapper configuration directory: " + yamlDirectoryPath, e);
+            throw new IllegalStateException("Failed to read mapper configuration directory: " + yamlDirectoryPath, e);
         }
 
         return combinedRegistry;
