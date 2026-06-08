@@ -134,16 +134,19 @@ fieldMappings:
 
 The mapper YAML files use an environment variable `ANALYSIS_ROOT` to reference the root folder of the analysis data. This makes the configuration portable and eliminates hardcoded paths.
 
+> [!IMPORTANT]
+> On Windows, paths should be expressed with double '\' or simple '/'.
+
 #### Setting the Environment Variable
 
 ##### Windows (Command Prompt)
 ```cmd
-set ANALYSIS_ROOT=C:\path\to\your\analysis\folder
+set ANALYSIS_ROOT=C:\\path\\to\your\\analysis\\folder
 ```
 
 ##### Windows (PowerShell)
 ```powershell
-$env:ANALYSIS_ROOT="C:\path\to\your\analysis\folder"
+$env:ANALYSIS_ROOT="C:\\path\\to\\your\\analysis\\folder"
 ```
 
 ##### Linux/macOS
@@ -168,7 +171,7 @@ QuickWins\
 
 Then set:
 ```
-ANALYSIS_ROOT=C:\Users\Robert_Louan\Downloads\DFIR_Automation_Results_2\wks02\
+ANALYSIS_ROOT=C:\\Users\\Robert_Louan\\Downloads\\DFIR_Automation_Results_2\\wks02\\
 ```
 
 ### Custom environment variables
