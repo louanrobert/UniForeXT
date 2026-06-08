@@ -18,7 +18,7 @@ import be.ccb_uliege.incd.semantic_mapper.owl.kg.KnowledgeGraphFacade;
  */
 public final class App {
     private static final Logger LOG = LoggerFactory.getLogger(App.class);
-
+    
     private static final String SKIP_SHACL_VALIDATION_FLAG = "--skip-shacl-validation";
     private static final String SKIP_SHACL_FLAG = "--skip-shacl";
     private static final String CONFIG_DIR_FLAG = "--config-dir=";
@@ -39,6 +39,7 @@ public final class App {
     private App() {}
 
     public static void main(String[] args) {
+
         try {
             // Resolve configuration inputs
             Path configDir = resolvePathArg(args, CONFIG_DIR_FLAG,
@@ -54,7 +55,7 @@ public final class App {
             String baseIri = resolveStringArg(args, BASE_IRI_FLAG,
                     System.getProperty(PROP_BASE_IRI),
                     System.getenv(ENV_BASE_IRI),
-                    Loader.getBase());
+                    Loader.getBase()); // Default base IRI from Loader if not provided
 
             boolean skipShacl = shouldSkipShaclValidation(args);
 
@@ -85,21 +86,21 @@ public final class App {
     }
 
     private static Path resolvePathArg(String[] args, String flagPrefix, String sysProp, String env, Path def) {
-        String fromCli = Arrays.stream(args)
-                .filter(a -> a.startsWith(flagPrefix))
-                .map(a -> a.substring(flagPrefix.length()))
-                .findFirst().orElse(null);
-        String chosen = firstNonBlank(fromCli, sysProp, env);
-        return chosen != null && !chosen.isBlank() ? Path.of(chosen) : def;
+        String resolved = resolveArg(args, flagPrefix, sysProp, env, null);
+        return resolved != null ? Path.of(resolved) : def;
     }
 
     private static String resolveStringArg(String[] args, String flagPrefix, String sysProp, String env, String def) {
+        return resolveArg(args, flagPrefix, sysProp, env, def);
+    }
+
+    private static String resolveArg(String[] args, String flagPrefix, String sysProp, String env, String def) {
         String fromCli = Arrays.stream(args)
                 .filter(a -> a.startsWith(flagPrefix))
                 .map(a -> a.substring(flagPrefix.length()))
                 .findFirst().orElse(null);
         String chosen = firstNonBlank(fromCli, sysProp, env);
-        return chosen != null && !chosen.isBlank() ? chosen : def;
+        return chosen != null ? chosen : def;
     }
 
     private static String firstNonBlank(String... values) {
