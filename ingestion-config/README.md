@@ -135,7 +135,7 @@ fieldMappings:
 The mapper YAML files use an environment variable `ANALYSIS_ROOT` to reference the root folder of the analysis data. This makes the configuration portable and eliminates hardcoded paths.
 
 > [!IMPORTANT]
-> On Windows, paths should be expressed with double '\' or simple '/'.
+> On Windows, paths should be expressed with double '\\' or simple '/'.
 
 #### Setting the Environment Variable
 
